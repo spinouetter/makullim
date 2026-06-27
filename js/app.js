@@ -82,6 +82,13 @@ let memoPopoverIdx = null; // 현재 열려있는 메모 팝오버의 공연 인
 let scheduleAutoScrolled = false; // 현재 공연으로의 자동 스크롤을 한 번만 수행
 let ticketPopoverIdx = null; // 현재 열려있는 티켓 선택 팝오버의 공연 인덱스
 
+// === 스케줄 가로 스크롤 시 날짜 식별 옵션 (Settings에서 토글, 기본 OFF) ===
+let floatDateOn = false;        // 방법1: 날짜·시간·좌석을 왼쪽 고정 컬럼으로 플로팅 표시
+let rowHighlightOn = false;     // 방법2: 날짜 클릭으로 그 줄 하이라이트
+let rowHighlightSave = false;   // 방법2: 하이라이트를 새로고침 후에도 유지(저장)
+let lockVScrollOn = false;      // 방법3: 가로 드래그 스크롤 중 세로 스크롤 잠금
+let highlightedRows = new Set(); // 하이라이트된 공연 idx 집합
+
 // 숨길 수 있는 특수 컬럼 키 (배역 이름과 충돌하지 않는 토큰)
 const COL_TICKET = "__ticket__";
 const COL_PRICE = "__price__";
@@ -178,6 +185,8 @@ function buildTicketPopover(idx, grade, ticketType, ticketFee){
 function renderSchedule(){
   const head = document.getElementById("scheduleHead");
   const body = document.getElementById("scheduleBody");
+  const table = document.getElementById("scheduleTable");
+  table.classList.toggle("hl-mode", rowHighlightOn);  // 방법2(날짜 셀 클릭 가능)
   const allRoles = performanceData.casts.map(c=>c.role);
   const visibleRoles = allRoles.filter(r=>!scheduleHiddenCols.has(r));
   const showTicket = !scheduleHiddenCols.has(COL_TICKET);
@@ -233,6 +242,7 @@ function renderSchedule(){
   };
 
   head.innerHTML = `
+    ${floatDateOn ? '<th class="float-cell"></th>' : ''}
     <th>날짜</th><th>시간</th><th>좌석</th>
     ${showTicket ? colHeadHtml(COL_TICKET, "티켓") : ""}
     ${showPrice ? colHeadHtml(COL_PRICE, "가격") : ""}
@@ -419,8 +429,15 @@ function renderSchedule(){
       }</td>`;
     }).join("");
 
+    // 방법1: 컬럼이 아니라 0폭 sticky 셀 + 절대배치 오버레이 라벨. 가로 스크롤 시에만 보임.
+    // 좌석번호 대신 티켓 아이콘 표시: 티켓(좌석이 등급에 매칭)이 있으면 진하게(on), 없으면 옅게.
+    const floatCell = floatDateOn
+      ? `<td class="float-cell"><div class="float-label"${dcolor?` style="color:${dcolor}"`:''}>${floatLabelText(p)}<span class="float-tk${grade?' on':''}" aria-hidden="true">&#127903;</span></div></td>`
+      : "";
+
     return `
-      <tr class="${isPast?'past':''} ${idx===currentIdx?'current-perf':''}" data-idx="${idx}">
+      <tr class="${isPast?'past':''} ${idx===currentIdx?'current-perf':''} ${highlightedRows.has(idx)?'row-highlight':''}" data-idx="${idx}">
+        ${floatCell}
         <td class="date-cell"${dcolor?` style="color:${dcolor}"`:''}>${shortDateDow(p.date)}</td>
         <td class="time-cell"${dcolor?` style="color:${dcolor}"`:''}>${p.time}</td>
         <td class="seat-cell">
@@ -607,6 +624,37 @@ function renderSchedule(){
     });
   });
 
+  // 방법2: 날짜/플로팅 셀 클릭으로 그 줄 하이라이트 토글(여러 행 동시 가능)
+  if(rowHighlightOn){
+    body.querySelectorAll(".date-cell, .float-cell").forEach(cell=>{
+      cell.addEventListener("click", ()=>{
+        const tr = cell.closest("tr");
+        const i = +tr.dataset.idx;
+        if(highlightedRows.has(i)) highlightedRows.delete(i);
+        else highlightedRows.add(i);
+        tr.classList.toggle("row-highlight");
+        updateClearHighlightBtn(); // 선택 수에 따라 해제 버튼 활성/비활성 갱신
+        if(rowHighlightSave) saveState();
+      });
+    });
+  }
+
+  // 방법2: '하이라이트 해제' 버튼은 스케줄 툴바(캐스트 변경 기록 옆). 선택이 있을 때만 활성.
+  const clearBtn = document.getElementById("clearHighlightBtn");
+  if(clearBtn){
+    clearBtn.onclick = ()=>{
+      if(highlightedRows.size === 0) return; // 비활성 상태 보호
+      highlightedRows.clear();
+      saveState();
+      renderSchedule();
+    };
+  }
+  updateClearHighlightBtn();
+
+  // 방법1: 오버레이 임계값(년도 폭) 측정 + 현재 가로 스크롤에 맞춰 표시 갱신
+  if(floatDateOn) computeFloatThreshold();
+  updateFloatOverlay();
+
   // 페이지 최초 로드/새로고침 시, 현재·다음 공연이 위에서 4번째 줄에 오도록 한 번만 스크롤
   if(!scheduleAutoScrolled){
     scheduleAutoScrolled = true;
@@ -706,6 +754,44 @@ function shortDateDow(dateStr){
 function perfDateLabel(p){
   if(!p || !p.date) return "";
   return shortDateDow(p.date) + (p.time ? " " + p.time : "");
+}
+
+// 방법1 플로팅 오버레이 라벨: 년도 빼고(MM/DD), 시간은 분 빼고(시만). 예 "06/28 19"
+function floatLabelText(p){
+  if(!p) return "";
+  const md = (p.date || "").replace(/^\d{4}-(\d{2})-(\d{2})$/, "$1/$2");
+  const hh = (p.time || "").split(":")[0] || "";
+  return md + (hh ? ` ${hh}` : "");
+}
+
+// 방법1: 가로 스크롤이 '날짜의 년도 폭'을 넘으면 오버레이 표시 → 그 임계값(px)을 날짜셀 첫 3글자("26/") 폭으로 측정
+let floatThreshold = 22;
+function computeFloatThreshold(){
+  const cell = document.querySelector("#scheduleBody .date-cell");
+  if(!cell || !cell.firstChild || cell.firstChild.nodeType !== 3) return;
+  try{
+    const range = document.createRange();
+    range.setStart(cell.firstChild, 0);
+    range.setEnd(cell.firstChild, 3); // "YY/"
+    const w = Math.round(range.getBoundingClientRect().width);
+    if(w > 6) floatThreshold = w;
+  } catch(e){ /* 측정 실패 시 기본값 유지 */ }
+}
+// 가로 스크롤 정도에 따라 오버레이 표시/숨김 토글
+function updateFloatOverlay(){
+  const wrap = document.querySelector("#page-schedule .table-scroll-wrap");
+  if(!wrap) return;
+  wrap.classList.toggle("h-scrolled", floatDateOn && wrap.scrollLeft > floatThreshold);
+}
+
+// 방법2: '하이라이트 해제' 버튼 — 하이라이트 모드일 때만 보이고, 하나라도 선택돼 있어야 활성.
+function updateClearHighlightBtn(){
+  const btn = document.getElementById("clearHighlightBtn");
+  if(!btn) return;
+  btn.style.display = rowHighlightOn ? "" : "none";
+  const has = highlightedRows.size > 0;
+  btn.disabled = !has;                 // 비활성: 눌러도 반응 없음
+  btn.classList.toggle("active", has); // 활성: 강조 표시
 }
 
 // 헤더용 날짜 표기: "2025-04-12" → "2025.04.12"
@@ -2016,7 +2102,14 @@ function buildStateSnapshot(){
     seatShowBooked: seatShowBooked,
     seatMapFilterActive: seatMapFilterActive,
     seatMapFilter: Object.fromEntries(Object.entries(seatMapFilter).map(([k,v])=>[k,[...v]])),
-    colorTheme: colorTheme
+    colorTheme: colorTheme,
+    // 스케줄 가로 스크롤 날짜 식별 옵션
+    floatDateOn: floatDateOn,
+    rowHighlightOn: rowHighlightOn,
+    rowHighlightSave: rowHighlightSave,
+    lockVScrollOn: lockVScrollOn,
+    // 하이라이트는 '저장' 옵션이 켜졌을 때만 보존(꺼져 있으면 세션 한정)
+    highlightedRows: rowHighlightSave ? [...highlightedRows] : []
   };
 }
 
@@ -2084,6 +2177,12 @@ function applyState(state){
     Object.entries(state.seatMapFilter).forEach(([k,v])=>{ seatMapFilter[k] = new Set(v); });
   }
   if(typeof state.colorTheme === "string" && COLOR_THEMES.includes(state.colorTheme)) colorTheme = state.colorTheme;
+
+  if(typeof state.floatDateOn === "boolean") floatDateOn = state.floatDateOn;
+  if(typeof state.rowHighlightOn === "boolean") rowHighlightOn = state.rowHighlightOn;
+  if(typeof state.rowHighlightSave === "boolean") rowHighlightSave = state.rowHighlightSave;
+  if(typeof state.lockVScrollOn === "boolean") lockVScrollOn = state.lockVScrollOn;
+  highlightedRows = new Set(Array.isArray(state.highlightedRows) ? state.highlightedRows : []);
 }
 
 function loadStateFromStorage(){
@@ -2370,6 +2469,58 @@ document.getElementById("applySeatJsonTextBtn").addEventListener("click", ()=>{
 });
 
 /* =========================================================
+   스케줄 보기 옵션 (방법1 플로팅 / 방법2 하이라이트 / 방법3 세로 잠금)
+   ========================================================= */
+function setupScheduleOptions(){
+  const fd = document.getElementById("optFloatDate");
+  const rh = document.getElementById("optRowHighlight");
+  const hs = document.getElementById("optHighlightSave");
+  const lv = document.getElementById("optLockVScroll");
+  if(!fd) return;
+
+  // 저장된 상태를 체크박스에 반영
+  fd.checked = floatDateOn;
+  rh.checked = rowHighlightOn;
+  hs.checked = rowHighlightSave;
+  lv.checked = lockVScrollOn;
+
+  fd.addEventListener("change", ()=>{ floatDateOn = fd.checked; saveState(); renderSchedule(); });
+  rh.addEventListener("change", ()=>{ rowHighlightOn = rh.checked; saveState(); renderSchedule(); });
+  hs.addEventListener("change", ()=>{
+    rowHighlightSave = hs.checked;
+    saveState(); // 켜면 현재 하이라이트가 저장되고, 끄면 저장 목록이 비워짐
+  });
+  lv.addEventListener("change", ()=>{ lockVScrollOn = lv.checked; saveState(); });
+  // '하이라이트 해제' 버튼은 스케줄 툴바에 있으며 renderSchedule()에서 연결됨
+}
+
+/* 방법3: 가로 드래그 스크롤이 우세하면 세로 스크롤을 막고 가로만 이동시킨다(터치). */
+function setupScheduleScrollLock(){
+  const wrap = document.querySelector("#page-schedule .table-scroll-wrap");
+  if(!wrap) return;
+  // 방법1: 가로 스크롤 시 플로팅 오버레이 표시/숨김 갱신
+  wrap.addEventListener("scroll", updateFloatOverlay, { passive:true });
+  let startX = 0, startY = 0, startLeft = 0, axis = null;
+  wrap.addEventListener("touchstart", e=>{
+    if(!lockVScrollOn || e.touches.length !== 1){ axis = null; return; }
+    const t = e.touches[0];
+    startX = t.clientX; startY = t.clientY; startLeft = wrap.scrollLeft; axis = null;
+  }, { passive:true });
+  wrap.addEventListener("touchmove", e=>{
+    if(!lockVScrollOn || e.touches.length !== 1) return;
+    const t = e.touches[0];
+    const dx = t.clientX - startX, dy = t.clientY - startY;
+    if(axis === null && (Math.abs(dx) > 6 || Math.abs(dy) > 6)){
+      axis = Math.abs(dx) > Math.abs(dy) ? "h" : "v";
+    }
+    if(axis === "h"){
+      e.preventDefault();              // 세로 네이티브 스크롤 차단
+      wrap.scrollLeft = startLeft - dx; // 가로는 직접 이동
+    }
+  }, { passive:false });
+}
+
+/* =========================================================
    초기화: 데이터(json/) 로드 후 화면을 렌더링한다.
    ========================================================= */
 let lastEndedCount = 0;
@@ -2400,6 +2551,8 @@ async function init(){
 
   loadStateFromStorage();
   applyColorTheme(); // 저장된 컬러 테마 적용
+  setupScheduleOptions();   // 스케줄 보기 옵션 체크박스 연결(저장값 반영)
+  setupScheduleScrollLock(); // 방법3: 가로 드래그 중 세로 스크롤 잠금
 
   // 최초 실행(저장된 상태 없음): 현재 전체 배역 목록을 스토리지에 초기 저장한다.
   // 이후 삭제/순서 변경이 이 목록을 갱신·저장하므로 삭제 정보가 그대로 유지된다.

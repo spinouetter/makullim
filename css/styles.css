@@ -268,10 +268,45 @@
   /* 스케줄 표: 마지막 행 아래 구분선 제거 (스크롤 끝 여백과 겹쳐 보이지 않도록) */
   #scheduleTable tbody tr:last-child > td{ border-bottom:none; }
   tbody tr:hover{background:rgba(255,255,255,0.02);}
-  tbody tr.past > td:not(.memo-cell):not(.ticket-cell){opacity:0.55;}
+  tbody tr.past > td:not(.memo-cell):not(.ticket-cell):not(.float-cell){opacity:0.55;}
+  tbody tr.past > td.float-cell{color:var(--ink-dim);} /* 흐림 대신 색만 (sticky 배경 비침 방지) */
   /* 현재 관극 중/바로 다음 공연 하이라이트 */
   tbody tr.current-perf > td{ background:color-mix(in srgb, var(--gold) 16%, transparent); }
-  tbody tr.current-perf > td:first-child{ box-shadow:inset 3px 0 0 var(--gold); }
+  tbody tr.current-perf .date-cell{ box-shadow:inset 3px 0 0 var(--gold); } /* 플로팅 켜져도 보이도록 date-cell에 직접 */
+
+  /* === 방법1: 날짜 플로팅 오버레이 (컬럼 추가 없이 가로 스크롤 시 왼쪽에 겹쳐 표시) ===
+     float-cell은 0폭 sticky 셀이고, 그 안의 .float-label을 절대배치해 오버레이로 띄운다. */
+  #scheduleTable .float-cell{
+    width:0; padding:0; position:sticky; left:0; z-index:4; background:transparent;
+  }
+  #scheduleTable thead th.float-cell{ z-index:6; }
+  .float-label{
+    display:none; position:absolute; top:0; bottom:0; left:0;
+    align-items:center; padding:0 9px; white-space:nowrap;
+    background:var(--panel); color:inherit;
+    font-weight:700; font-size:12px;
+    border-right:1px solid var(--line);
+    box-shadow:3px 0 8px rgba(0,0,0,0.4);
+  }
+  /* 오버레이의 티켓 아이콘: 티켓 있으면 진하게, 없으면 옅게 (크기는 티켓 열 .tk-icon과 동일 12px) */
+  .float-tk{ margin-left:5px; font-size:12px; line-height:1; opacity:0.25; }
+  .float-tk.on{ opacity:1; }
+  /* 가로로 '년도 폭'만큼 스크롤되면 오버레이 표시 */
+  .table-scroll-wrap.h-scrolled .float-label{ display:flex; }
+
+  /* === 방법2: 행 하이라이트(현재공연 골드와 확실히 구분되는 진한 파랑) === */
+  #scheduleTable tbody tr.row-highlight > td{ background:rgba(74,128,210,0.45); }
+  #scheduleTable tbody tr.row-highlight .date-cell{ box-shadow:inset 4px 0 0 #5b9bff; }
+  #scheduleTable tbody tr.row-highlight .float-label{ background:color-mix(in srgb, #4a80d2 55%, var(--panel)); }
+  /* 하이라이트 모드: 날짜 셀/오버레이 라벨 클릭 가능 */
+  #scheduleTable.hl-mode .date-cell,
+  #scheduleTable.hl-mode .float-label{ cursor:pointer; }
+
+  /* 스케줄 보기 옵션 (Settings) */
+  .opt-row{ display:flex; align-items:center; gap:8px; font-size:13px; color:var(--ink); margin-bottom:10px; cursor:pointer; }
+  .opt-row b{ color:var(--ink); font-weight:700; }
+  .opt-row input{ cursor:pointer; flex-shrink:0; }
+  .opt-indent{ margin-left:24px; }
   .date-cell{white-space:nowrap; font-weight:700;}
   .time-cell{color:var(--ink-dim); white-space:nowrap;}
   .seat-cell{width:106px; min-width:106px; max-width:106px;}
@@ -552,6 +587,7 @@
     border-color:var(--gold);
     color:var(--gold);
   }
+  .floor-toggle-btn:disabled{ opacity:0.4; cursor:default; }
 
   .svg-viewport{
     position:relative;
