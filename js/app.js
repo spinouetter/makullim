@@ -147,6 +147,7 @@ function buildTicketPopover(idx, grade, ticketType, ticketFee){
   const prices = grade.prices.filter(pr=>priceAppliesTo(pr, perf)); // 이 공연(시간·sid)에 적용 가능한 티켓만
   return `
     <div class="ticket-popover" data-idx="${idx}">
+      <div class="popover-date">${perfDateLabel(perf)}</div>
       <div class="ticket-popover-title">${grade.name}석 티켓 선택</div>
       <div class="ticket-options">
         ${prices.map(pr=>`
@@ -439,7 +440,8 @@ function renderSchedule(){
           </button>
           ${memoPopoverIdx===idx ? `
             <div class="memo-popover">
-              <input type="text" class="memo-popover-input" value="${(p.note||"").replace(/"/g,'&quot;')}" placeholder="메모 입력" data-idx="${idx}">
+              <div class="popover-date">${perfDateLabel(p)}</div>
+              <textarea class="memo-popover-input" rows="3" placeholder="메모 입력" data-idx="${idx}">${(p.note||"").replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</textarea>
               <div class="memo-popover-actions">
                 <button class="memo-cancel-btn" data-idx="${idx}">취소</button>
                 <button class="memo-confirm-btn" data-idx="${idx}">확인</button>
@@ -620,15 +622,33 @@ function adjustPopoverToTable(){
   const wrap = document.querySelector("#page-schedule .table-scroll-wrap");
   if(!wrap) return;
   const wrapRect = wrap.getBoundingClientRect();
+  const vw = document.documentElement.clientWidth; // 화면(뷰포트) 너비
+  const M = 8; // 화면 가장자리 최소 여백
+  // 세로 보정 기준: 테이블 하단과 '실제로 보이는 뷰포트 바닥' 중 더 위.
+  // 모바일 브라우저 하단 툴바가 동적으로 나타날 때 visualViewport가 실제 가시 영역을 알려주므로,
+  // 이를 기준으로 해야 저장 버튼이 안드로이드/브라우저 컨트롤 뒤로 숨지 않는다.
+  const vv = window.visualViewport;
+  const visibleBottom = vv ? (vv.height + vv.offsetTop) : window.innerHeight;
+  const bottomBound = Math.min(wrapRect.bottom, visibleBottom);
   document.querySelectorAll("#scheduleBody .ticket-popover, #scheduleBody .memo-popover").forEach(pop=>{
     pop.style.transform = ""; // 측정 전 초기화
     const r = pop.getBoundingClientRect();
-    let shift = (r.bottom - wrapRect.bottom) + 4; // 테이블 하단을 넘은 양(여백 4px)
-    if(shift > 0){
-      const maxShift = Math.max(0, r.top - wrapRect.top - 4); // 위로 올려도 테이블 상단은 넘지 않게
-      shift = Math.min(shift, maxShift);
-      if(shift > 0) pop.style.transform = `translateY(${-shift}px)`;
+
+    // 세로: 보이는 영역 하단을 넘으면 위로 올림(테이블 상단은 넘지 않게)
+    let shiftY = 0;
+    const over = (r.bottom - bottomBound) + 4; // 가시 하단을 넘은 양(여백 4px)
+    if(over > 0){
+      const maxShift = Math.max(0, r.top - wrapRect.top - 4);
+      shiftY = -Math.min(over, maxShift);
     }
+
+    // 가로: 화면 오른쪽을 넘으면 왼쪽으로 끌어오고, 그 결과 왼쪽을 넘으면 안쪽으로 클램프
+    // (팝오버가 화면보다 넓으면 왼쪽 가장자리에 맞춰 최대한 보이게)
+    let shiftX = 0;
+    if(r.right > vw - M) shiftX = (vw - M) - r.right;
+    if(r.left + shiftX < M) shiftX = M - r.left;
+
+    if(shiftX || shiftY) pop.style.transform = `translate(${shiftX}px, ${shiftY}px)`;
   });
 }
 
@@ -681,6 +701,11 @@ function dateColorOf(dateStr){
 function shortDateDow(dateStr){
   const i = dowOf(dateStr);
   return shortDate(dateStr) + (i>=0 ? ` (${DOW[i]})` : "");
+}
+// 팝오버 상단에 표시할 공연 날짜/시간 라벨: "26/06/28 (일) 14:00"
+function perfDateLabel(p){
+  if(!p || !p.date) return "";
+  return shortDateDow(p.date) + (p.time ? " " + p.time : "");
 }
 
 // 헤더용 날짜 표기: "2025-04-12" → "2025.04.12"
@@ -2277,8 +2302,23 @@ function updateHeaderHeightVar(){
   const el = document.getElementById("appHeaderSticky");
   if(el) document.documentElement.style.setProperty("--header-h", el.offsetHeight + "px");
 }
-window.addEventListener("resize", updateHeaderHeightVar);
-updateHeaderHeightVar();
+
+/* 모바일 100vh 문제 해결: 브라우저 하단 툴바를 제외한 '실제로 보이는 높이'를 측정해
+   --app-height에 넣는다. CSS의 100vh/100dvh는 기기/브라우저에 따라 툴바를 포함하거나
+   미지원이라, 마지막 행이 툴바 뒤로 숨는 문제가 생긴다. JS 측정값은 모든 브라우저에서 동작. */
+function updateAppHeight(){
+  // visualViewport가 있으면 그게 가장 정확(툴바·키보드 반영). 없으면 innerHeight.
+  const h = (window.visualViewport && window.visualViewport.height) || window.innerHeight;
+  document.documentElement.style.setProperty("--app-height", h + "px");
+}
+function updateLayoutVars(){ updateHeaderHeightVar(); updateAppHeight(); }
+
+window.addEventListener("resize", updateLayoutVars);
+window.addEventListener("orientationchange", updateLayoutVars);
+if(window.visualViewport){
+  window.visualViewport.addEventListener("resize", updateAppHeight);
+}
+updateLayoutVars();
 
 // 컬러 테마 선택 버튼
 document.querySelectorAll(".theme-btn").forEach(btn=>{
