@@ -521,6 +521,8 @@ function renderSchedule(){
       }
       ticketPopoverIdx = null;
       renderSchedule();
+      renderStats();   // 티켓 변경 → 통계(티켓 금액) 갱신
+      renderSeatMap(); // 시트맵도 함께 갱신
       saveState();
     });
   });
@@ -534,6 +536,8 @@ function renderSchedule(){
       performanceData.performances[idx].ticketDiscount = null;
       ticketPopoverIdx = null;
       renderSchedule();
+      renderStats();   // 티켓 해제 → 통계(티켓 금액) 갱신
+      renderSeatMap(); // 시트맵도 함께 갱신
       saveState();
     });
   });
