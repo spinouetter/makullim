@@ -61,7 +61,8 @@
 
   /* ===== 탭 콘텐츠 영역만 자체 스크롤, 헤더는 항상 상단 고정 (모바일/데스크탑 공통) ===== */
   html, body{
-    height:100%;
+    /* --app-height = JS가 측정한 '실제로 보이는 높이'(모바일 툴바 제외). 미설정 시 100% 폴백. */
+    height: var(--app-height, 100%);
     overflow:hidden;
   }
   #appHeaderSticky{
@@ -71,7 +72,7 @@
     background:var(--bg);
   }
   main{
-    height: calc(100vh - var(--header-h, 100px));
+    height: calc(var(--app-height, 100vh) - var(--header-h, 100px));
     overflow:hidden;
     box-sizing:border-box;
   }
@@ -92,6 +93,17 @@
   #page-schedule .table-scroll-wrap{
     flex:1;
     overflow:auto; /* 세로/가로 모두 이 박스 안에서, 가로 스크롤바가 항상 박스 하단에 보임 */
+  }
+  /* 끝까지 스크롤하면 마지막 콘텐츠 아래에 여백이 나타나도록 실제 스페이서 블록을 둔다.
+     (스크롤 컨테이너의 padding-bottom은 자식이 <table>이거나 WebKit에서 무시되므로 ::after 사용)
+     각 탭에서 실제로 스크롤되는 컨테이너에 동일 적용. */
+  #page-schedule .table-scroll-wrap::after,
+  .stats-scroll-area::after,
+  #page-seatmap::after,
+  #page-settings::after{
+    content:"";
+    display:block;
+    height: calc(60px + env(safe-area-inset-bottom, 0px));
   }
   #page-schedule .table-scroll-wrap table{
     overflow:visible; /* table의 overflow:hidden이 sticky 헤더의 스크롤 컨테이너 연결을 깨뜨리는 문제 수정 */
@@ -142,7 +154,8 @@
     border-bottom-color:var(--gold);
   }
   main{
-    padding:18px 20px 40px;
+    /* 하단 여백은 각 스크롤 컨테이너 내부에서 처리(스크롤 끝에만 동적으로 보이도록) */
+    padding:18px 20px 0;
     max-width:1180px;
     margin:0 auto;
   }
@@ -158,12 +171,25 @@
     border-radius:8px;
     padding:8px;
     width:max-content;
-    min-width:160px;
+    min-width:240px;
     box-shadow:0 6px 16px rgba(0,0,0,0.35);
   }
-  .memo-popover-input{width:100%; margin-bottom:6px;}
+  /* 메모: 여러 줄 입력 가능한 textarea (조금 크게) */
+  .memo-popover-input{
+    width:100%; box-sizing:border-box; margin-bottom:6px;
+    min-height:64px; resize:vertical;
+    background:var(--panel); border:1px solid var(--line); color:var(--ink);
+    border-radius:6px; padding:6px 8px;
+    font-family:inherit; font-size:13px; line-height:1.4;
+  }
   .memo-popover-actions{display:flex; gap:6px;}
   .memo-popover-actions button{font-size:11px; padding:5px 8px; flex:1;}
+
+  /* 메모·티켓 팝오버 맨 위 날짜 라벨 */
+  .popover-date{
+    font-size:11px; font-weight:700; color:var(--gold);
+    margin-bottom:6px; letter-spacing:0.3px; white-space:nowrap;
+  }
 
   .role-dropdown{
     position:absolute;
@@ -239,6 +265,8 @@
     border-bottom:1px solid var(--line);
     vertical-align:top;
   }
+  /* 스케줄 표: 마지막 행 아래 구분선 제거 (스크롤 끝 여백과 겹쳐 보이지 않도록) */
+  #scheduleTable tbody tr:last-child > td{ border-bottom:none; }
   tbody tr:hover{background:rgba(255,255,255,0.02);}
   tbody tr.past > td:not(.memo-cell):not(.ticket-cell){opacity:0.55;}
   /* 현재 관극 중/바로 다음 공연 하이라이트 */
@@ -313,10 +341,10 @@
     font-size:11px; color:var(--ink-dim); margin-bottom:6px;
     text-transform:uppercase; letter-spacing:0.4px;
   }
-  .ticket-options{display:flex; flex-direction:column; gap:2px; max-height:46vh; overflow-y:auto;}
+  .ticket-options{display:flex; flex-direction:column; gap:1px; max-height:46vh; overflow-y:auto;}
   .ticket-option{
     display:flex; align-items:center; gap:8px;
-    padding:5px 6px; border-radius:6px; cursor:pointer; font-size:12px;
+    padding:3px 6px; border-radius:6px; cursor:pointer; font-size:12px;
   }
   .ticket-option:hover{background:rgba(255,255,255,0.04);}
   .ticket-option input{margin:0; cursor:pointer;}
@@ -387,7 +415,7 @@
   .stats-scroll-area{
     flex:1;
     overflow-y:auto;
-    padding:0 2px 20px 0; /* 우측에 스크롤바 공간 확보 */
+    padding:0 2px 0 0; /* 우측에 스크롤바 공간 확보 (하단 여백은 ::after 스페이서가 담당) */
   }
   #page-stats.active{
     display:flex;
@@ -599,11 +627,13 @@
   .seatmap-right-group{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
   #seatFilterBtn{ position:relative; }
   .filter-count{
-    position:absolute; top:-7px; right:-7px;
+    /* 배지를 버튼 오른쪽 '아래'로: 위로 두면 옵션 바가 nav 밑으로 스크롤될 때 상단에서 잘림 */
+    position:absolute; bottom:-7px; right:-7px;
     min-width:16px; height:16px; padding:0 4px;
     display:flex; align-items:center; justify-content:center;
     background:var(--gold); color:#fff;
     font-size:10px; font-weight:800; line-height:1; border-radius:8px;
+    z-index:60; /* 헤더(#appHeaderSticky z-index:50)보다 위로 — 겹칠 때 위에 표시 */
   }
   /* 배역 필터 모달 */
   #seatFilterBody{ max-height:55vh; overflow:auto; }
@@ -685,3 +715,19 @@
   .seat-detail .row{display:flex; justify-content:space-between; font-size:13px; padding:5px 0; border-bottom:1px solid var(--line);}
   .seat-detail .row span:first-child{color:var(--ink-dim);}
   .seat-detail .empty-msg{color:var(--ink-dim); font-size:13px;}
+
+  /* ===========================================================
+     모바일(≤600px) 간격 축소 — 좁은 화면에서 가용 폭 확보
+     (600px = 스케줄 표 min-width와 동일: 이 아래에서 가로 스크롤 시작)
+     =========================================================== */
+  @media (max-width:600px){
+    /* 화면 좌우 마진 축소 */
+    main{ padding:14px 10px 0; }
+    header{ padding:14px 12px 10px; }
+    nav{ padding:0 8px; gap:2px; }
+    /* 탭 버튼 패딩 축소 (4개 탭이 한 줄에 들어가도록) */
+    nav button{ padding:9px 8px; font-size:13px; letter-spacing:0; }
+    /* 스케줄 셀 내부 좌우 패딩 축소 */
+    #scheduleTable thead th{ padding:8px 6px; }
+    #scheduleTable tbody td{ padding:6px 6px; }
+  }
