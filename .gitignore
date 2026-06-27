@@ -1,0 +1,7 @@
+# Claude Code 로컬 설정/도구
+.claude/
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini

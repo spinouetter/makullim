@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>막올림</title>
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<div id="appHeaderSticky">
+<header>
+  <div class="title-block">
+    <h1><span class="curtain">&#9835;</span> <span id="appTitle">막올림</span></h1>
+  </div>
+  <div class="sub" id="theaterName">Theater</div>
+</header>
+
+<nav>
+  <button class="tab-btn active" data-page="schedule">Schedule</button>
+  <button class="tab-btn" data-page="stats">Statistics</button>
+  <button class="tab-btn" data-page="seatmap">Seat map</button>
+  <button class="tab-btn" data-page="settings">Settings</button>
+</nav>
+</div>
+
+<main>
+
+  <section class="page active" id="page-schedule">
+    <div class="floor-toggle-bar">
+      <div id="scheduleHiddenBar"></div>
+      <button class="floor-toggle-btn" id="castHistoryToggleBtn" style="margin-left:auto;">캐스트 변경 기록</button>
+    </div>
+    <div class="table-scroll-wrap">
+      <table id="scheduleTable">
+        <thead><tr id="scheduleHead"></tr></thead>
+        <tbody id="scheduleBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="page" id="page-stats">
+    <div class="stats-scroll-area">
+    <div class="stat-grid" id="statTopCards" style="grid-template-columns:repeat(4,1fr);"></div>
+    <div class="ticket-totals" id="ticketTotals"></div>
+
+    <div class="stats-sticky-bar">
+      <select id="castStatsModeSelect">
+        <option value="first">최초 캐스트 통계</option>
+        <option value="start">공연시작 캐스트 통계</option>
+        <option value="all">공연 중 배역 변경 반영</option>
+        <option value="weighted">공연 중 배역 변경 비중 반영</option>
+      </select>
+    </div>
+
+    <div class="stat-section">
+      <h2>배역별 출연 횟수</h2>
+      <div id="roleStats"></div>
+    </div>
+
+    <div class="stat-section">
+      <h2>배역 조합 출연 횟수</h2>
+      <div id="comboResults"></div>
+      <div id="comboEmptyMsg" style="color:var(--ink-dim); font-size:13px;">아직 생성된 조합이 없습니다. 아래에서 배역을 선택하고 만들기를 눌러주세요.</div>
+      <div style="margin-top:16px; border-top:1px solid var(--line); padding-top:14px;">
+        <div class="role-dropdown-title" style="margin-bottom:8px;">배역 선택 후 만들기</div>
+        <div class="combo-picker" id="comboPicker"></div>
+        <button id="comboCreateBtn" style="margin-top:10px;">만들기</button>
+      </div>
+    </div>
+    </div><!-- /stats-scroll-area -->
+  </section>
+
+  <section class="page" id="page-seatmap">
+    <div class="floor-toggle-bar">
+      <button class="floor-toggle-btn active" data-floor="1">1층</button>
+      <button class="floor-toggle-btn active" data-floor="2">2층</button>
+      <button class="floor-toggle-btn active" data-floor="3">3층</button>
+      <div class="seatmap-right-group" style="margin-left:auto;">
+        <button class="floor-toggle-btn active" id="seatWatchedBtn">관극</button>
+        <button class="floor-toggle-btn active" id="seatBookedBtn">예매</button>
+        <button class="floor-toggle-btn" id="seatFilterBtn">필터<span class="filter-count" id="seatFilterCount" style="display:none;">0</span></button>
+        <button class="floor-toggle-btn active" id="seatNumToggleBtn">좌석번호</button>
+      </div>
+    </div>
+    <div class="seatmap-controls-bar">
+      <button id="zoomInBtn" title="확대">+</button>
+      <button id="zoomOutBtn" title="축소">&minus;</button>
+      <button id="zoomResetBtn" title="전체 보기">전체</button>
+      <button id="minimapToggleBtn" title="미니맵">미니맵</button>
+    </div>
+    <div class="seatmap-wrap">
+      <div class="seatmap-grid">
+        <div class="svg-viewport" id="svgViewport">
+          <svg id="mainSeatSvg" width="100%" height="100%"></svg>
+          <div class="minimap-wrap" id="minimapWrap">
+            <svg id="minimapSvg" width="100%" height="100%"></svg>
+          </div>
+        </div>
+        <div class="legend" id="seatLegend"></div>
+      </div>
+      <div class="seat-detail" id="seatDetail">
+        <h3>좌석 정보</h3>
+        <p class="empty-msg">좌석을 선택해 주세요.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="page" id="page-settings">
+    <div class="toolbar">
+      <div class="show-name">좌석 입력, 메모, 배역 필터, 배역 조합, 층 표시 등 모든 변경 사항은 이 브라우저에 자동으로 저장됩니다. 다른 기기나 브라우저로 옮기고 싶으면 내보내기/가져오기를 사용하세요.</div>
+    </div>
+    <div class="stat-section">
+      <h2>컬러 테마</h2>
+      <div class="theme-picker" id="themePicker">
+        <button class="theme-btn" data-theme="amber"><i style="background:#e0a13a;"></i>석탄 앰버</button>
+        <button class="theme-btn" data-theme="midnight"><i style="background:#e8b86a;"></i>미드나잇</button>
+        <button class="theme-btn" data-theme="steel"><i style="background:#7d9bbd;"></i>노던 슬레이트</button>
+        <button class="theme-btn" data-theme="sage"><i style="background:#6fb09c;"></i>세이지 틸</button>
+        <button class="theme-btn" data-theme="rose"><i style="background:#d98aa0;"></i>튀튀 로즈</button>
+        <button class="theme-btn" data-theme="red"><i style="background:#d83a30;"></i>솔리다리티 레드</button>
+      </div>
+    </div>
+    <div class="stat-section">
+      <h2>설정 내보내기 / 가져오기</h2>
+      <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px;">
+        <button id="exportSettingsBtn">JSON으로 내보내기</button>
+        <button id="importSettingsBtn">JSON 가져오기</button>
+        <input type="file" id="importSettingsFile" accept="application/json" style="display:none;">
+      </div>
+      <p style="color:var(--ink-dim); font-size:13px;">가져오기를 하면 현재 브라우저에 저장된 설정이 가져온 파일의 내용으로 덮어씌워집니다.</p>
+    </div>
+
+    <div class="stat-section">
+      <h2>공연 좌석·티켓·메모 JSON 내보내기 / 가져오기</h2>
+      <p style="color:var(--ink-dim); font-size:13px; margin-bottom:10px;">
+        각 공연은 시간순으로 s1, s2, s3... 같은 숨겨진 ID를 가지고 있습니다.<br>
+        형식: <code>{"sid": [좌석, 티켓종류, 수수료여부, 메모]}</code> — 리스트 첫 항목이 좌석이고, 나머지는 티켓종류·수수료여부(true/false)·메모 순입니다. (임의 할인권은 5번째에 할인율을 더 붙입니다: <code>[좌석, 이름, 수수료, 메모, 할인율]</code>)<br>
+        티켓과 메모가 모두 없으면 <code>["1-7-23"]</code>처럼 좌석 하나만 넣습니다. 예: <code>{"s2": ["1-7-23", "청소년", true, "1열 명당석"], "s30": ["1-6-24"]}</code><br>
+        가져오기를 하면 <b>기존 좌석·티켓·메모를 전부 지우고</b> 가져온 내용으로 다시 채웁니다.
+      </p>
+      <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px;">
+        <button id="exportSeatJsonBtn">좌석 JSON 내보내기</button>
+        <button id="importSeatJsonBtn">파일로 가져오기</button>
+        <input type="file" id="importSeatJsonFile" accept="application/json,.txt" style="display:none;">
+      </div>
+      <div>
+        <div class="role-dropdown-title" style="margin-bottom:6px;">또는 JSON 텍스트를 직접 붙여넣기 (모바일 엑셀에서 복사한 깨진 JSON도 인식합니다)</div>
+        <textarea id="seatJsonTextarea" rows="6" style="width:100%; background:var(--panel2); border:1px solid var(--line); color:var(--ink); border-radius:8px; padding:10px; font-family:monospace; font-size:12px;" placeholder='{"s2": ["1-7-23", "청소년", true, "1열 명당석"], "s30": ["1-6-24"]}'></textarea>
+        <button id="applySeatJsonTextBtn" style="margin-top:8px;">이 텍스트로 좌석 적용</button>
+      </div>
+    </div>
+
+    <div class="stat-section">
+      <h2>저장 초기화</h2>
+      <button id="resetSettingsBtn" style="border-color:#a85a44; color:#e08a73;">모든 저장 데이터 삭제</button>
+    </div>
+  </section>
+
+</main>
+
+<div id="seatOverlay" class="seat-overlay" style="display:none;">
+  <div class="seat-overlay-content">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+      <div id="seatOverlayTitle" style="font-size:13px; color:var(--gold); font-weight:700;"></div>
+      <button id="seatOverlayClose" style="font-size:12px; padding:4px 10px;">닫기</button>
+    </div>
+    <div class="stage">STAGE</div>
+    <div id="seatOverlayGrid"></div>
+  </div>
+</div>
+
+<div id="seatFilterModal" class="seat-overlay" style="display:none;">
+  <div class="seat-overlay-content" style="width:520px; max-width:92vw;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+      <div style="font-size:14px; color:var(--gold); font-weight:700;">배역 필터</div>
+      <button id="seatFilterCloseBtn" style="font-size:12px; padding:4px 10px;">닫기</button>
+    </div>
+    <p style="color:var(--ink-dim); font-size:12px; margin:0 0 12px;">같은 배역 안에서 여러 배우를 고르면 <b>OR</b>, 서로 다른 배역 사이에는 <b>AND</b>로 일치하는 좌석만 좌석맵에 표시합니다.</p>
+    <div id="seatFilterBody"></div>
+    <div style="display:flex; gap:8px; margin-top:14px;">
+      <button id="seatFilterResetBtn" style="flex:1;">초기화</button>
+      <button id="seatFilterApplyBtn" style="flex:1; border-color:var(--gold); color:var(--gold);">확인</button>
+    </div>
+  </div>
+</div>
+
+<script src="js/app.js"></script>
+</body>
+</html>

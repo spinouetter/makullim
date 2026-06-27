@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>막올림 — 컬러 초안 미리보기</title>
+<style>
+  body{ margin:0; background:#0c0d0f; color:#ddd; font-family:"Pretendard","Apple SD Gothic Neo","Malgun Gothic",sans-serif; padding:24px; }
+  h1{ font-size:20px; margin:0 0 4px; }
+  .lead{ color:#999; font-size:13px; margin:0 0 20px; }
+  .grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(330px,1fr)); gap:18px; }
+
+  .card{ background:var(--bg); border:1px solid var(--line); border-radius:12px; padding:16px; color:var(--ink); }
+  .scheme-name{ font-size:15px; font-weight:700; margin-bottom:2px; }
+  .scheme-name .swatch{ display:inline-block; width:12px; height:12px; border-radius:3px; background:var(--accent); margin-right:6px; vertical-align:middle; }
+  .scheme-hex{ font-size:11px; color:var(--dim); margin-bottom:14px; font-family:monospace; }
+
+  .apptitle{ font-size:16px; font-weight:700; }
+  .apptitle .note{ color:var(--accent); }
+  .sub{ font-size:11px; color:var(--dim); letter-spacing:.5px; margin:3px 0 12px; }
+
+  .row{ display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-bottom:10px; }
+  .stat{ background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:8px 10px; }
+  .stat .l{ font-size:9px; color:var(--dim); text-transform:uppercase; letter-spacing:.5px; }
+  .stat .v{ font-size:18px; font-weight:700; color:var(--accent); }
+
+  .tt{ display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:12px; }
+  .tt > div{ background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:8px 10px; }
+  .tt .total{ border-color:var(--accentDim); }
+  .tt .l{ font-size:9px; color:var(--dim); }
+  .tt .v{ font-size:14px; font-weight:700; color:var(--accent); }
+
+  .legend{ display:flex; gap:12px; font-size:11px; color:var(--dim); margin-bottom:12px; flex-wrap:wrap; }
+  .legend span{ display:inline-flex; align-items:center; gap:5px; }
+  .legend i{ width:12px; height:12px; border-radius:3px; }
+
+  table{ width:100%; border-collapse:collapse; font-size:12px; }
+  td{ padding:6px 8px; border-bottom:1px solid var(--line); }
+  .cur td{ background:var(--accentTint); }
+  .cur td:first-child{ box-shadow:inset 3px 0 0 var(--accent); }
+  .price{ color:var(--accent); font-weight:700; text-align:right; }
+  .sat{ color:#5b8fd6; } .sun{ color:#e0594a; }
+
+  .tk{ display:inline-flex; align-items:center; gap:5px; background:var(--panel2); border:1px solid var(--line); border-radius:7px; padding:3px 6px; }
+  .tk .g{ display:inline-flex; align-items:center; justify-content:center; width:16px; height:16px; border-radius:4px; font-size:10px; font-weight:800; color:#fff; }
+  .tk .n{ font-size:12px; font-weight:700; }
+  .tk .d{ font-size:10px; font-weight:700; color:var(--accent); background:var(--accentTint); border-radius:4px; padding:1px 4px; }
+
+  .btns{ display:flex; gap:8px; margin-top:12px; }
+  .btn{ font-size:12px; padding:4px 12px; border-radius:16px; border:1px solid var(--line); background:var(--panel2); color:var(--dim); }
+  .btn.active{ border-color:var(--accent); color:var(--accent); background:var(--accentTint); }
+  .seatdot{ display:flex; gap:6px; margin-top:12px; }
+  .seatdot i{ width:22px; height:22px; border-radius:4px; }
+  .seatdot .glow{ box-shadow:0 0 10px 2px var(--glow); }
+</style>
+</head>
+<body>
+<h1>막올림 — 컬러 초안 5종</h1>
+<p class="lead">각 카드가 실제 화면 톤의 미니 목업입니다. 마음에 드는 번호(또는 섞고 싶은 조합)를 알려주시면 그 색으로 전체 적용할게요.</p>
+<div class="grid" id="grid"></div>
+
+<script>
+const palettes = [
+  { name:"1. 석탄 앰버 (Coal Amber)", mood:"탄광 램프 불빛 — 차분하고 따뜻",
+    bg:"#16181c", panel:"#1f232a", panel2:"#282d35", line:"#3a414b", ink:"#eef0f2", dim:"#9aa3ad",
+    accent:"#e0a13a", accentDim:"#9c6e22", accentTint:"rgba(224,161,58,0.14)",
+    vip:"#e0a13a", r:"#c06a3c", s:"#4e8c87", a:"#5a6b8a", glow:"rgba(255,170,90,0.85)" },
+  { name:"2. 미드나잇 스테이지 (Midnight)", mood:"무대 조명 — 깊은 남색 + 따뜻한 스포트라이트",
+    bg:"#121620", panel:"#1a2030", panel2:"#232c40", line:"#36405a", ink:"#eef1f6", dim:"#98a2b6",
+    accent:"#e8b86a", accentDim:"#a07d3a", accentTint:"rgba(232,184,106,0.14)",
+    vip:"#e8b86a", r:"#c8607a", s:"#5f9ea0", a:"#6a7fb0", glow:"rgba(255,190,120,0.85)" },
+  { name:"3. 노던 슬레이트 (Steel Blue)", mood:"북부 탄광촌 슬레이트 — 절제된 강철 블루",
+    bg:"#1a1d20", panel:"#232830", panel2:"#2c333c", line:"#3e4650", ink:"#eceff2", dim:"#9aa3ad",
+    accent:"#7d9bbd", accentDim:"#4f6b8a", accentTint:"rgba(125,155,189,0.16)",
+    vip:"#7d9bbd", r:"#c98a4a", s:"#5fa39a", a:"#8a7fa0", glow:"rgba(150,180,220,0.85)" },
+  { name:"4. 세이지 틸 (Sage Teal)", mood:"차분한 청록 — 무대 뒤 그린룸 느낌",
+    bg:"#181b1a", panel:"#212624", panel2:"#2a302d", line:"#3c4541", ink:"#edf0ee", dim:"#9aa39e",
+    accent:"#6fb09c", accentDim:"#3f7a68", accentTint:"rgba(111,176,156,0.16)",
+    vip:"#6fb09c", r:"#c98a4a", s:"#6f8fb0", a:"#8a7fa0", glow:"rgba(130,200,175,0.85)" },
+  { name:"5. 튀튀 로즈 (Tutu Rose)", mood:"발레·튀튀 — 차콜에 부드러운 로즈",
+    bg:"#17151a", panel:"#211d24", panel2:"#2a242d", line:"#3e3543", ink:"#f1ecef", dim:"#aaa1a8",
+    accent:"#d98aa0", accentDim:"#9c4f63", accentTint:"rgba(217,138,160,0.16)",
+    vip:"#d98aa0", r:"#c98a4a", s:"#5f9ea0", a:"#6a7fb0", glow:"rgba(255,160,185,0.85)" }
+];
+
+const grid = document.getElementById("grid");
+grid.innerHTML = palettes.map(p=>{
+  const vars = `--bg:${p.bg};--panel:${p.panel};--panel2:${p.panel2};--line:${p.line};--ink:${p.ink};--dim:${p.dim};--accent:${p.accent};--accentDim:${p.accentDim};--accentTint:${p.accentTint};--glow:${p.glow};`;
+  return `<div class="card" style="${vars}">
+    <div class="scheme-name"><span class="swatch"></span>${p.name}</div>
+    <div class="scheme-hex">${p.mood} · bg ${p.bg} · accent ${p.accent}</div>
+
+    <div class="apptitle"><span class="note">&#9835;</span> 막올림 · 빌리 엘리어트 더 뮤지컬</div>
+    <div class="sub">블루스퀘어 우리은행홀 · 2025.04.12 ~ 2026.07.26</div>
+
+    <div class="row">
+      <div class="stat"><div class="l">전체</div><div class="v">123</div></div>
+      <div class="stat"><div class="l">종료</div><div class="v">87</div></div>
+      <div class="stat"><div class="l">관극</div><div class="v">40</div></div>
+      <div class="stat"><div class="l">예매</div><div class="v">5</div></div>
+    </div>
+    <div class="tt">
+      <div><div class="l">지금까지</div><div class="v">4,820,000</div></div>
+      <div><div class="l">앞으로</div><div class="v">560,000</div></div>
+      <div class="total"><div class="l">전체</div><div class="v">5,380,000</div></div>
+    </div>
+
+    <div class="legend">
+      <span><i style="background:${p.vip}"></i>VIP</span>
+      <span><i style="background:${p.r}"></i>R</span>
+      <span><i style="background:${p.s}"></i>S</span>
+      <span><i style="background:${p.a}"></i>A</span>
+    </div>
+
+    <table>
+      <tr><td>26/05/15 <span style="color:var(--dim)">(금)</span></td><td><span class="tk"><span class="g" style="background:${p.vip}">V</span><span class="n">정</span><span class="d">0%</span></span></td><td class="price">170,000원</td></tr>
+      <tr class="cur"><td>26/05/16 <span class="sat">(토)</span></td><td><span class="tk"><span class="g" style="background:${p.r}">R</span><span class="n">청</span><span class="d">30%</span></span></td><td class="price">98,000원</td></tr>
+      <tr><td>26/05/17 <span class="sun">(일)</span></td><td><span class="tk"><span class="g" style="background:${p.s}">S</span><span class="n">조</span><span class="d">20%</span></span></td><td class="price">96,000원</td></tr>
+    </table>
+
+    <div class="seatdot">
+      <i style="background:${p.vip}"></i><i style="background:${p.r}"></i><i style="background:${p.s}"></i><i style="background:${p.a}"></i>
+      <i style="background:${p.vip}" class="glow" title="관극 글로우"></i>
+    </div>
+
+    <div class="btns">
+      <span class="btn active">필터 ②</span>
+      <span class="btn">좌석번호</span>
+      <span class="btn">관극</span>
+    </div>
+  </div>`;
+}).join("");
+</script>
+</body>
+</html>
