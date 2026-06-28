@@ -54,6 +54,7 @@ async function loadData(){
     if(p.ticketType == null) p.ticketType = ""; // 티켓 종류(정가/할인). 빈 문자열 = 미선택
     if(p.ticketFee == null) p.ticketFee = false; // 수수료 포함 여부
     if(p.ticketDiscount == null) p.ticketDiscount = null; // 임의 할인권 할인율(없으면 null)
+    if(p.ticketExtra == null) p.ticketExtra = 0; // 기타 비용(취소 수수료 등, 원)
   });
 }
 
@@ -103,7 +104,7 @@ function gradeFacePrice(grade){
 
 // 좌석(→등급) + 티켓 종류 + 수수료 + (선택)임의 할인율로 최종 가격 계산. 계산 불가하면 null.
 // customDiscount(숫자)가 주어지면 정가×(1-할인율)로 계산(임의 할인권), 아니면 등급 prices에서 이름으로 조회.
-function ticketPriceOf(seatId, type, fee, customDiscount){
+function ticketPriceOf(seatId, type, fee, customDiscount, extra){
   if(!type) return null;
   const gname = gradeOf((seatId||"").trim());
   if(!gname) return null;
@@ -119,7 +120,8 @@ function ticketPriceOf(seatId, type, fee, customDiscount){
     if(!pr) return null;
     base = pr.price;
   }
-  return base + (fee ? TICKET_FEE : 0);
+  const extraCost = (typeof extra === "number" && isFinite(extra)) ? extra : 0;
+  return base + (fee ? TICKET_FEE : 0) + extraCost; // 최종가 = 티켓가 + 수수료 + 기타비용
 }
 
 function formatKRW(n){
@@ -151,7 +153,13 @@ function buildTicketPopover(idx, grade, ticketType, ticketFee){
   const isCustom = perf.ticketDiscount != null; // 임의 할인권 선택 상태
   const customName = isCustom ? String(ticketType).replace(/"/g,'&quot;') : "";
   const customRate = isCustom ? perf.ticketDiscount : "";
-  const prices = grade.prices.filter(pr=>priceAppliesTo(pr, perf)); // 이 공연(시간·sid)에 적용 가능한 티켓만
+  // 이 공연에 적용 가능한 티켓만 + 정렬: 위 고정(sort>=0 오름차순) → 가운데(sort 없음: 할인율↓·가나다) → 아래 고정(sort<0)
+  const applicable = grade.prices.filter(pr=>priceAppliesTo(pr, perf));
+  const topG = applicable.filter(p=>typeof p.sort==='number' && p.sort>=0).sort((a,b)=>a.sort-b.sort);
+  const botG = applicable.filter(p=>typeof p.sort==='number' && p.sort<0).sort((a,b)=>a.sort-b.sort);
+  const midG = applicable.filter(p=>typeof p.sort!=='number')
+    .sort((a,b)=> (b.discount||0)-(a.discount||0) || a.name.localeCompare(b.name,'ko'));
+  const prices = [...topG, ...midG, ...botG];
   return `
     <div class="ticket-popover" data-idx="${idx}">
       <div class="popover-date">${perfDateLabel(perf)}</div>
@@ -172,11 +180,13 @@ function buildTicketPopover(idx, grade, ticketType, ticketFee){
           <input type="number" class="tk-custom-rate" data-idx="${idx}" placeholder="0" min="0" max="100" value="${customRate}"><span class="tk-pct">%</span>
         </label>
       </div>
-      <label class="ticket-fee-row">
-        <input type="checkbox" class="tk-fee" data-idx="${idx}" ${ticketFee?'checked':''}> 수수료 +${formatKRW(TICKET_FEE)}
-      </label>
+      <div class="ticket-fee-row">
+        <label class="tk-fee-label"><input type="checkbox" class="tk-fee" data-idx="${idx}" ${ticketFee?'checked':''}> 수수료 +${formatKRW(TICKET_FEE)}</label>
+        <span class="tk-extra-group">기타 <input type="number" class="tk-extra" data-idx="${idx}" min="0" step="100" value="${perf.ticketExtra ? perf.ticketExtra : ''}" placeholder="0">원</span>
+      </div>
       <div class="ticket-popover-actions">
-        <button class="tk-clear" data-idx="${idx}">선택 해제</button>
+        <button class="tk-clear" data-idx="${idx}" style="border-color:#a85a44; color:#e08a73;">삭제</button>
+        <button class="tk-cancel" data-idx="${idx}">취소</button>
         <button class="tk-save" data-idx="${idx}">저장</button>
       </div>
     </div>`;
@@ -405,7 +415,7 @@ function renderSchedule(){
 
     let priceCell = "";
     if(showPrice){
-      const price = ticketPriceOf(p.seat, ticketType, ticketFee, ticketDiscount);
+      const price = ticketPriceOf(p.seat, ticketType, ticketFee, ticketDiscount, p.ticketExtra);
       priceCell = `<td class="price-cell">${price!=null ? formatKRW(price) : '<span class="empty">—</span>'}</td>`;
     }
 
@@ -500,8 +510,11 @@ function renderSchedule(){
       const idx = +btn.dataset.idx;
       const checked = body.querySelector(`input[name="tkopt-${idx}"]:checked`);
       const feeCb = body.querySelector(`.tk-fee[data-idx="${idx}"]`);
+      const extraInp = body.querySelector(`.tk-extra[data-idx="${idx}"]`);
       const perf = performanceData.performances[idx];
       perf.ticketFee = feeCb ? feeCb.checked : false;
+      let extra = Number(extraInp && extraInp.value);
+      perf.ticketExtra = (isFinite(extra) && extra > 0) ? Math.round(extra) : 0; // 기타 비용
       if(checked && checked.value === "__custom__"){
         const nameInp = body.querySelector(`.tk-custom-name[data-idx="${idx}"]`);
         const rateInp = body.querySelector(`.tk-custom-rate[data-idx="${idx}"]`);
@@ -527,6 +540,16 @@ function renderSchedule(){
     });
   });
 
+  // 취소: 변경 없이 팝오버만 닫음
+  body.querySelectorAll(".tk-cancel").forEach(btn=>{
+    btn.addEventListener("click", e=>{
+      e.stopPropagation();
+      ticketPopoverIdx = null;
+      renderSchedule();
+    });
+  });
+
+  // 삭제: 티켓·수수료·임의할인·기타비용 모두 초기화
   body.querySelectorAll(".tk-clear").forEach(btn=>{
     btn.addEventListener("click", e=>{
       e.stopPropagation();
@@ -534,6 +557,7 @@ function renderSchedule(){
       performanceData.performances[idx].ticketType = "";
       performanceData.performances[idx].ticketFee = false;
       performanceData.performances[idx].ticketDiscount = null;
+      performanceData.performances[idx].ticketExtra = 0;
       ticketPopoverIdx = null;
       renderSchedule();
       renderStats();   // 티켓 해제 → 통계(티켓 금액) 갱신
@@ -936,7 +960,7 @@ function renderStats(){
   // 총 티켓 금액: 종료된 공연(지금까지 쓴 것) / 미래 공연(앞으로 쓸 것) / 전체
   let spentAmount = 0, upcomingAmount = 0;
   perfs.forEach(p=>{
-    const price = ticketPriceOf(p.seat, p.ticketType, p.ticketFee, (p.ticketDiscount!=null?p.ticketDiscount:null)) || 0;
+    const price = ticketPriceOf(p.seat, p.ticketType, p.ticketFee, (p.ticketDiscount!=null?p.ticketDiscount:null), p.ticketExtra) || 0;
     if(isEnded(p)) spentAmount += price; else upcomingAmount += price;
   });
   document.getElementById("ticketTotals").innerHTML = `
@@ -2141,7 +2165,7 @@ function applyColorTheme(){
 
 function buildStateSnapshot(){
   return {
-    performances: performanceData.performances.map(p=>({seat:p.seat, note:p.note, ticketType:p.ticketType||"", ticketFee:!!p.ticketFee, ticketDiscount:(p.ticketDiscount!=null?p.ticketDiscount:null)})),
+    performances: performanceData.performances.map(p=>({seat:p.seat, note:p.note, ticketType:p.ticketType||"", ticketFee:!!p.ticketFee, ticketDiscount:(p.ticketDiscount!=null?p.ticketDiscount:null), ticketExtra:(p.ticketExtra||0)})),
     scheduleHiddenCols: [...scheduleHiddenCols],
     scheduleRoleFilter: Object.fromEntries(
       Object.entries(scheduleRoleFilter).map(([k,v])=>[k, [...v]])
@@ -2193,6 +2217,7 @@ function applyState(state){
         if(typeof s.ticketType === "string") performanceData.performances[i].ticketType = s.ticketType;
         if(typeof s.ticketFee === "boolean") performanceData.performances[i].ticketFee = s.ticketFee;
         performanceData.performances[i].ticketDiscount = (typeof s.ticketDiscount === "number") ? s.ticketDiscount : null;
+        performanceData.performances[i].ticketExtra = (typeof s.ticketExtra === "number" && s.ticketExtra > 0) ? s.ticketExtra : 0;
       }
     });
   }
@@ -2367,7 +2392,7 @@ function exportSeatJSON(){
 function applySeatJSONData(data){
   if(!data || typeof data !== "object") throw new Error("올바른 형식이 아닙니다.");
 
-  performanceData.performances.forEach(p=>{ p.seat = ""; p.ticketType = ""; p.ticketFee = false; p.note = ""; p.ticketDiscount = null; });
+  performanceData.performances.forEach(p=>{ p.seat = ""; p.ticketType = ""; p.ticketFee = false; p.note = ""; p.ticketDiscount = null; p.ticketExtra = 0; });
 
   const sidMap = {};
   performanceData.performances.forEach(p=>{ sidMap[p.sid] = p; });

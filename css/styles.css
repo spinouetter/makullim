@@ -376,7 +376,8 @@
     font-size:11px; color:var(--ink-dim); margin-bottom:6px;
     text-transform:uppercase; letter-spacing:0.4px;
   }
-  .ticket-options{display:flex; flex-direction:column; gap:1px; max-height:46vh; overflow-y:auto;}
+  /* 옵션 목록: 내용만큼 늘되 화면(가시영역)의 1/3을 넘지 않음(넘으면 스크롤). 일반 화면에선 5개 이상 보임. */
+  .ticket-options{display:flex; flex-direction:column; gap:1px; max-height:calc(var(--app-height, 100vh) / 3); overflow-y:auto;}
   .ticket-option{
     display:flex; align-items:center; gap:8px;
     padding:3px 6px; border-radius:6px; cursor:pointer; font-size:12px;
@@ -391,11 +392,16 @@
   .ticket-option .tk-custom-name{ flex:1; min-width:80px; padding:4px 6px; font-size:12px; }
   .ticket-option .tk-custom-rate{ width:50px; padding:4px 6px; font-size:12px; margin-left:auto; }
   .ticket-option .tk-pct{ color:var(--ink-dim); font-size:12px; }
+  /* 수수료 + 기타비용을 한 줄에 */
   .ticket-fee-row{
-    display:flex; align-items:center; gap:6px; margin-top:6px; padding-top:6px;
-    border-top:1px solid var(--line); font-size:12px; color:var(--ink-dim); cursor:pointer;
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+    margin-top:6px; padding-top:6px;
+    border-top:1px solid var(--line); font-size:12px; color:var(--ink-dim);
   }
-  .ticket-fee-row input{margin:0; cursor:pointer;}
+  .tk-fee-label{display:inline-flex; align-items:center; gap:6px; cursor:pointer;}
+  .ticket-fee-row input[type=checkbox]{margin:0; cursor:pointer;}
+  .tk-extra-group{display:inline-flex; align-items:center; gap:4px; white-space:nowrap;}
+  .tk-extra-group input{width:72px; padding:4px 6px; font-size:12px;}
   .ticket-popover-actions{display:flex; gap:6px; margin-top:8px;}
   .ticket-popover-actions button{font-size:11px; padding:5px 8px; flex:1;}
   .price-cell{
