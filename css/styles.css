@@ -470,6 +470,16 @@
     overflow:hidden;
   }
   .stat-section{margin-bottom:22px;}
+  /* 접을 수 있는 섹션 제목 */
+  .collapse-h2{cursor:pointer; user-select:none; display:flex; align-items:center; gap:8px;}
+  .collapse-arrow{font-size:11px; color:var(--ink-dim);}
+  /* 만들기 버튼: 우측 정렬 + 강조(골드) */
+  .combo-create-actions{display:flex; justify-content:flex-end; margin-top:12px;}
+  .primary-btn{
+    border:1px solid var(--gold); color:#1a1a1a; background:var(--gold);
+    font-weight:700; padding:8px 18px; border-radius:8px; cursor:pointer;
+  }
+  .primary-btn:hover{ filter:brightness(1.06); }
   .stat-del-btn{background:none;border:1px solid var(--line);border-radius:4px;cursor:pointer;color:var(--ink-dim);font-size:11px;padding:1px 6px;line-height:1.4;flex-shrink:0;}
   .stat-del-btn:hover{border-color:var(--ink-dim);color:var(--ink);}
   .stat-section h2{
