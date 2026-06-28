@@ -30,6 +30,7 @@ async function loadData(){
   };
   // meta를 먼저 읽어 어떤 극장 파일을 쓸지 결정한다.
   const meta = await j("json/meta.json");
+  setupStorageNamespace(meta.id); // 막올림별 localStorage 네임스페이스 설정
   const theatrePath = meta.theatre || "theatres/default.json";
   const [seatmap, grades, casts, schedule] = await Promise.all([
     j(theatrePath),
@@ -2453,7 +2454,15 @@ document.getElementById("comboCreateBtn").addEventListener("click", ()=>{
 /* =========================================================
    PERSISTENCE (localStorage)
    ========================================================= */
-const STORAGE_KEY = "musicalTracker:state:v1";
+// 한 도메인에서 여러 막올림(공연)을 구분: meta.json의 id로 localStorage 네임스페이스
+let APP_ID = "default";
+let STORAGE_KEY = "makollim:state:v1:" + APP_ID;
+// id는 영소문자·숫자·_·- 만 허용
+function sanitizeAppId(v){ return (String(v||"").toLowerCase().replace(/[^a-z0-9_-]/g,"")) || "default"; }
+function setupStorageNamespace(id){
+  APP_ID = sanitizeAppId(id);
+  STORAGE_KEY = "makollim:state:v1:" + APP_ID;
+}
 
 // 컬러 테마 (CSS data-theme로 적용). 기본 = amber
 const COLOR_THEMES = ["amber","midnight","steel","sage","rose","red",
@@ -2608,12 +2617,12 @@ function loadStateFromStorage(){
 }
 
 function exportStateToFile(){
-  const data = JSON.stringify(buildStateSnapshot(), null, 2);
+  const data = JSON.stringify({ id: APP_ID, ...buildStateSnapshot() }, null, 2);
   const blob = new Blob([data], {type:"application/json"});
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = "musical-tracker-settings.json";
+  a.download = "makollim-settings.json";
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
@@ -2625,6 +2634,10 @@ function importStateFromFile(file){
   reader.onload = ()=>{
     try{
       const state = JSON.parse(reader.result);
+      // 다른 막올림(id)의 설정이면 확인 후 진행
+      if(state && state.id && state.id !== APP_ID){
+        if(!confirm(`다른 막올림의 설정 파일입니다.\n파일 id: ${state.id}\n현재 막올림: ${APP_ID}\n그래도 현재 막올림에 불러올까요?`)) return;
+      }
       applyState(state);
       saveState();
       renderSchedule();
@@ -2700,7 +2713,7 @@ function exportSeatJSON(){
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = "musical-tracker-seats.json";
+  a.download = "makollim-seats.json";
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
