@@ -662,8 +662,14 @@ function renderSchedule(){
   // 페이지 최초 로드/새로고침 시, 현재·다음 공연이 위에서 4번째 줄에 오도록 한 번만 스크롤
   if(!scheduleAutoScrolled){
     scheduleAutoScrolled = true;
-    requestAnimationFrame(()=>scrollToCurrentPerf());
+    requestAnimationFrame(()=>{
+      scrollToCurrentPerf();
+      const w = document.querySelector("#page-schedule .table-scroll-wrap");
+      scheduleHomeScrollTop = w ? w.scrollTop : 0; // '지금' 버튼 비교용 홈 위치
+      updateNowBtn();
+    });
   }
+  updateNowBtn();
 
   // 티켓/메모 팝업이 테이블 하단을 넘으면 위로 올려 하단을 맞춘다.
   requestAnimationFrame(adjustPopoverToTable);
@@ -717,6 +723,28 @@ function scrollToCurrentPerf(){
   const theadH = thead ? thead.getBoundingClientRect().height : 0;
   const delta = targetRow.getBoundingClientRect().top - wrap.getBoundingClientRect().top - theadH;
   wrap.scrollTop += delta;
+}
+
+// '지금' 버튼: 새로고침 직후와 동일한 홈 위치로 스크롤 초기화
+let scheduleHomeScrollTop = 0;
+function goToNow(){
+  const wrap = document.querySelector("#page-schedule .table-scroll-wrap");
+  if(!wrap) return;
+  wrap.scrollLeft = 0;
+  wrap.scrollTop = 0;        // 기본(현재 공연 없을 때) = 최상단
+  scrollToCurrentPerf();     // 현재/다음 공연이 있으면 4번째 줄로
+  scheduleHomeScrollTop = wrap.scrollTop;
+  updateFloatOverlay();
+  updateNowBtn();
+}
+// 현재 스크롤이 홈 위치에서 벗어났는지에 따라 '지금' 버튼 활성/비활성
+function updateNowBtn(){
+  const btn = document.getElementById("nowBtn");
+  const wrap = document.querySelector("#page-schedule .table-scroll-wrap");
+  if(!btn || !wrap) return;
+  const scrolled = Math.abs(wrap.scrollTop - scheduleHomeScrollTop) > 2 || wrap.scrollLeft > 2;
+  btn.disabled = !scrolled;
+  btn.classList.toggle("active", scrolled);
 }
 
 
@@ -2537,8 +2565,10 @@ function setupScheduleOptions(){
 function setupScheduleScrollLock(){
   const wrap = document.querySelector("#page-schedule .table-scroll-wrap");
   if(!wrap) return;
-  // 방법1: 가로 스크롤 시 플로팅 오버레이 표시/숨김 갱신
-  wrap.addEventListener("scroll", updateFloatOverlay, { passive:true });
+  // 방법1: 가로 스크롤 시 플로팅 오버레이 표시/숨김 + '지금' 버튼 활성 상태 갱신
+  wrap.addEventListener("scroll", ()=>{ updateFloatOverlay(); updateNowBtn(); }, { passive:true });
+  const nowBtn = document.getElementById("nowBtn");
+  if(nowBtn) nowBtn.onclick = goToNow;
   let startX = 0, startY = 0, startLeft = 0, axis = null;
   wrap.addEventListener("touchstart", e=>{
     if(!lockVScrollOn || e.touches.length !== 1){ axis = null; return; }
