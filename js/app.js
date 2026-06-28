@@ -2616,17 +2616,29 @@ function loadStateFromStorage(){
   }
 }
 
-function exportStateToFile(){
-  const data = JSON.stringify({ id: APP_ID, ...buildStateSnapshot() }, null, 2);
+// 내보내기 파일명용 KST 타임스탬프 (YYMMDD_hh:mm)
+function kstStamp(){
+  const f = new Intl.DateTimeFormat("en-CA", {timeZone:"Asia/Seoul", year:"2-digit", month:"2-digit", day:"2-digit", hour:"2-digit", minute:"2-digit", hour12:false});
+  const o = {}; f.formatToParts(new Date()).forEach(p=>{ o[p.type]=p.value; });
+  return `${o.year}${o.month}${o.day}_${o.hour}${o.minute}`;
+}
+
+function downloadJSON(obj, filename){
+  const data = JSON.stringify(obj, null, 2);
   const blob = new Blob([data], {type:"application/json"});
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
-  a.href = url;
-  a.download = "makollim-settings.json";
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
   URL.revokeObjectURL(url);
+}
+
+function exportStateToFile(){
+  // 전체 공연 목록은 서버에서 받으므로 저장하지 않고, 좌석 정보는 sid 기준으로 포함
+  const snap = buildStateSnapshot();
+  delete snap.performances;
+  const out = { id: APP_ID, ...snap, seats: buildSeatExportJSON() };
+  downloadJSON(out, `makollim-settings-seats-${kstStamp()}.json`);
 }
 
 function importStateFromFile(file){
@@ -2638,14 +2650,18 @@ function importStateFromFile(file){
       if(state && state.id && state.id !== APP_ID){
         if(!confirm(`다른 막올림의 설정 파일입니다.\n파일 id: ${state.id}\n현재 막올림: ${APP_ID}\n그래도 현재 막올림에 불러올까요?`)) return;
       }
-      applyState(state);
+      applyState(state); // 화면 설정 + (구버전 파일이면 performances 배열도 인덱스 기준 적용)
+      // 신버전: 좌석 정보는 sid 기준 seats로 적용
+      if(state.seats && typeof state.seats === "object" && !Array.isArray(state.seats)){
+        applySeatJSONData(state.seats);
+      }
       saveState();
       renderSchedule();
       renderStats();
       renderSeatMap();
       renderComboPicker();
       renderComboResults();
-      alert("설정을 불러왔습니다.");
+      alert("설정과 좌석을 불러왔습니다.");
     } catch(err){
       alert("파일을 읽지 못했습니다. 올바른 JSON 파일인지 확인해주세요.");
       console.error(err);
@@ -2708,16 +2724,7 @@ function buildSeatExportJSON(){
 }
 
 function exportSeatJSON(){
-  const data = JSON.stringify(buildSeatExportJSON(), null, 2);
-  const blob = new Blob([data], {type:"application/json"});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = "makollim-seats.json";
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
+  downloadJSON(buildSeatExportJSON(), `makollim-seats-${kstStamp()}.json`);
 }
 
 // 가져올 때는 항상 기존 좌석/티켓/메모를 모두 지운 뒤 새로 채운다.
