@@ -48,6 +48,9 @@ async function loadData(){
   // 공휴일(있으면): 날짜 -> 이름. 없어도 동작하도록 비-치명적으로 로드.
   try{ holidays = await j("json/holidays.json"); } catch(e){ console.warn("holidays.json 로드 실패:", e.message); holidays = {}; }
   holidaySet = new Set(Object.keys(holidays || {}));
+  // 대결(match) 정의(있으면). 없어도 동작하도록 비-치명적으로 로드. 승패 결과는 공연 데이터(schedule)에 들어옴.
+  try{ performanceData.matches = await j("json/matches.json"); } catch(e){ console.warn("matches.json 로드 실패:", e.message); performanceData.matches = []; }
+  if(!Array.isArray(performanceData.matches)) performanceData.matches = [];
   SEAT_BBOX = computeSeatBBox();
   performanceData.performances.forEach((p,i)=>{
     p.sid = "s"+(i+1);        // 공연 숨겨진 ID (시간순)
@@ -55,6 +58,7 @@ async function loadData(){
     if(p.ticketFee == null) p.ticketFee = false; // 수수료 포함 여부
     if(p.ticketDiscount == null) p.ticketDiscount = null; // 임의 할인권 할인율(없으면 null)
     if(p.ticketExtra == null) p.ticketExtra = 0; // 기타 비용(취소 수수료 등, 원)
+    if(p.match == null || typeof p.match !== "object") p.match = {}; // 매치명 -> {winner, note} (서버 제공)
   });
 }
 
@@ -76,6 +80,7 @@ document.querySelectorAll(".tab-btn").forEach(btn=>{
    SCHEDULE PAGE
    ========================================================= */
 let scheduleRoleFilter = {}; // role -> Set(선택된 배우 이름). 비어있으면 필터 없음(전체 표시)
+let scheduleMatchFilter = {}; // 대결명 -> Set(선택된 결과값: 배역명 | "무승부" | "__unknown__"(모름))
 let scheduleHiddenCols = new Set(); // 숨긴 컬럼(배역 이름 또는 COL_TICKET/COL_PRICE)
 let scheduleOpenDropdownRole = null; // 현재 열려있는 드롭다운의 컬럼 키(배역 이름 또는 COL_TICKET/COL_PRICE)
 let showCastHistory = false; // 켜면 비중 0인 배우도 취소선과 함께 표시
@@ -94,7 +99,7 @@ let highlightedRows = new Set(); // 하이라이트된 공연 idx 집합
 const COL_TICKET = "__ticket__";
 const COL_PRICE = "__price__";
 const TICKET_FEE = 2000; // 선택 시 더해지는 수수료(원)
-function colLabel(id){ return id===COL_TICKET ? "티켓" : (id===COL_PRICE ? "가격" : id); }
+function colLabel(id){ return id===COL_TICKET ? "티켓" : (id===COL_PRICE ? "가격" : (id.indexOf("match:")===0 ? id.slice(6) : id)); }
 
 // 등급의 정가(할인율 0) 항목을 찾는다.
 function gradeFacePrice(grade){
@@ -201,6 +206,7 @@ function renderSchedule(){
   const visibleRoles = allRoles.filter(r=>!scheduleHiddenCols.has(r));
   const showTicket = !scheduleHiddenCols.has(COL_TICKET);
   const showPrice = !scheduleHiddenCols.has(COL_PRICE);
+  const visibleMatches = (performanceData.matches||[]).filter(m=>!scheduleHiddenCols.has("match:"+m.name));
 
   const castHistoryBtn = document.getElementById("castHistoryToggleBtn");
   castHistoryBtn.classList.toggle("active", showCastHistory);
@@ -257,6 +263,28 @@ function renderSchedule(){
     ${showTicket ? colHeadHtml(COL_TICKET, "티켓") : ""}
     ${showPrice ? colHeadHtml(COL_PRICE, "가격") : ""}
     <th>메모</th>
+    ${visibleMatches.map(m=>{
+      const sel = scheduleMatchFilter[m.name] || new Set();
+      const isOpen = scheduleOpenDropdownRole === ("match:"+m.name);
+      const hasFilter = sel.size>0;
+      const opts = [...m.roles.map(r=>({v:r,label:r})), {v:"무승부",label:"무승부"}, {v:"__unknown__",label:"모름"}];
+      return `
+        <th class="role-head match-head">
+          <div style="position:relative;">
+            <button class="match-head-btn" data-match="${m.name}" style="background:none;border:none;color:${hasFilter?'var(--gold)':'inherit'};font:inherit;font-weight:inherit;cursor:pointer;padding:0;display:flex;align-items:center;gap:4px;">
+              <span class="role-name">${m.name}</span><span style="font-size:9px;">&#9662;</span>
+            </button>
+            ${isOpen ? `
+              <div class="role-dropdown align-right">
+                <div class="role-dropdown-title">결과 필터</div>
+                ${opts.map(o=>`<label class="role-dropdown-item"><input type="checkbox" data-match="${m.name}" data-val="${o.v}" ${sel.has(o.v)?'checked':''}> ${o.label}</label>`).join("")}
+                <div class="role-dropdown-actions"><button class="match-clear-btn" data-match="${m.name}">모두 해제</button></div>
+                <div class="role-dropdown-actions" style="border-top:none; margin-top:0; padding-top:0;"><button class="match-hide-btn" data-match="${m.name}">숨기기</button></div>
+              </div>
+            ` : ""}
+          </div>
+        </th>`;
+    }).join("")}
     ${visibleRoles.map((role, roleIdx)=>{
       const roleInfo = performanceData.casts.find(c=>c.role===role);
       const selected = scheduleRoleFilter[role] || new Set();
@@ -304,7 +332,7 @@ function renderSchedule(){
     });
   });
 
-  head.querySelectorAll(".role-dropdown input[type=checkbox]").forEach(cb=>{
+  head.querySelectorAll(".role-dropdown input[data-actor]").forEach(cb=>{
     cb.addEventListener("change", ()=>{
       const role = cb.dataset.role;
       const actor = cb.dataset.actor;
@@ -329,6 +357,42 @@ function renderSchedule(){
     btn.addEventListener("click", e=>{
       e.stopPropagation();
       scheduleHiddenCols.add(btn.dataset.role);
+      scheduleOpenDropdownRole = null;
+      renderSchedule();
+      saveState();
+    });
+  });
+
+  // 대결 결과 필터 드롭다운
+  head.querySelectorAll(".match-head-btn").forEach(btn=>{
+    btn.addEventListener("click", e=>{
+      e.stopPropagation();
+      const key = "match:"+btn.dataset.match;
+      scheduleOpenDropdownRole = scheduleOpenDropdownRole===key ? null : key;
+      renderSchedule();
+    });
+  });
+  head.querySelectorAll(".role-dropdown input[data-match]").forEach(cb=>{
+    cb.addEventListener("change", ()=>{
+      const m = cb.dataset.match, v = cb.dataset.val;
+      if(!scheduleMatchFilter[m]) scheduleMatchFilter[m] = new Set();
+      if(cb.checked) scheduleMatchFilter[m].add(v); else scheduleMatchFilter[m].delete(v);
+      renderSchedule();
+      saveState();
+    });
+  });
+  head.querySelectorAll(".match-clear-btn").forEach(btn=>{
+    btn.addEventListener("click", e=>{
+      e.stopPropagation();
+      delete scheduleMatchFilter[btn.dataset.match];
+      renderSchedule();
+      saveState();
+    });
+  });
+  head.querySelectorAll(".match-hide-btn").forEach(btn=>{
+    btn.addEventListener("click", e=>{
+      e.stopPropagation();
+      scheduleHiddenCols.add("match:"+btn.dataset.match);
       scheduleOpenDropdownRole = null;
       renderSchedule();
       saveState();
@@ -361,6 +425,15 @@ function renderSchedule(){
       if(sel && sel.size>0){
         const names = castVisibleNamesOf(p.cast[role]);
         if(!names.some(n=>sel.has(n))) return false;
+      }
+    }
+    // 대결 결과 필터: 배역명 | "무승부" | "__unknown__"(끝났는데 미기록=모름). 미래(미정)는 어떤 값도 아니라 제외됨.
+    for(const mname in scheduleMatchFilter){
+      const sel = scheduleMatchFilter[mname];
+      if(sel && sel.size>0){
+        const res = p.match && p.match[mname];
+        const val = (res && res.winner) ? res.winner : (isEnded(p) ? "__unknown__" : "__tbd__");
+        if(!sel.has(val)) return false;
       }
     }
     return true;
@@ -476,6 +549,16 @@ function renderSchedule(){
             </div>
           ` : ""}
         </td>
+        ${visibleMatches.map(m=>{
+          const res = p.match && p.match[m.name];
+          const w = (res && res.winner) ? res.winner : "";
+          let disp, cls, style="";
+          if(w==="무승부"){ disp="무승부"; cls="draw"; }
+          else if(w){ disp=w; cls="win"; style=` style="color:${matchRoleColor(m,w)}"`; }
+          else { disp = isPast ? "모름" : "미정"; cls="none"; }
+          const noteAttr = (res && res.note) ? ` title="${String(res.note).replace(/"/g,'&quot;')}"` : "";
+          return `<td class="match-cell ${cls}"${style}${noteAttr}>${disp}</td>`;
+        }).join("")}
         ${castCells}
       </tr>
     `;
@@ -897,6 +980,36 @@ function parseCastWeighted(entry){
   return items;
 }
 
+/* === 대결(match) 유틸 === */
+// 지점(point)에 해당하는 그 배역의 참여 배우: 캐스팅 순서대로 비중을 누적해 point가 속한 구간의 배우.
+function matchParticipant(perf, role, point){
+  const items = parseCastWeighted(perf && perf.cast ? perf.cast[role] : null).filter(it=>it.weight>0);
+  if(items.length===0) return null;
+  let cum = 0;
+  for(const it of items){ cum += it.weight; if(point <= cum + 1e-9) return it.name; }
+  return items[items.length-1].name;
+}
+// 공연의 매치 승자(배역명 | "무승부" | null). 옵션 켜진 완료공연 미기록은 defaultWinner로 간주.
+function matchWinnerOf(perf, match){
+  const res = perf.match && perf.match[match.name];
+  let winner = (res && res.winner) ? res.winner : null;
+  if(!winner && matchAssumeDefaultWin && isEnded(perf)) winner = match.defaultWinner;
+  return winner;
+}
+// 특정 배역(role) 관점의 결과: 'win' | 'loss' | 'draw' | 'none'(미반영)
+function matchRoleResult(perf, match, role){
+  const w = matchWinnerOf(perf, match);
+  if(!w) return 'none';
+  if(w === '무승부') return 'draw';
+  return w === role ? 'win' : 'loss';
+}
+// 배역별 결과 색(너무 튀지 않게 채도 낮춘 팔레트). 매치 내 roles 순서로 배정.
+const MATCH_ROLE_COLORS = ['#caa15a','#7f9fc4','#8ab38f','#c58aa6','#a99ad0','#cf9a6a'];
+function matchRoleColor(match, role){
+  const i = match.roles.indexOf(role);
+  return MATCH_ROLE_COLORS[(i<0?0:i) % MATCH_ROLE_COLORS.length];
+}
+
 function castNamesOf(entry){
   return parseCastWeighted(entry).map(it=>it.name);
 }
@@ -942,6 +1055,9 @@ function fmtStatValue(v){
 }
 
 let castStatsMode = "all"; // 'first' | 'start' | 'all' | 'weighted'
+let matchAssumeDefaultWin = false; // 대결: 결과 미기록 완료공연을 defaultWinner 승리로 간주
+let matchStatsOrder = [];          // 대결 통계 블록 표시 순서(키 배열)
+let collapsedMatchStats = new Set(); // 닫힌 대결 통계 블록 키
 
 function renderStats(){
   const perfs = performanceData.performances;
@@ -1124,6 +1240,119 @@ function renderStats(){
     dragFromIdx = null;
     renderStats();
     saveState();
+  });
+
+  renderMatchStats();
+}
+
+/* 대결(match) 통계: 배역별 표(승률 정렬) + 주배역×서브배역 조합 표(주배역=단독순서, rowspan).
+   각 표 블록은 드래그로 순서 변경·닫기(접기) 가능. 완료(종료) 공연만 집계. */
+function renderMatchStats(){
+  const el = document.getElementById("matchStats");
+  if(!el) return;
+  const matches = performanceData.matches || [];
+
+  const optEl = document.getElementById("matchAssumeWin");
+  if(optEl){
+    optEl.checked = matchAssumeDefaultWin;
+    optEl.onchange = ()=>{ matchAssumeDefaultWin = optEl.checked; saveState(); renderMatchStats(); };
+  }
+
+  if(matches.length===0){ el.innerHTML = `<p style="color:var(--ink-dim); font-size:13px;">정의된 대결이 없습니다.</p>`; return; }
+
+  const ended = performanceData.performances.filter(isEnded);
+  const rateNum = s => { const d=s.win+s.loss+s.draw; return d>0 ? s.win/d : -1; };
+  const rateStr = s => { const d=s.win+s.loss+s.draw; return d>0 ? Math.round(s.win/d*100)+"%" : "-"; };
+  const tallyResult = (s, r)=>{ s.total++; if(r==='win')s.win++; else if(r==='loss')s.loss++; else if(r==='draw')s.draw++; };
+
+  function roleStatsOf(m, role){
+    const acc={};
+    ended.forEach(p=>{
+      const actor=matchParticipant(p,role,m.point); if(!actor) return;
+      const s=acc[actor]||(acc[actor]={total:0,win:0,loss:0,draw:0});
+      tallyResult(s, matchRoleResult(p,m,role));
+    });
+    return acc;
+  }
+  const sortByRate = acc => Object.keys(acc).sort((a,b)=> rateNum(acc[b])-rateNum(acc[a]) || acc[b].total-acc[a].total);
+
+  // 블록(표) 목록 + 저장된 순서 적용
+  const allBlocks=[];
+  matches.forEach(m=>{
+    m.roles.forEach(role=>allBlocks.push({key:m.name+"::"+role, type:'role', m, role}));
+    if(m.roles.length>=2) allBlocks.push({key:m.name+"::__combo__", type:'combo', m});
+  });
+  const order=[];
+  matchStatsOrder.forEach(k=>{ const b=allBlocks.find(x=>x.key===k); if(b&&order.indexOf(b)<0) order.push(b); });
+  allBlocks.forEach(b=>{ if(order.indexOf(b)<0) order.push(b); });
+
+  el.innerHTML = order.map(b=>{
+    const collapsed = collapsedMatchStats.has(b.key);
+    let title, tableHtml;
+    if(b.type==='role'){
+      const acc = roleStatsOf(b.m, b.role);
+      title = `${b.m.name} 대결 · ${b.role} 승리`;
+      const rows = sortByRate(acc).map(n=>{ const s=acc[n];
+        return `<tr><td>${n}</td><td>${s.total}</td><td>${s.win}</td><td>${s.loss}</td><td>${s.draw}</td><td>${rateStr(s)}</td></tr>`; }).join("")
+        || `<tr><td colspan="6" style="color:var(--ink-dim);">기록 없음</td></tr>`;
+      tableHtml = `<table class="role-stat-table"><thead><tr><th>배우</th><th>전체</th><th>승</th><th>패</th><th>무</th><th>승률</th></tr></thead><tbody>${rows}</tbody></table>`;
+    } else {
+      const m=b.m, main=m.roles[0], sub=m.roles[1];
+      title = `${m.name} 대결 · ${main}×${sub} 승리`;
+      const pair={};
+      ended.forEach(p=>{
+        const a0=matchParticipant(p,main,m.point), a1=matchParticipant(p,sub,m.point);
+        if(!a0||!a1) return;
+        const byMain=pair[a0]||(pair[a0]={});
+        const s=byMain[a1]||(byMain[a1]={total:0,win:0,loss:0,draw:0});
+        tallyResult(s, matchRoleResult(p,m,main));
+      });
+      const mainOrder = sortByRate(roleStatsOf(m, main));
+      let rows="";
+      mainOrder.forEach(a0=>{
+        const byMain=pair[a0]; if(!byMain) return;
+        const subs=Object.keys(byMain).sort((x,y)=> rateNum(byMain[y])-rateNum(byMain[x]) || byMain[y].total-byMain[x].total);
+        subs.forEach((a1,si)=>{ const s=byMain[a1];
+          const firstTd = si===0 ? `<td rowspan="${subs.length}">${a0}</td>` : "";
+          rows += `<tr>${firstTd}<td>${a1}</td><td>${s.total}</td><td>${s.win}</td><td>${s.loss}</td><td>${s.draw}</td><td>${rateStr(s)}</td></tr>`;
+        });
+      });
+      if(!rows) rows = `<tr><td colspan="7" style="color:var(--ink-dim);">기록 없음</td></tr>`;
+      tableHtml = `<table class="role-stat-table"><thead><tr><th>${main}</th><th>${sub}</th><th>전체</th><th>승</th><th>패</th><th>무</th><th>승률</th></tr></thead><tbody>${rows}</tbody></table>`;
+    }
+    return `
+      <div class="match-stat-block" draggable="true" data-key="${b.key}" style="margin-bottom:14px; cursor:grab;">
+        <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
+          <span class="role-drag-handle" style="color:var(--ink-dim); font-size:22px; line-height:1; cursor:grab; padding:4px 8px;">&#8942;&#8942;</span>
+          <button class="match-toggle" data-key="${b.key}" style="display:flex; align-items:center; gap:6px; background:none; border:none; cursor:pointer; padding:0; font-size:13px; font-weight:700; color:var(--gold); flex:1; text-align:left;">
+            <span>${collapsed ? "&#9656;" : "&#9662;"}</span> ${title}
+          </button>
+        </div>
+        <div style="${collapsed ? 'display:none;' : ''}">${tableHtml}</div>
+      </div>`;
+  }).join("");
+
+  el.querySelectorAll(".match-toggle").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      const k=btn.dataset.key;
+      if(collapsedMatchStats.has(k)) collapsedMatchStats.delete(k); else collapsedMatchStats.add(k);
+      saveState(); renderMatchStats();
+    });
+  });
+  let dragKey=null;
+  el.querySelectorAll(".match-stat-block").forEach(block=>{
+    block.addEventListener("dragstart", ()=>{ dragKey=block.dataset.key; block.style.opacity="0.4"; });
+    block.addEventListener("dragend", ()=>{ block.style.opacity=""; });
+    block.addEventListener("dragover", e=>{ e.preventDefault(); block.style.borderTop="2px solid var(--gold)"; });
+    block.addEventListener("dragleave", ()=>{ block.style.borderTop=""; });
+    block.addEventListener("drop", e=>{
+      e.preventDefault(); block.style.borderTop="";
+      const dropKey=block.dataset.key;
+      if(!dragKey || dragKey===dropKey) return;
+      const keys=order.map(x=>x.key);
+      keys.splice(keys.indexOf(dropKey), 0, keys.splice(keys.indexOf(dragKey), 1)[0]);
+      matchStatsOrder=keys; dragKey=null; saveState(); renderMatchStats();
+    });
   });
 }
 
@@ -2170,6 +2399,9 @@ function buildStateSnapshot(){
     scheduleRoleFilter: Object.fromEntries(
       Object.entries(scheduleRoleFilter).map(([k,v])=>[k, [...v]])
     ),
+    scheduleMatchFilter: Object.fromEntries(
+      Object.entries(scheduleMatchFilter).map(([k,v])=>[k, [...v]])
+    ),
     collapsedRoles: [...collapsedRoles],
     roleStatsOrder: [...roleStatsOrder],
     comboBlocks: comboBlocks,
@@ -2180,6 +2412,9 @@ function buildStateSnapshot(){
     hiddenStatActors: Object.fromEntries(Object.entries(hiddenStatActors).map(([k,v])=>[k,[...v]])),
     minimapVisible: minimapVisible,
     castStatsMode: castStatsMode,
+    matchAssumeDefaultWin: matchAssumeDefaultWin,
+    matchStatsOrder: [...matchStatsOrder],
+    collapsedMatchStats: [...collapsedMatchStats],
     showCastHistory: showCastHistory,
     seatShowWatched: seatShowWatched,
     seatShowBooked: seatShowBooked,
@@ -2231,6 +2466,12 @@ function applyState(state){
       scheduleRoleFilter[k] = new Set(v);
     });
   }
+  scheduleMatchFilter = {};
+  if(state.scheduleMatchFilter){
+    Object.entries(state.scheduleMatchFilter).forEach(([k,v])=>{
+      scheduleMatchFilter[k] = new Set(v);
+    });
+  }
 
   collapsedRoles = new Set(state.collapsedRoles || []);
 
@@ -2253,6 +2494,9 @@ function applyState(state){
   }
   if(typeof state.minimapVisible === "boolean") minimapVisible = state.minimapVisible;
   if(typeof state.castStatsMode === "string") castStatsMode = state.castStatsMode;
+  if(typeof state.matchAssumeDefaultWin === "boolean") matchAssumeDefaultWin = state.matchAssumeDefaultWin;
+  if(Array.isArray(state.matchStatsOrder)) matchStatsOrder = state.matchStatsOrder.slice();
+  collapsedMatchStats = new Set(state.collapsedMatchStats || []);
   if(typeof state.showCastHistory === "boolean") showCastHistory = state.showCastHistory;
 
   if(typeof state.seatShowWatched === "boolean") seatShowWatched = state.seatShowWatched;

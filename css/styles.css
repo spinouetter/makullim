@@ -333,6 +333,12 @@
     border:1px solid #e0594a; border-radius:50%;
     pointer-events:none;
   }
+  /* 대결(match) 결과 열 */
+  .match-head{white-space:nowrap;}
+  .match-cell{white-space:nowrap; font-weight:700; font-size:12px;}
+  /* 승: 배역별 색은 인라인 style로 지정 */
+  .match-cell.draw{color:color-mix(in srgb, var(--ink) 50%, transparent); font-weight:600;} /* 무승부: 조금 연하게 */
+  .match-cell.none{color:var(--ink-dim); font-weight:400; font-style:italic;} /* 미정/모름: 기울임 */
   .cast-cell{min-width:56px;}
   .cast-cell .name{display:block; line-height:1.4; white-space:nowrap;}
   .cast-cell .name.alt{color:#d8c08a;}
