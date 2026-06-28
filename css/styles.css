@@ -666,6 +666,10 @@
     color:var(--gold);
   }
   .floor-toggle-btn:disabled{ opacity:0.4; cursor:default; }
+  /* 스케줄 옵션 버튼: 모바일에서 잘리지 않도록 작게 */
+  #page-schedule .floor-toggle-bar .floor-toggle-btn{ padding:3px 8px; font-size:11px; }
+  #page-schedule .hidden-roles-bar select,
+  #page-schedule .hidden-roles-bar button{ font-size:11px; padding:3px 6px; }
 
   .svg-viewport{
     position:relative;
