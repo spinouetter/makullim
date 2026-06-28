@@ -80,6 +80,9 @@
     -webkit-overflow-scrolling:touch;
     border-radius:var(--radius);
   }
+  /* 데스크탑: 마우스로 잡아끌어 스크롤 */
+  #page-schedule .table-scroll-wrap{ cursor:grab; }
+  #page-schedule .table-scroll-wrap.drag-scrolling{ cursor:grabbing; user-select:none; }
   .table-scroll-wrap table{
     min-width:600px;
   }
