@@ -47,7 +47,7 @@ tracker/
 
 > **극장은 공연과 분리되어 있습니다.** 어떤 극장을 쓸지는 `meta.json`의 `theatre` 항목이 가리키는 파일로 결정됩니다. 그래서 `theatres/`에 여러 공연장 파일을 두고, 공연마다 `meta.theatre`만 바꿔 연결하면 한 레포에서 여러 공연장을 관리할 수 있습니다.
 
-> 입력한 좌석·메모·티켓·필터 등 **사용자 기록은 데이터 파일이 아니라 브라우저 localStorage**(키 `musicalTracker:state:v1`)에 저장됩니다. `json/`·`theatres/`는 "공연의 기본 정의"만 담습니다.
+> 입력한 좌석·메모·티켓·필터 등 **사용자 기록은 데이터 파일이 아니라 브라우저 localStorage**(키 `makollim:state:v1:<meta.id>`)에 저장됩니다. `json/`·`theatres/`는 "공연의 기본 정의"만 담습니다.
 
 ---
 
