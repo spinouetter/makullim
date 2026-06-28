@@ -316,7 +316,12 @@
     background:var(--panel); color:inherit;
     font-weight:700; font-size:12px;
     border-right:1px solid var(--line);
-    box-shadow:3px 0 8px rgba(0,0,0,0.4);
+  }
+  /* 오른쪽 그림자: box-shadow 대신 세로 전체에 균일한 그라데이션(위·아래 동일) */
+  .float-label::after{
+    content:""; position:absolute; top:0; bottom:0; left:100%;
+    width:8px; pointer-events:none;
+    background:linear-gradient(to right, rgba(0,0,0,0.30), rgba(0,0,0,0));
   }
   /* 오버레이의 티켓 아이콘: 티켓 있으면 진하게, 없으면 옅게 (크기는 티켓 열 .tk-icon과 동일 12px) */
   .float-tk{ margin-left:5px; font-size:12px; line-height:1; opacity:0.25; }
