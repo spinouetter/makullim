@@ -977,6 +977,11 @@ function isEnded(p){
 function hasSeat(p){
   return !!(p.seat && p.seat.trim()!=="");
 }
+// 마티네(낮공연): 시작 시각이 17시 이전
+function isMatinee(p){
+  const h = parseInt((p.time||"").slice(0,2), 10);
+  return Number.isFinite(h) && h < 17;
+}
 
 /* =========================================================
    캐스트 데이터 해석 (문자열 / 배열 / (이름,비중) 배열 지원)
@@ -1085,6 +1090,8 @@ let castStatsMode = "all"; // 'first' | 'start' | 'all' | 'weighted'
 let matchAssumeDefaultWin = false; // 대결: 결과 미기록 완료공연을 defaultWinner 승리로 간주
 let matchStatsOrder = [];          // 대결 통계 블록 표시 순서(키 배열)
 let collapsedMatchStats = new Set(); // 닫힌 대결 통계 블록 키
+let etcStatsOrder = [];            // 기타 통계 세부 블록 표시 순서
+let collapsedEtcStats = new Set(); // 닫힌 기타 통계 세부 블록 키
 
 function renderStats(){
   const perfs = performanceData.performances;
@@ -1270,6 +1277,7 @@ function renderStats(){
   });
 
   renderMatchStats();
+  renderEtcStats();
 }
 
 /* 대결(match) 통계: 배역별 표(승률 정렬) + 주배역×서브배역 조합 표(주배역=단독순서, rowspan).
@@ -1379,6 +1387,122 @@ function renderMatchStats(){
       const keys=order.map(x=>x.key);
       keys.splice(keys.indexOf(dropKey), 0, keys.splice(keys.indexOf(dragKey), 1)[0]);
       matchStatsOrder=keys; dragKey=null; saveState(); renderMatchStats();
+    });
+  });
+}
+
+/* 기타 통계: 월별 / 요일별(+마티네·휴일) / 티켓별. 각 세부 블록은 닫기(접기)·드래그 이동 가능. */
+function renderEtcStats(){
+  const el = document.getElementById("etcStats");
+  if(!el) return;
+  const perfs = performanceData.performances;
+  const add = (b,p)=>{ b.total++; const e=isEnded(p), s=hasSeat(p); if(e){ b.ended++; if(s)b.watched++; } else if(s){ b.upcoming++; } };
+  const nb = ()=>({total:0,ended:0,watched:0,upcoming:0});
+  const cells = b=>`<td>${b.total}</td><td>${b.ended}</td><td>${b.watched}</td><td>${b.upcoming}</td>`;
+
+  // ----- 월별 -----
+  function monthHtml(){
+    const m={};
+    perfs.forEach(p=>{ const k=(p.date||"").slice(0,7); if(!k) return; (m[k]||(m[k]=nb())); add(m[k],p); });
+    const rows = Object.keys(m).sort().map(k=>{
+      const lbl = `${+k.slice(0,4)}년 ${+k.slice(5,7)}월`; // 2026년 7월
+      return `<tr><td>${lbl}</td>${cells(m[k])}</tr>`;
+    }).join("") || `<tr><td colspan="5" style="color:var(--ink-dim);">기록 없음</td></tr>`;
+    return `<table class="role-stat-table"><thead><tr><th>월</th><th>전체</th><th>종료</th><th>관극</th><th>예매</th></tr></thead><tbody>${rows}</tbody></table>`;
+  }
+
+  // ----- 요일별 (+ 마티네 / 휴일(주말 제외)) -----
+  function dowHtml(){
+    const d = Array.from({length:7}, nb);
+    const mat = nb(), hol = nb();
+    perfs.forEach(p=>{
+      const i = dowOf(p.date);
+      if(i>=0) add(d[i], p);
+      if(isMatinee(p)) add(mat, p);
+      const weekend = (i===0 || i===6);
+      if(holidaySet.has((p.date||"").trim()) && !weekend) add(hol, p);
+    });
+    let rows = DOW.map((name,i)=>`<tr><td>${name}</td>${cells(d[i])}</tr>`).join("");
+    rows += `<tr class="etc-subrow"><td>마티네</td>${cells(mat)}</tr>`;
+    rows += `<tr class="etc-subrow"><td>휴일(주말 제외)</td>${cells(hol)}</tr>`;
+    return `<table class="role-stat-table"><thead><tr><th>요일</th><th>전체</th><th>종료</th><th>관극</th><th>예매</th></tr></thead><tbody>${rows}</tbody></table>`;
+  }
+
+  // ----- 티켓별 (등급 → 횟수 많은 순) -----
+  function ticketHtml(){
+    const gIdx={}; performanceData.grades.forEach((g,i)=>{ gIdx[g.name]=i; });
+    const map={};
+    perfs.forEach(p=>{
+      if(!hasSeat(p)) return;
+      const grade = gradeOf((p.seat||"").trim()) || "기타";
+      const type = (p.ticketDiscount!=null) ? (p.ticketType||"임의 할인권") : (p.ticketType||"(미지정)");
+      const key = grade+"||"+type;
+      const b = map[key] || (map[key]={grade, type, watched:0, upcoming:0, amount:0});
+      if(isEnded(p)) b.watched++; else b.upcoming++;
+      b.amount += ticketPriceOf(p.seat, p.ticketType, p.ticketFee, (p.ticketDiscount!=null?p.ticketDiscount:null), p.ticketExtra) || 0;
+    });
+    const arr = Object.values(map).sort((a,b)=>
+      ((gIdx[a.grade]??99)-(gIdx[b.grade]??99)) || ((b.watched+b.upcoming)-(a.watched+a.upcoming)) || a.type.localeCompare(b.type,"ko"));
+    if(!arr.length) return `<table class="role-stat-table"><thead><tr><th>등급</th><th>티켓 종류</th><th>관극</th><th>예매</th><th>총액</th></tr></thead><tbody><tr><td colspan="5" style="color:var(--ink-dim);">기록 없음</td></tr></tbody></table>`;
+    // 등급 같은 값은 rowspan으로 병합
+    let rows="", i=0;
+    while(i<arr.length){
+      let j=i; while(j<arr.length && arr[j].grade===arr[i].grade) j++;
+      const span=j-i;
+      for(let k=i;k<j;k++){
+        const b=arr[k];
+        const gradeTd = (k===i) ? `<td rowspan="${span}">${b.grade}</td>` : "";
+        rows += `<tr>${gradeTd}<td>${b.type}</td><td>${b.watched}</td><td>${b.upcoming}</td><td>${formatKRW(b.amount)}</td></tr>`;
+      }
+      i=j;
+    }
+    return `<table class="role-stat-table"><thead><tr><th>등급</th><th>티켓 종류</th><th>관극</th><th>예매</th><th>총액</th></tr></thead><tbody>${rows}</tbody></table>`;
+  }
+
+  const blocks = {
+    month:  { title:"월별 공연 통계",   html: monthHtml() },
+    dow:    { title:"요일별 공연 통계", html: dowHtml() },
+    ticket: { title:"티켓별 통계",       html: ticketHtml() },
+  };
+  const defaultOrder = ["month","dow","ticket"];
+  const order=[];
+  etcStatsOrder.forEach(k=>{ if(blocks[k] && order.indexOf(k)<0) order.push(k); });
+  defaultOrder.forEach(k=>{ if(order.indexOf(k)<0) order.push(k); });
+
+  el.innerHTML = order.map(k=>{
+    const collapsed = collapsedEtcStats.has(k);
+    return `
+      <div class="etc-stat-block" draggable="true" data-key="${k}" style="margin-bottom:14px; cursor:grab;">
+        <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
+          <span class="role-drag-handle" style="color:var(--ink-dim); font-size:22px; line-height:1; cursor:grab; padding:4px 8px;">&#8942;&#8942;</span>
+          <button class="etc-toggle" data-key="${k}" style="display:flex; align-items:center; gap:6px; background:none; border:none; cursor:pointer; padding:0; font-size:13px; font-weight:700; color:var(--gold); flex:1; text-align:left;">
+            <span>${collapsed ? "&#9656;" : "&#9662;"}</span> ${blocks[k].title}
+          </button>
+        </div>
+        <div style="${collapsed ? 'display:none;' : ''}">${blocks[k].html}</div>
+      </div>`;
+  }).join("");
+
+  el.querySelectorAll(".etc-toggle").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      const k=btn.dataset.key;
+      if(collapsedEtcStats.has(k)) collapsedEtcStats.delete(k); else collapsedEtcStats.add(k);
+      saveState(); renderEtcStats();
+    });
+  });
+  let dragKey=null;
+  el.querySelectorAll(".etc-stat-block").forEach(block=>{
+    block.addEventListener("dragstart", ()=>{ dragKey=block.dataset.key; block.style.opacity="0.4"; });
+    block.addEventListener("dragend", ()=>{ block.style.opacity=""; });
+    block.addEventListener("dragover", e=>{ e.preventDefault(); block.style.borderTop="2px solid var(--gold)"; });
+    block.addEventListener("dragleave", ()=>{ block.style.borderTop=""; });
+    block.addEventListener("drop", e=>{
+      e.preventDefault(); block.style.borderTop="";
+      const dropKey=block.dataset.key;
+      if(!dragKey || dragKey===dropKey) return;
+      const keys=order.slice();
+      keys.splice(keys.indexOf(dropKey), 0, keys.splice(keys.indexOf(dragKey), 1)[0]);
+      etcStatsOrder=keys; dragKey=null; saveState(); renderEtcStats();
     });
   });
 }
@@ -2499,6 +2623,8 @@ function buildStateSnapshot(){
     matchAssumeDefaultWin: matchAssumeDefaultWin,
     matchStatsOrder: [...matchStatsOrder],
     collapsedMatchStats: [...collapsedMatchStats],
+    etcStatsOrder: [...etcStatsOrder],
+    collapsedEtcStats: [...collapsedEtcStats],
     showCastHistory: showCastHistory,
     seatShowWatched: seatShowWatched,
     seatShowBooked: seatShowBooked,
@@ -2583,6 +2709,8 @@ function applyState(state){
   if(typeof state.matchAssumeDefaultWin === "boolean") matchAssumeDefaultWin = state.matchAssumeDefaultWin;
   if(Array.isArray(state.matchStatsOrder)) matchStatsOrder = state.matchStatsOrder.slice();
   collapsedMatchStats = new Set(state.collapsedMatchStats || []);
+  if(Array.isArray(state.etcStatsOrder)) etcStatsOrder = state.etcStatsOrder.slice();
+  collapsedEtcStats = new Set(state.collapsedEtcStats || []);
   if(typeof state.showCastHistory === "boolean") showCastHistory = state.showCastHistory;
 
   if(typeof state.seatShowWatched === "boolean") seatShowWatched = state.seatShowWatched;

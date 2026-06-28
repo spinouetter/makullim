@@ -593,6 +593,11 @@
   .role-stat-table tbody td{padding:8px 10px; text-align:center; border-bottom:1px solid var(--line);}
   .role-stat-table tbody td:first-child{text-align:center;}
   .role-stat-table tbody tr:last-child td{border-bottom:none;}
+  /* 기타 통계: 요일별 표 뒤에 붙는 마티네·휴일 요약 줄 */
+  .role-stat-table tbody tr.etc-subrow td{background:var(--panel2); color:var(--ink-dim);}
+  .role-stat-table tbody tr.etc-subrow:first-of-type td{border-top:2px solid var(--line);}
+  /* 기타 통계 표: 헤더 전부 가운데 정렬(첫 컬럼 포함) */
+  #etcStats .role-stat-table thead th{text-align:center;}
 
   .grade-pricing{display:flex; flex-wrap:wrap; gap:10px;}
   .grade-chip{
