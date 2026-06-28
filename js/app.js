@@ -180,7 +180,6 @@ function buildTicketPopover(idx, grade, ticketType, ticketFee){
         `).join("")}
         <label class="ticket-option ticket-custom">
           <input type="radio" name="tkopt-${idx}" value="__custom__" ${isCustom?'checked':''}>
-          <span class="to-name">직접 입력</span>
           <input type="text" class="tk-custom-name" data-idx="${idx}" placeholder="할인권 이름" value="${customName}">
           <input type="number" class="tk-custom-rate" data-idx="${idx}" placeholder="0" min="0" max="100" value="${customRate}"><span class="tk-pct">%</span>
         </label>
@@ -1109,7 +1108,7 @@ function renderStats(){
   document.getElementById("ticketTotals").innerHTML = `
     <div class="tt-card"><div class="label">지금까지 쓴 금액</div><div class="value">${formatKRW(spentAmount)}</div></div>
     <div class="tt-card"><div class="label">앞으로 쓸 금액</div><div class="value">${formatKRW(upcomingAmount)}</div></div>
-    <div class="tt-card total"><div class="label">전체</div><div class="value">${formatKRW(spentAmount + upcomingAmount)}</div></div>
+    <div class="tt-card total"><div class="label">총액</div><div class="value">${formatKRW(spentAmount + upcomingAmount)}</div></div>
   `;
 
   const now = new Date();
@@ -2033,11 +2032,17 @@ function showSeatDetail(seatId){
           }).join("")}</td>`;
         }).join("");
         const dcolor = dateColorOf(p.date);
+        const noteVal = (p.note || "").trim();
+        const memoCell = noteVal
+          ? `<button class="seat-memo-icon" data-note="${noteVal.replace(/"/g,'&quot;')}" title="${noteVal.replace(/"/g,'&quot;')}" style="background:none; border:none; cursor:pointer; padding:2px; color:var(--gold); display:inline-flex;">
+               <svg width="13" height="16" viewBox="0 0 16 20" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="1" y="1" width="14" height="18" rx="1.5"/><line x1="4" y1="6" x2="12" y2="6"/><line x1="4" y1="10" x2="12" y2="10"/><line x1="4" y1="14" x2="9" y2="14"/></svg>
+             </button>`
+          : "";
         return `
           <tr>
             <td class="date-cell"${dcolor?` style="color:${dcolor}"`:''}>${shortDateDow(p.date)}</td>
             <td class="time-cell"${dcolor?` style="color:${dcolor}"`:''}>${p.time}</td>
-            <td>${p.note || ""}</td>
+            <td style="text-align:center;">${memoCell}</td>
             ${castCells}
           </tr>
         `;
@@ -2053,6 +2058,9 @@ function showSeatDetail(seatId){
       </table>
     </div>
   `;
+  detail.querySelectorAll(".seat-memo-icon").forEach(btn=>{
+    btn.addEventListener("click", ()=> showToast(btn.dataset.note));
+  });
 }
 
 /* =========================================================
