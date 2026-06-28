@@ -272,7 +272,7 @@ function renderSchedule(){
         <th class="role-head match-head">
           <div style="position:relative;">
             <button class="match-head-btn" data-match="${m.name}" style="background:none;border:none;color:${hasFilter?'var(--gold)':'inherit'};font:inherit;font-weight:inherit;cursor:pointer;padding:0;display:flex;align-items:center;gap:4px;">
-              <span class="role-name">${m.name}</span><span style="font-size:9px;">&#9662;</span>
+              <span class="role-name">${m.name}</span><span class="col-arrow">&#9662;${hasFilter ? `<span class="col-filter-badge">${sel.size}</span>` : ""}</span>
             </button>
             ${isOpen ? `
               <div class="role-dropdown align-right">
@@ -295,7 +295,7 @@ function renderSchedule(){
         <th class="role-head">
           <div style="position:relative;">
             <button class="role-head-btn" data-role="${role}" style="background:none; border:none; color:${hasFilter?'var(--gold)':'inherit'}; font:inherit; font-weight:inherit; cursor:pointer; padding:0; display:flex; align-items:center; gap:4px;">
-              <span class="role-name">${role}</span><span style="font-size:9px;">&#9662;</span>
+              <span class="role-name">${role}</span><span class="col-arrow">&#9662;${hasFilter ? `<span class="col-filter-badge">${selected.size}</span>` : ""}</span>
             </button>
             ${isOpen ? `
               <div class="role-dropdown ${isLast?'align-right':''}">              <div class="role-dropdown-title">배우 선택</div>
@@ -762,6 +762,19 @@ function renderSchedule(){
   }
   updateClearHighlightBtn();
 
+  // 필터 끄기 버튼(필터 유무로 활성/비활성)
+  const filterClearBtn = document.getElementById("filterClearBtn");
+  if(filterClearBtn){
+    filterClearBtn.onclick = ()=>{
+      if(!anyScheduleFilterActive()) return;
+      scheduleRoleFilter = {};
+      scheduleMatchFilter = {};
+      renderSchedule();
+      saveState();
+    };
+  }
+  updateFilterClearBtn();
+
   // 방법1: 오버레이 임계값(년도 폭) 측정 + 현재 가로 스크롤에 맞춰 표시 갱신
   if(floatDateOn) computeFloatThreshold();
   updateFloatOverlay();
@@ -921,6 +934,20 @@ function updateFloatOverlay(){
   const wrap = document.querySelector("#page-schedule .table-scroll-wrap");
   if(!wrap) return;
   wrap.classList.toggle("h-scrolled", floatDateOn && wrap.scrollLeft > floatThreshold);
+}
+
+// 스케줄에 필터(배역/대결 결과)가 하나라도 적용돼 있는지
+function anyScheduleFilterActive(){
+  return Object.values(scheduleRoleFilter).some(s=>s&&s.size>0)
+      || Object.values(scheduleMatchFilter).some(s=>s&&s.size>0);
+}
+// '필터 끄기' 버튼: 필터가 있으면 활성, 없으면 비활성. 누르면 전체 필터 초기화.
+function updateFilterClearBtn(){
+  const btn = document.getElementById("filterClearBtn");
+  if(!btn) return;
+  const on = anyScheduleFilterActive();
+  btn.disabled = !on;
+  btn.classList.toggle("active", on);
 }
 
 // 방법2: '하이라이트 해제' 버튼 — 하이라이트 모드일 때만 보이고, 하나라도 선택돼 있어야 활성.
