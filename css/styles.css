@@ -546,13 +546,13 @@
 
   .combo-picker{display:flex; flex-direction:column; gap:14px; margin-bottom:16px;}
   .combo-role-name{font-size:11px; color:var(--ink-dim); margin-bottom:6px; text-transform:uppercase; letter-spacing:0.5px;}
-  .combo-actor-chips{display:flex; gap:8px; flex-wrap:wrap;}
+  .combo-actor-chips{display:flex; gap:6px; flex-wrap:wrap;}
   .combo-chip{
     position:relative;
     background:var(--panel2);
     border:1px solid var(--line);
     border-radius:20px;
-    padding:6px 14px;
+    padding:2px 10px; /* 버튼 크기 축소(텍스트 크기는 유지) */
     font-size:13px;
     cursor:pointer;
     user-select:none;
