@@ -175,7 +175,14 @@
 
     <div class="stat-section">
       <h2>저장 초기화</h2>
-      <button id="resetSettingsBtn" style="border-color:#a85a44; color:#e08a73;">모든 저장 데이터 삭제</button>
+      <div style="display:flex; gap:10px; flex-wrap:wrap;">
+        <button id="resetSettingsBtn">설정 초기화</button>
+        <button id="deleteSeatDataBtn" style="border-color:#a85a44; color:#e08a73;">좌석 데이터 삭제</button>
+      </div>
+      <p style="color:var(--ink-dim); font-size:13px; margin-top:10px;">
+        <b>설정 초기화</b>: 화면 설정·필터·테마·통계 구성 등만 초기화하고, 입력한 <b>좌석·티켓·메모는 유지</b>합니다. (개발 중 기능으로 저장값이 꼬였을 때 사용)<br>
+        <b>좌석 데이터 삭제</b>: 입력한 <b>좌석·티켓·메모만</b> 삭제합니다. (설정은 유지)
+      </p>
     </div>
   </section>
 
@@ -207,6 +214,6 @@
   </div>
 </div>
 
-<script src="js/app.js?v=31"></script>
+<script src="js/app.js?v=33"></script>
 </body>
 </html>

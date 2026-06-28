@@ -2818,9 +2818,21 @@ document.getElementById("importSettingsFile").addEventListener("change", e=>{
   e.target.value = "";
 });
 
+// 설정 초기화: 화면 설정·필터·테마 등만 비우고, 입력한 좌석·티켓·메모(performances)는 유지
 document.getElementById("resetSettingsBtn").addEventListener("click", ()=>{
-  if(!confirm("저장된 모든 설정(좌석, 메모, 필터, 조합 등)을 삭제할까요? 이 작업은 되돌릴 수 없습니다.")) return;
-  localStorage.removeItem(STORAGE_KEY);
+  if(!confirm("화면 설정·필터·테마·통계 구성 등을 초기화할까요?\n입력한 좌석·티켓·메모는 그대로 유지됩니다.")) return;
+  const snap = buildStateSnapshot();
+  localStorage.setItem(STORAGE_KEY, JSON.stringify({ performances: snap.performances }));
+  location.reload();
+});
+
+// 좌석 데이터 삭제: 입력한 좌석·티켓·메모만 비우고, 설정은 유지
+document.getElementById("deleteSeatDataBtn").addEventListener("click", ()=>{
+  if(!confirm("입력한 좌석·티켓·메모를 모두 삭제할까요? 이 작업은 되돌릴 수 없습니다.\n(화면 설정은 유지됩니다)")) return;
+  performanceData.performances.forEach(p=>{
+    p.seat = ""; p.ticketType = ""; p.ticketFee = false; p.ticketDiscount = null; p.ticketExtra = 0; p.note = "";
+  });
+  saveState();
   location.reload();
 });
 
