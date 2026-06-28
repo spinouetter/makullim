@@ -524,7 +524,7 @@ function renderSchedule(){
         <td class="time-cell"${dcolor?` style="color:${dcolor}"`:''}>${p.time}</td>
         <td class="seat-cell">
           <div style="display:flex; align-items:center; gap:4px;">
-            <input class="seat-input${seatInvalid ? ' invalid-seat' : ''}" type="text" value="${p.seat}" placeholder="1-8-5" data-idx="${idx}" data-field="seat">
+            <input class="seat-input${seatInvalid ? ' invalid-seat' : ''}" type="text" value="${p.seat}" placeholder="층-열-번" data-idx="${idx}" data-field="seat">
             <button class="seat-eye-btn${seatInvalid ? ' invalid' : ''}" data-idx="${idx}" title="${seatInvalid ? '등록되지 않은 좌석입니다' : '좌석표에서 보기'}" style="flex-shrink:0; background:none; border:none; padding:2px 3px; display:flex; align-items:center; justify-content:center; line-height:0; position:relative; color:${eyeColor}; opacity:${eyeOpacity};">
               <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>
               ${seatInvalid ? `<span class="seat-eye-warn">!</span>` : ""}

@@ -344,6 +344,7 @@
     width:100%;
     padding:2px 6px; /* 상하 패딩 축소로 행 높이↓ */
   }
+  .seat-input::placeholder, .note-input::placeholder{ color:var(--ink-dim); opacity:0.4; } /* 프리셋 더 연하게 */
   /* 양식이 틀리거나 등록되지 않은 좌석: 입력한 글자 아래에만 빨간 물결표 */
   .seat-input.invalid-seat{
     text-decoration:underline;
