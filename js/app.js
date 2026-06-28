@@ -59,6 +59,7 @@ async function loadData(){
     if(p.ticketFee == null) p.ticketFee = false; // 수수료 포함 여부
     if(p.ticketDiscount == null) p.ticketDiscount = null; // 임의 할인권 할인율(없으면 null)
     if(p.ticketExtra == null) p.ticketExtra = 0; // 기타 비용(취소 수수료 등, 원)
+    if(p.ticketTransferred == null) p.ticketTransferred = false; // 양도받은 티켓 여부(없으면 내가 구매)
     if(p.match == null || typeof p.match !== "object") p.match = {}; // 매치명 -> {winner, note} (서버 제공)
   });
 }
@@ -186,8 +187,9 @@ function buildTicketPopover(idx, grade, ticketType, ticketFee){
         </label>
       </div>
       <div class="ticket-fee-row">
-        <label class="tk-fee-label"><input type="checkbox" class="tk-fee" data-idx="${idx}" ${ticketFee?'checked':''}> 수수료 +${formatKRW(TICKET_FEE)}</label>
-        <span class="tk-extra-group">기타 <input type="number" class="tk-extra" data-idx="${idx}" min="0" step="100" value="${perf.ticketExtra ? perf.ticketExtra : ''}" placeholder="0">원</span>
+        <label class="tk-fee-label"><input type="checkbox" class="tk-fee" data-idx="${idx}" ${ticketFee?'checked':''}> 수수료</label>
+        <label class="tk-fee-label"><input type="checkbox" class="tk-transfer" data-idx="${idx}" ${perf.ticketTransferred?'checked':''}> 양도받음</label>
+        <span class="tk-extra-group">기타 <input type="text" inputmode="numeric" class="tk-extra" data-idx="${idx}" value="${perf.ticketExtra ? perf.ticketExtra : ''}" placeholder="0">원</span>
       </div>
       <div class="ticket-popover-actions">
         <button class="tk-clear" data-idx="${idx}" style="border-color:#a85a44; color:#e08a73;">삭제</button>
@@ -447,6 +449,7 @@ function renderSchedule(){
     const dcolor = dateColorOf(p.date); // 일/공휴일=빨강, 토=파랑
     const ticketType = p.ticketType || "";
     const ticketFee = !!p.ticketFee;
+    const ticketTransferred = !!p.ticketTransferred; // 양도받은 티켓
     const ticketDiscount = (p.ticketDiscount != null) ? p.ticketDiscount : null; // 임의 할인권이면 할인율
     const gradeName = gradeOf((p.seat||"").trim());          // 좌석 → 등급
     const grade = gradeName ? performanceData.grades.find(g=>g.name===gradeName) : null;
@@ -466,18 +469,20 @@ function renderSchedule(){
         const gradeChip = `<span class="tk-grade" style="background:${gradeFillVar(gradeName)};">${gradeName[0]}</span>`;
         const sel = grade.prices.find(x=>x.name===ticketType);
         const discVal = (ticketDiscount != null) ? ticketDiscount : (sel ? (sel.discount||0) : null);
+        const transferCls = ticketTransferred ? ' transferred' : '';
+        const transferDot = ticketTransferred ? `<span class="tk-transfer-dot" title="양도받음"></span>` : '';
         if(ticketType && discVal != null){
           // 선택 완료(등록 티켓 또는 임의 할인권): 등급 첫글자 · 티켓 이름 첫글자 · 할인율
-          inner = `<button class="ticket-trigger selected" data-idx="${idx}" title="티켓 변경">`
+          inner = `<button class="ticket-trigger selected${transferCls}" data-idx="${idx}" title="티켓 변경">`
             + gradeChip
             + `<span class="tk-name">${ticketType[0]}</span>`
-            + `<span class="tk-disc">${discVal}%</span>`
+            + `<span class="tk-disc">${discVal}%${transferDot}</span>`
             + `</button>`;
         } else {
           // 미선택: 등급 첫글자 + 티켓 아이콘
-          inner = `<button class="ticket-trigger" data-idx="${idx}" title="티켓 선택">`
+          inner = `<button class="ticket-trigger${transferCls}" data-idx="${idx}" title="티켓 선택">`
             + gradeChip
-            + `<span class="tk-icon" aria-hidden="true">&#127903;</span>`
+            + `<span class="tk-icon" aria-hidden="true">&#127903;</span>${transferDot}`
             + `</button>`;
         }
       }
@@ -592,10 +597,12 @@ function renderSchedule(){
       const idx = +btn.dataset.idx;
       const checked = body.querySelector(`input[name="tkopt-${idx}"]:checked`);
       const feeCb = body.querySelector(`.tk-fee[data-idx="${idx}"]`);
+      const transferCb = body.querySelector(`.tk-transfer[data-idx="${idx}"]`);
       const extraInp = body.querySelector(`.tk-extra[data-idx="${idx}"]`);
       const perf = performanceData.performances[idx];
       perf.ticketFee = feeCb ? feeCb.checked : false;
-      let extra = Number(extraInp && extraInp.value);
+      perf.ticketTransferred = transferCb ? transferCb.checked : false;
+      let extra = Number((extraInp && extraInp.value || "").replace(/[^0-9.]/g,""));
       perf.ticketExtra = (isFinite(extra) && extra > 0) ? Math.round(extra) : 0; // 기타 비용
       if(checked && checked.value === "__custom__"){
         const nameInp = body.querySelector(`.tk-custom-name[data-idx="${idx}"]`);
@@ -640,6 +647,7 @@ function renderSchedule(){
       performanceData.performances[idx].ticketFee = false;
       performanceData.performances[idx].ticketDiscount = null;
       performanceData.performances[idx].ticketExtra = 0;
+      performanceData.performances[idx].ticketTransferred = false;
       ticketPopoverIdx = null;
       renderSchedule();
       renderStats();   // 티켓 해제 → 통계(티켓 금액) 갱신
@@ -2599,7 +2607,7 @@ function applyColorTheme(){
 
 function buildStateSnapshot(){
   return {
-    performances: performanceData.performances.map(p=>({seat:p.seat, note:p.note, ticketType:p.ticketType||"", ticketFee:!!p.ticketFee, ticketDiscount:(p.ticketDiscount!=null?p.ticketDiscount:null), ticketExtra:(p.ticketExtra||0)})),
+    performances: performanceData.performances.map(p=>({seat:p.seat, note:p.note, ticketType:p.ticketType||"", ticketFee:!!p.ticketFee, ticketDiscount:(p.ticketDiscount!=null?p.ticketDiscount:null), ticketExtra:(p.ticketExtra||0), ticketTransferred:!!p.ticketTransferred})),
     scheduleHiddenCols: [...scheduleHiddenCols],
     scheduleRoleFilter: Object.fromEntries(
       Object.entries(scheduleRoleFilter).map(([k,v])=>[k, [...v]])
@@ -2662,6 +2670,7 @@ function applyState(state){
         if(typeof s.ticketFee === "boolean") performanceData.performances[i].ticketFee = s.ticketFee;
         performanceData.performances[i].ticketDiscount = (typeof s.ticketDiscount === "number") ? s.ticketDiscount : null;
         performanceData.performances[i].ticketExtra = (typeof s.ticketExtra === "number" && s.ticketExtra > 0) ? s.ticketExtra : 0;
+        performanceData.performances[i].ticketTransferred = !!s.ticketTransferred;
       }
     });
   }
@@ -2840,11 +2849,13 @@ function buildSeatExportJSON(){
     const ticketType = p.ticketType || "";
     const ticketFee = !!p.ticketFee;
     const note = p.note || "";
-    const hasExtra = ticketType || ticketFee || note.trim();
+    const transferred = !!p.ticketTransferred;
+    const hasExtra = ticketType || ticketFee || note.trim() || p.ticketDiscount != null || transferred;
     if(!seat && !hasExtra) return; // 아무 정보도 없으면 내보내지 않음
     if(!hasExtra){ result[p.sid] = [seat]; return; }
     const arr = [seat, ticketType, ticketFee, note];
-    if(p.ticketDiscount != null) arr.push(p.ticketDiscount); // 임의 할인권 할인율(5번째, 선택)
+    if(p.ticketDiscount != null || transferred) arr.push(p.ticketDiscount != null ? p.ticketDiscount : null); // 5번째: 임의 할인율(없으면 null)
+    if(transferred) arr.push(true); // 6번째: 양도받음
     result[p.sid] = arr;
   });
   return result;
@@ -2860,7 +2871,7 @@ function exportSeatJSON(){
 function applySeatJSONData(data){
   if(!data || typeof data !== "object") throw new Error("올바른 형식이 아닙니다.");
 
-  performanceData.performances.forEach(p=>{ p.seat = ""; p.ticketType = ""; p.ticketFee = false; p.note = ""; p.ticketDiscount = null; p.ticketExtra = 0; });
+  performanceData.performances.forEach(p=>{ p.seat = ""; p.ticketType = ""; p.ticketFee = false; p.note = ""; p.ticketDiscount = null; p.ticketExtra = 0; p.ticketTransferred = false; });
 
   const sidMap = {};
   performanceData.performances.forEach(p=>{ sidMap[p.sid] = p; });
@@ -2878,6 +2889,7 @@ function applySeatJSONData(data){
       perf.ticketFee  = !!list[2];
       perf.note       = list[3] != null ? String(list[3]) : "";
       perf.ticketDiscount = (list.length > 4 && list[4] != null && list[4] !== "" && isFinite(Number(list[4]))) ? Number(list[4]) : null;
+      perf.ticketTransferred = !!(list.length > 5 && list[5]);
     }
     if(perf.seat || perf.ticketType || (perf.note && perf.note.trim())) appliedCount++;
   });

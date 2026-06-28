@@ -427,9 +427,18 @@
   }
   .tk-name{font-size:12px; font-weight:700; color:var(--ink);}
   .tk-disc{
+    position:relative;
     font-size:10px; font-weight:700; color:var(--gold);
     background:color-mix(in srgb, var(--gold) 15%, transparent); border-radius:4px; padding:1px 4px;
   }
+  /* 양도받은 티켓: 할인율 오른쪽 위 작은 점 */
+  .tk-transfer-dot{
+    position:absolute; top:-2px; right:-2px;
+    width:5px; height:5px; border-radius:50%;
+    background:#5b9bff; box-shadow:0 0 0 1px var(--panel);
+  }
+  .ticket-trigger{ position:relative; }
+  .ticket-trigger .tk-icon + .tk-transfer-dot{ position:absolute; top:1px; right:1px; }
   .tk-icon{font-size:12px; line-height:1;}
 
   .ticket-popover{
