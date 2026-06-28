@@ -222,7 +222,6 @@ function renderSchedule(){
   } else {
     hiddenBar.innerHTML = `
       <div class="hidden-roles-bar">
-        <span>숨긴 컬럼:</span>
         <select id="hiddenColSelect">
           ${[...scheduleHiddenCols].map(c=>`<option value="${c}">${colLabel(c)}</option>`).join("")}
         </select>
