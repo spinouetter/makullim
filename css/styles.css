@@ -147,7 +147,8 @@
     flex-wrap:wrap;
     gap:8px;
   }
-  header .title-block{display:flex; align-items:baseline; gap:14px;}
+  /* 제목과 부제(장소·날짜)를 한 '내용 폭' 블록에 세로로 묶어, 부제를 제목 텍스트 오른쪽 끝에 맞춘다 */
+  header .title-block{display:flex; flex-direction:column; align-items:stretch; width:fit-content; max-width:100%; gap:2px;}
   header h1{
     margin:0;
     font-size:22px;
@@ -155,7 +156,7 @@
     letter-spacing:0.5px;
   }
   header h1 .curtain{color:var(--gold);}
-  header .sub{font-size:12px; color:var(--ink-dim); letter-spacing:1px; text-transform:uppercase;}
+  header .sub{font-size:12px; color:var(--ink-dim); letter-spacing:1px; text-transform:uppercase; text-align:right;}
   nav{
     display:flex;
     gap:4px;
