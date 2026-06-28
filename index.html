@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>막올림</title>
-<link rel="stylesheet" href="css/styles.css?v=43">
+<link rel="stylesheet" href="css/styles.css?v=44">
 </head>
 <body>
 
@@ -57,14 +57,18 @@
     </div>
 
     <div class="stat-section">
-      <h2>배역별 출연 횟수</h2>
-      <div id="roleStats"></div>
+      <h2 class="collapse-h2" data-sec="role"><span class="collapse-arrow">&#9662;</span> 배역별 출연 횟수</h2>
+      <div class="stat-sec-body" data-sec-body="role">
+        <div id="roleStats"></div>
+      </div>
     </div>
 
     <div class="stat-section">
-      <h2>배역 조합 출연 횟수</h2>
-      <div id="comboResults"></div>
-      <div id="comboEmptyMsg" style="color:var(--ink-dim); font-size:13px;">아직 생성된 조합이 없습니다. 아래 ‘배역 통계 추가’에서 배역을 선택하고 만들기를 눌러주세요.</div>
+      <h2 class="collapse-h2" data-sec="combo"><span class="collapse-arrow">&#9662;</span> 배역 조합 출연 횟수</h2>
+      <div class="stat-sec-body" data-sec-body="combo">
+        <div id="comboResults"></div>
+        <div id="comboEmptyMsg" style="color:var(--ink-dim); font-size:13px;">아직 생성된 조합이 없습니다. 아래 ‘배역 통계 추가’에서 배역을 선택하고 만들기를 눌러주세요.</div>
+      </div>
     </div>
 
     <div class="stat-section">
@@ -78,9 +82,11 @@
     </div>
 
     <div class="stat-section">
-      <h2>대결 통계</h2>
-      <label class="opt-row"><input type="checkbox" id="matchAssumeWin"><span>결과를 잘 모를 때 <b>지정 배역 승리로 간주</b></span></label>
-      <div id="matchStats"></div>
+      <h2 class="collapse-h2" data-sec="match"><span class="collapse-arrow">&#9662;</span> 대결 통계</h2>
+      <div class="stat-sec-body" data-sec-body="match">
+        <label class="opt-row"><input type="checkbox" id="matchAssumeWin"><span>결과를 잘 모를 때 <b>지정 배역 승리로 간주</b></span></label>
+        <div id="matchStats"></div>
+      </div>
     </div>
     </div><!-- /stats-scroll-area -->
   </section>
@@ -235,6 +241,6 @@
   </div>
 </div>
 
-<script src="js/app.js?v=43"></script>
+<script src="js/app.js?v=44"></script>
 </body>
 </html>

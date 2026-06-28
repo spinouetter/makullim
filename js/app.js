@@ -2078,6 +2078,28 @@ function applyComboCreateOpen(){
   if(arrow) arrow.innerHTML = comboCreateOpen ? "&#9662;" : "&#9656;";
 }
 
+/* 통계 상위 섹션(배역별/조합/대결) 접기 — "배역 통계 추가"와 동일 방식 */
+let collapsedStatSecs = new Set(); // 닫혀있는 섹션 키 ("role","combo","match")
+function applyStatSecsCollapse(){
+  document.querySelectorAll(".collapse-h2[data-sec]").forEach(h=>{
+    const key = h.dataset.sec;
+    const collapsed = collapsedStatSecs.has(key);
+    const body = document.querySelector(`.stat-sec-body[data-sec-body="${key}"]`);
+    const arrow = h.querySelector(".collapse-arrow");
+    if(body) body.style.display = collapsed ? "none" : "";
+    if(arrow) arrow.innerHTML = collapsed ? "&#9656;" : "&#9662;";
+  });
+}
+document.querySelectorAll(".collapse-h2[data-sec]").forEach(h=>{
+  h.addEventListener("click", ()=>{
+    const key = h.dataset.sec;
+    if(collapsedStatSecs.has(key)) collapsedStatSecs.delete(key);
+    else collapsedStatSecs.add(key);
+    applyStatSecsCollapse();
+    saveState();
+  });
+});
+
 function renderComboPicker(){
   const picker = document.getElementById("comboPicker");
   const roles = performanceData.casts.map(c=>c.role);
@@ -2458,6 +2480,7 @@ function buildStateSnapshot(){
     comboBlocks: comboBlocks,
     comboBlockSeq: comboBlockSeq,
     comboCreateOpen: comboCreateOpen,
+    collapsedStatSecs: [...collapsedStatSecs],
     collapsedComboIds: [...collapsedComboIds],
     hiddenFloors: [...hiddenFloors],
     showSeatNumbers: showSeatNumbers,
@@ -2538,6 +2561,7 @@ function applyState(state){
   if(typeof state.comboBlockSeq === "number") comboBlockSeq = state.comboBlockSeq;
   if(typeof state.comboCreateOpen === "boolean") comboCreateOpen = state.comboCreateOpen;
   collapsedComboIds = new Set(state.collapsedComboIds || []);
+  collapsedStatSecs = new Set(state.collapsedStatSecs || []);
 
   hiddenFloors = new Set(state.hiddenFloors || []);
   if(typeof state.showSeatNumbers === "boolean") showSeatNumbers = state.showSeatNumbers;
@@ -2967,6 +2991,7 @@ async function init(){
   renderComboPicker();
   renderComboResults();
   applyComboCreateOpen(); // "배역 통계 추가" 섹션 펼침/접힘 적용
+  applyStatSecsCollapse(); // 통계 상위 섹션 접힘 적용
 
   // 공연 시작+3시간(종료 시점)이 페이지를 띄워둔 채로 지나가면 통계/좌석맵을 자동 갱신한다.
   lastEndedCount = performanceData.performances.filter(isEnded).length;
