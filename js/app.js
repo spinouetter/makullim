@@ -2434,7 +2434,9 @@ document.getElementById("comboCreateBtn").addEventListener("click", ()=>{
 const STORAGE_KEY = "musicalTracker:state:v1";
 
 // 컬러 테마 (CSS data-theme로 적용). 기본 = amber
-const COLOR_THEMES = ["amber","midnight","steel","sage","rose","red"];
+const COLOR_THEMES = ["amber","midnight","steel","sage","rose","red",
+  "ocean","forest","plum","wine","lagoon","coffee","indigo","charcoal","emerald","sunset",
+  "tutu","electricity","cream","solidarity","coaldust","dawn","meadow","lavender","paper","swan"];
 let colorTheme = "amber";
 function applyColorTheme(){
   document.documentElement.dataset.theme = colorTheme;
