@@ -3092,6 +3092,43 @@ function setupScheduleScrollLock(){
       wrap.scrollLeft = startLeft - dx; // 가로는 직접 이동
     }
   }, { passive:false });
+
+  // 데스크탑: 마우스로 표를 잡아끌어 스크롤(가로·세로). 입력/버튼/링크 위에서는 드래그 안 함.
+  const INTERACTIVE = "input, textarea, select, button, a, [contenteditable], .role-dropdown, .ticket-popover";
+  let mDown=false, mMoved=false, mx=0, my=0, ml=0, mt=0, mAxis=null, suppressClick=false;
+  wrap.addEventListener("pointerdown", e=>{
+    if(e.pointerType!=="mouse" || e.button!==0) return;
+    if(e.target.closest(INTERACTIVE)) return;       // 클릭 가능한 요소는 그대로 동작
+    mDown=true; mMoved=false; mAxis=null; mx=e.clientX; my=e.clientY; ml=wrap.scrollLeft; mt=wrap.scrollTop;
+  });
+  wrap.addEventListener("pointermove", e=>{
+    if(!mDown) return;
+    const dx=e.clientX-mx, dy=e.clientY-my;
+    if(!mMoved){
+      if(Math.abs(dx)<4 && Math.abs(dy)<4) return;   // 작은 움직임은 클릭으로 둠
+      mMoved=true; wrap.classList.add("drag-scrolling");
+      // '세로 스크롤 잠금' 옵션이 켜져 있으면 시작 방향으로 한 축만 이동
+      mAxis = lockVScrollOn ? (Math.abs(dx) >= Math.abs(dy) ? "h" : "v") : null;
+      try{ wrap.setPointerCapture(e.pointerId); }catch(_){}
+    }
+    e.preventDefault();
+    if(mAxis !== "v") wrap.scrollLeft = ml - dx;   // 세로 잠금(h)일 때 가로만
+    if(mAxis !== "h") wrap.scrollTop  = mt - dy;   // 가로 잠금(v)일 때 세로만
+  });
+  const endDrag = e=>{
+    if(!mDown) return;
+    mDown=false;
+    if(mMoved){
+      suppressClick=true;                            // 드래그 직후의 클릭(하이라이트 등) 무시
+      wrap.classList.remove("drag-scrolling");
+      try{ wrap.releasePointerCapture(e.pointerId); }catch(_){}
+    }
+  };
+  wrap.addEventListener("pointerup", endDrag);
+  wrap.addEventListener("pointercancel", endDrag);
+  wrap.addEventListener("click", e=>{
+    if(suppressClick){ e.stopPropagation(); e.preventDefault(); suppressClick=false; }
+  }, true);
 }
 
 /* =========================================================
