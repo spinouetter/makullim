@@ -732,7 +732,16 @@
   .seat.s{background:var(--g-s); color:#eafff2;}
   .seat.a{background:var(--g-a); color:#eef2ff;}
   .seat.selected{outline:2px solid #fff; outline-offset:1px;}
-  .legend{display:flex; gap:14px; margin-top:14px; flex-wrap:wrap; font-size:11px; color:var(--ink-dim);}
+  .legend{display:flex; gap:3px 12px; margin-top:6px; flex-wrap:wrap; align-items:center; font-size:11px; color:var(--ink-dim);}
+  .legend-break{ flex-basis:100%; height:0; }
+  /* 관극 횟수 범례: 숫자를 가운데 적은 동그라미. 등급 사각형의 1.2배(약 14px), 간격은 좁게. */
+  .legend .cnt-scale{ display:inline-flex; align-items:center; gap:6px; }
+  .legend .cnt-dot{
+    display:inline-flex; align-items:center; justify-content:center;
+    width:14px; height:14px; border-radius:50%;
+    color:#fff; font-size:8px; font-weight:800; line-height:1;
+    text-shadow:0 0 1px rgba(0,0,0,0.85); border:1px solid rgba(0,0,0,0.35);
+  }
   .legend span{display:inline-flex; align-items:center; gap:6px;}
   .legend i{width:12px; height:12px; border-radius:3px; display:inline-block;}
 

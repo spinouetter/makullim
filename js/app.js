@@ -1128,10 +1128,16 @@ function watchCountOf(seatId){
 }
 
 function seatVisualStyle(count){
-  // 관극 횟수에 따라 좌석 불투명도만 조절(색은 CSS 테마 변수). 0회=흐림, 10회=최대.
-  if(count<=0) return { opacity:0.32 };
-  const t = Math.min(count,10)/10;
-  return { opacity: 0.55 + t*0.45 };
+  // 미관극(0회) 좌석의 흐림 정도. 관극한 좌석은 히트맵 색(아래 countHeatColor)으로 표시.
+  if(count<=0) return { opacity:0.30 };
+  return { opacity: 1 };
+}
+
+// 관극 횟수(1~10) → 이산 히트맵 색. 저관극에서 색차가 크도록(파랑→청록→초록…) 설계해
+// 1↔2 구분이 9↔10 구분보다 더 뚜렷하다(고관극 빨강→자홍은 단계 차가 작음).
+const COUNT_HEAT = ['#4aa3ff','#2fd0c8','#46c84e','#c2d92a','#ffd21f','#ff9a1f','#ff6322','#ef3b2f','#d81e4a','#b3126e'];
+function countHeatColor(count){
+  return COUNT_HEAT[Math.max(1, Math.min(10, count)) - 1];
 }
 
 function buildSeatSvgInner(highlightSeatId){
@@ -1141,13 +1147,18 @@ function buildSeatSvgInner(highlightSeatId){
   function seatMarkup(s){
     const g = gradeOf(s.id);
     const count = seatMapCount(s.id);
-    const vis = seatVisualStyle(count);
     const isHighlighted = s.id===highlightSeatId;
-    const fill = gradeFillVar(g);
-    const opacity = isHighlighted ? 1 : vis.opacity;
+    const fill = gradeFillVar(g); // 좌석 채움은 등급 색(테두리 없음)
+    const opacity = isHighlighted ? 1 : seatVisualStyle(count).opacity; // 관극=불투명, 미관극=흐림
     const extra = isHighlighted ? `<rect x="${-HALF-0.12}" y="${-HALF-0.12}" width="${SEAT_SIZE+0.24}" height="${SEAT_SIZE+0.24}" rx="0.12" fill="none" stroke="#fff" stroke-width="0.12"></rect>` : "";
-    const badge = (!isHighlighted && count>0) ? `<circle cx="${HALF*0.85}" cy="${-HALF*0.85}" r="0.22" fill="#fff3c4" stroke="#3a2c0c" stroke-width="0.03"></circle><text x="${HALF*0.85}" y="${-HALF*0.85+0.09}" text-anchor="middle" font-size="0.26" font-weight="700" fill="#3a2c0c">${count}</text>` : "";
-    const numberLabel = `<text class="seat-num-text" x="0" y="0.13" text-anchor="middle" font-size="0.32" font-weight="600" fill="rgba(0,0,0,0.6)" style="pointer-events:none; display:${showSeatNumbers?'':'none'};">${s.column}</text>`;
+    // 관극 횟수: 숫자를 적은 동그라미 '안'을 횟수 색(히트맵)으로 칠한다. 숫자는 흰 글자(외곽선으로 가독).
+    const badge = (!isHighlighted && count>0)
+      ? `<circle cx="${HALF*0.8}" cy="${-HALF*0.8}" r="0.3" fill="${countHeatColor(count)}" stroke="rgba(0,0,0,0.45)" stroke-width="0.03"></circle>`
+        + `<text x="${HALF*0.8}" y="${-HALF*0.8+0.12}" text-anchor="middle" font-size="0.34" font-weight="800" fill="#fff" stroke="rgba(0,0,0,0.5)" stroke-width="0.025" paint-order="stroke">${count}</text>`
+      : "";
+    // 번호: 관극한 좌석만 흰 외곽선(halo)으로 가독 강조. 본 적 없는(흐린) 좌석은 외곽선 없이 깔끔하게.
+    const numHalo = count>0 ? ` stroke="rgba(255,255,255,0.75)" stroke-width="0.07" paint-order="stroke"` : "";
+    const numberLabel = `<text class="seat-num-text" x="0" y="0.17" text-anchor="middle" font-size="0.48" font-weight="700" fill="rgba(20,20,20,0.85)"${numHalo} style="pointer-events:none; display:${showSeatNumbers?'':'none'};">${s.column}</text>`;
     return `
       <g class="svg-seat" data-seat-id="${s.id}" transform="translate(${s.svgX},${s.svgY}) rotate(${s.svgRot})" style="cursor:pointer;">
         <title>${s.id} &middot; ${count}회 관극</title>
@@ -1236,6 +1247,7 @@ function buildSeatSvgInner(highlightSeatId){
 }
 
 let mainViewBox = null;
+let pendingSeatViewBox = null; // 새로고침 복원용: 저장된 시트맵 뷰(첫 렌더에서 1회 적용)
 let showSeatNumbers = true; // 좌석번호 기본 표시
 let hiddenFloors = new Set(); // 토글로 숨긴 층 (문자열 "1","2","3")
 let minimapVisible = true; // 미니맵 표시 여부
@@ -1342,6 +1354,13 @@ function updateMinimapVisibility(){
 
 function vbString(vb){ return `${vb.x} ${vb.y} ${vb.w} ${vb.h}`; }
 
+// 시트맵 뷰 변경이 잦으므로(드래그·핀치·휠) 디바운스로 저장 — 모든 변경의 단일 지점 applyMainViewBox에서 호출.
+let _seatViewSaveTimer = null;
+function saveSeatViewDebounced(){
+  if(_seatViewSaveTimer) clearTimeout(_seatViewSaveTimer);
+  _seatViewSaveTimer = setTimeout(saveState, 250);
+}
+
 function applyMainViewBox(){
   document.getElementById("mainSeatSvg").setAttribute("viewBox", vbString(mainViewBox));
   const indicator = document.getElementById("minimapIndicator");
@@ -1351,6 +1370,7 @@ function applyMainViewBox(){
     indicator.setAttribute("width", mainViewBox.w);
     indicator.setAttribute("height", mainViewBox.h);
   }
+  saveSeatViewDebounced(); // 위치·배율 저장(새로고침 시 유지)
 }
 
 function clampViewBox(vb){
@@ -1410,6 +1430,10 @@ function renderSeatMap(preserveZoom){
   if(prevViewBox){
     // 배율(너비/높이)은 유지하고, 위치만 새 좌석맵 범위 안으로 맞춘다.
     mainViewBox = clampViewBox({ x: prevViewBox.x, y: prevViewBox.y, w: prevViewBox.w, h: prevViewBox.h });
+  } else if(pendingSeatViewBox){
+    // 새로고침 복원: 저장된 뷰를 첫 렌더에서 1회 적용
+    mainViewBox = clampViewBox({ ...pendingSeatViewBox });
+    pendingSeatViewBox = null;
   } else {
     mainViewBox = computeInitialViewBox();
   }
@@ -1431,9 +1455,12 @@ function renderSeatMap(preserveZoom){
     });
   });
 
-  document.getElementById("seatLegend").innerHTML = performanceData.grades.map(g=>`
-    <span><i style="background:${gradeFillVar(g.name)};"></i>${g.name}</span>
-  `).join("") + `<span><i style="background:var(--gold); opacity:0.32;"></i>본 적 없음</span><span><i style="background:var(--gold); box-shadow:0 0 8px var(--glow);"></i>많이 관극 (최대 10회)</span>`;
+  document.getElementById("seatLegend").innerHTML =
+    performanceData.grades.map(g=>`<span><i style="background:${gradeFillVar(g.name)};"></i>${g.name}</span>`).join("")
+    + `<span><i style="background:var(--g-none); opacity:0.30;"></i>본 적 없음</span>`
+    + `<span class="legend-break"></span>`
+    + `<span style="color:var(--ink-dim);">관극 횟수</span>`
+    + `<span class="cnt-scale">` + [1,2,3,4,5,6,7,8,9,10].map(n=>`<span class="cnt-dot" style="background:${countHeatColor(n)};">${n}</span>`).join("") + `</span>`;
 
   setupSeatMapInteractions();
   setupFloorToggle();
@@ -2113,7 +2140,9 @@ function buildStateSnapshot(){
     rowHighlightSave: rowHighlightSave,
     lockVScrollOn: lockVScrollOn,
     // 하이라이트는 '저장' 옵션이 켜졌을 때만 보존(꺼져 있으면 세션 한정)
-    highlightedRows: rowHighlightSave ? [...highlightedRows] : []
+    highlightedRows: rowHighlightSave ? [...highlightedRows] : [],
+    // 시트맵 위치·배율(줌/팬)
+    seatViewBox: mainViewBox ? { x:mainViewBox.x, y:mainViewBox.y, w:mainViewBox.w, h:mainViewBox.h } : null
   };
 }
 
@@ -2187,6 +2216,12 @@ function applyState(state){
   if(typeof state.rowHighlightSave === "boolean") rowHighlightSave = state.rowHighlightSave;
   if(typeof state.lockVScrollOn === "boolean") lockVScrollOn = state.lockVScrollOn;
   highlightedRows = new Set(Array.isArray(state.highlightedRows) ? state.highlightedRows : []);
+
+  // 시트맵 위치·배율 복원(첫 renderSeatMap에서 적용)
+  const vb = state.seatViewBox;
+  if(vb && ["x","y","w","h"].every(k=>typeof vb[k]==="number") && vb.w>0 && vb.h>0){
+    pendingSeatViewBox = { x:vb.x, y:vb.y, w:vb.w, h:vb.h };
+  }
 }
 
 function loadStateFromStorage(){
