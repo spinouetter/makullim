@@ -1180,6 +1180,53 @@ let collapsedMatchStats = new Set(); // 닫힌 대결 통계 블록 키
 let etcStatsOrder = [];            // 기타 통계 세부 블록 표시 순서
 let collapsedEtcStats = new Set(); // 닫힌 기타 통계 세부 블록 키
 
+/* 포인터 기반 블록 순서 변경(데스크탑·모바일 공용, HTML5 DnD 대체).
+   - container 안의 blockSel 블록들을 handleSel(드래그 손잡이)로 끌어 재정렬
+   - keyOf(block)=식별자 문자열, applyOrder(새 키 배열)=순서 반영(저장·재렌더 포함)
+   - 5px 이상 움직여야 시작(손잡이 단순 탭은 무시) */
+function setupBlockReorder(container, blockSel, handleSel, keyOf, applyOrder){
+  if(!container) return;
+  let fromKey=null, pid=null, active=false, moved=false, startY=0;
+  const blocks=()=>[...container.querySelectorAll(blockSel)];
+  const clearMarks=()=>blocks().forEach(b=>{ b.style.borderTop=""; b.style.borderBottom=""; b.style.opacity=""; });
+  function targetAt(y){
+    for(const b of blocks()){ if(keyOf(b)===fromKey) continue; const r=b.getBoundingClientRect(); if(y < r.top+r.height/2) return b; }
+    return null; // 모든 블록 아래 → 맨 끝
+  }
+  container.querySelectorAll(handleSel).forEach(h=>{
+    const block=h.closest(blockSel); if(!block) return;
+    h.style.touchAction="none";
+    h.addEventListener("pointerdown", e=>{
+      if(e.button!=null && e.button!==0) return;
+      fromKey=keyOf(block); pid=e.pointerId; active=true; moved=false; startY=e.clientY;
+      try{ h.setPointerCapture(pid); }catch(_){}
+      e.preventDefault();
+    });
+    h.addEventListener("pointermove", e=>{
+      if(!active || e.pointerId!==pid) return;
+      if(!moved){ if(Math.abs(e.clientY-startY)<=5) return; moved=true; block.style.opacity="0.4"; }
+      e.preventDefault();
+      blocks().forEach(b=>{ b.style.borderTop=""; b.style.borderBottom=""; });
+      const tgt=targetAt(e.clientY);
+      if(tgt) tgt.style.borderTop="2px solid var(--gold)";
+      else { const bs=blocks(); if(bs.length) bs[bs.length-1].style.borderBottom="2px solid var(--gold)"; }
+    });
+    const end=e=>{
+      if(!active || (e && e.pointerId!=null && e.pointerId!==pid)) return;
+      active=false;
+      if(!moved){ fromKey=null; pid=null; clearMarks(); return; } // 단순 탭 → 무시
+      const tgt=targetAt(e?e.clientY:startY); const beforeKey=tgt?keyOf(tgt):null;
+      clearMarks();
+      let keys=blocks().map(keyOf).filter(k=>k!==fromKey);
+      if(beforeKey==null) keys.push(fromKey); else keys.splice(keys.indexOf(beforeKey),0,fromKey);
+      fromKey=null; pid=null;
+      applyOrder(keys);
+    };
+    h.addEventListener("pointerup", end);
+    h.addEventListener("pointercancel", ()=>{ active=false; moved=false; fromKey=null; pid=null; clearMarks(); });
+  });
+}
+
 function renderStats(){
   const perfs = performanceData.performances;
   const totalShows = perfs.length;
@@ -1263,7 +1310,7 @@ function renderStats(){
 
     const isCollapsed = collapsedRoles.has(c.role);
     return `
-      <div class="role-stat-block" draggable="true" data-idx="${orderIdx}" style="margin-bottom:14px; cursor:grab;">
+      <div class="role-stat-block" data-key="${c.role}" data-idx="${orderIdx}" style="margin-bottom:14px;">
         <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
           <span class="role-drag-handle" style="color:var(--ink-dim); font-size:22px; line-height:1; cursor:grab; padding:4px 8px;">&#8942;&#8942;</span>
           <button class="role-toggle" data-role="${c.role}" style="display:flex; align-items:center; gap:6px; background:none; border:none; cursor:pointer; padding:0; font-size:13px; font-weight:700; color:var(--gold); flex:1; text-align:left;">
@@ -1299,68 +1346,8 @@ function renderStats(){
     });
   });
 
-  let dragFromIdx = null;
-  roleStatsEl.querySelectorAll(".role-stat-block").forEach(block=>{
-    block.addEventListener("dragstart", e=>{
-      dragFromIdx = +block.dataset.idx;
-      block.style.opacity = "0.4";
-      e.dataTransfer.effectAllowed = "move";
-    });
-    block.addEventListener("dragend", ()=>{
-      block.style.opacity = "";
-    });
-    block.addEventListener("dragover", e=>{
-      e.preventDefault();
-      e.stopPropagation();
-      block.style.borderTop = "2px solid var(--gold)";
-    });
-    block.addEventListener("dragleave", ()=>{
-      block.style.borderTop = "";
-    });
-    block.addEventListener("drop", e=>{
-      e.preventDefault();
-      e.stopPropagation();
-      block.style.borderTop = "";
-      const dropIdx = +block.dataset.idx;
-      if(dragFromIdx===null || dragFromIdx===dropIdx) return;
-      const moved = roleStatsOrder.splice(dragFromIdx,1)[0];
-      roleStatsOrder.splice(dropIdx,0,moved);
-      dragFromIdx = null;
-      renderStats();
-      saveState();
-    });
-  });
-
-  const dropEnd = roleStatsEl.querySelector(".role-drop-end");
-  dropEnd.addEventListener("dragover", e=>{
-    e.preventDefault();
-    dropEnd.style.borderTop = "2px solid var(--gold)";
-  });
-  dropEnd.addEventListener("dragleave", ()=>{
-    dropEnd.style.borderTop = "";
-  });
-  dropEnd.addEventListener("drop", e=>{
-    e.preventDefault();
-    dropEnd.style.borderTop = "";
-    if(dragFromIdx===null) return;
-    const moved = roleStatsOrder.splice(dragFromIdx,1)[0];
-    roleStatsOrder.push(moved);
-    dragFromIdx = null;
-    renderStats();
-    saveState();
-  });
-
-  roleStatsEl.addEventListener("dragover", e=>{
-    e.preventDefault();
-  });
-  roleStatsEl.addEventListener("drop", e=>{
-    e.preventDefault();
-    if(dragFromIdx===null) return;
-    const moved = roleStatsOrder.splice(dragFromIdx,1)[0];
-    roleStatsOrder.push(moved);
-    dragFromIdx = null;
-    renderStats();
-    saveState();
+  setupBlockReorder(roleStatsEl, ".role-stat-block", ".role-drag-handle", b=>b.dataset.key, keys=>{
+    roleStatsOrder = keys; saveState(); renderStats();
   });
 
   renderMatchStats();
@@ -1443,7 +1430,7 @@ function renderMatchStats(){
       tableHtml = `<table class="role-stat-table"><thead><tr><th>${main}</th><th>${sub}</th><th>전체</th><th>승</th><th>패</th><th>무</th><th>승률</th></tr></thead><tbody>${rows}</tbody></table>`;
     }
     return `
-      <div class="match-stat-block" draggable="true" data-key="${b.key}" style="margin-bottom:14px; cursor:grab;">
+      <div class="match-stat-block" data-key="${b.key}" style="margin-bottom:14px;">
         <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
           <span class="role-drag-handle" style="color:var(--ink-dim); font-size:22px; line-height:1; cursor:grab; padding:4px 8px;">&#8942;&#8942;</span>
           <button class="match-toggle" data-key="${b.key}" style="display:flex; align-items:center; gap:6px; background:none; border:none; cursor:pointer; padding:0; font-size:13px; font-weight:700; color:var(--gold); flex:1; text-align:left;">
@@ -1461,20 +1448,8 @@ function renderMatchStats(){
       saveState(); renderMatchStats();
     });
   });
-  let dragKey=null;
-  el.querySelectorAll(".match-stat-block").forEach(block=>{
-    block.addEventListener("dragstart", ()=>{ dragKey=block.dataset.key; block.style.opacity="0.4"; });
-    block.addEventListener("dragend", ()=>{ block.style.opacity=""; });
-    block.addEventListener("dragover", e=>{ e.preventDefault(); block.style.borderTop="2px solid var(--gold)"; });
-    block.addEventListener("dragleave", ()=>{ block.style.borderTop=""; });
-    block.addEventListener("drop", e=>{
-      e.preventDefault(); block.style.borderTop="";
-      const dropKey=block.dataset.key;
-      if(!dragKey || dragKey===dropKey) return;
-      const keys=order.map(x=>x.key);
-      keys.splice(keys.indexOf(dropKey), 0, keys.splice(keys.indexOf(dragKey), 1)[0]);
-      matchStatsOrder=keys; dragKey=null; saveState(); renderMatchStats();
-    });
+  setupBlockReorder(el, ".match-stat-block", ".role-drag-handle", b=>b.dataset.key, keys=>{
+    matchStatsOrder = keys; saveState(); renderMatchStats();
   });
 }
 
@@ -1559,7 +1534,7 @@ function renderEtcStats(){
   el.innerHTML = order.map(k=>{
     const collapsed = collapsedEtcStats.has(k);
     return `
-      <div class="etc-stat-block" draggable="true" data-key="${k}" style="margin-bottom:14px; cursor:grab;">
+      <div class="etc-stat-block" data-key="${k}" style="margin-bottom:14px;">
         <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
           <span class="role-drag-handle" style="color:var(--ink-dim); font-size:22px; line-height:1; cursor:grab; padding:4px 8px;">&#8942;&#8942;</span>
           <button class="etc-toggle" data-key="${k}" style="display:flex; align-items:center; gap:6px; background:none; border:none; cursor:pointer; padding:0; font-size:13px; font-weight:700; color:var(--gold); flex:1; text-align:left;">
@@ -1577,20 +1552,8 @@ function renderEtcStats(){
       saveState(); renderEtcStats();
     });
   });
-  let dragKey=null;
-  el.querySelectorAll(".etc-stat-block").forEach(block=>{
-    block.addEventListener("dragstart", ()=>{ dragKey=block.dataset.key; block.style.opacity="0.4"; });
-    block.addEventListener("dragend", ()=>{ block.style.opacity=""; });
-    block.addEventListener("dragover", e=>{ e.preventDefault(); block.style.borderTop="2px solid var(--gold)"; });
-    block.addEventListener("dragleave", ()=>{ block.style.borderTop=""; });
-    block.addEventListener("drop", e=>{
-      e.preventDefault(); block.style.borderTop="";
-      const dropKey=block.dataset.key;
-      if(!dragKey || dragKey===dropKey) return;
-      const keys=order.slice();
-      keys.splice(keys.indexOf(dropKey), 0, keys.splice(keys.indexOf(dragKey), 1)[0]);
-      etcStatsOrder=keys; dragKey=null; saveState(); renderEtcStats();
-    });
+  setupBlockReorder(el, ".etc-stat-block", ".role-drag-handle", b=>b.dataset.key, keys=>{
+    etcStatsOrder = keys; saveState(); renderEtcStats();
   });
 }
 
@@ -2418,7 +2381,7 @@ function buildDreamBalletHtml(isPreset){
 
   const titleBar = buildComboTitleBar(id, "드림 발레 페어 (빌리 × 성인빌리)", true, isCollapsed);
   const body = buildComboBody(rows, ["빌리","성인빌리"], isCollapsed);
-  return `<div class="combo-result-block" draggable="true" data-block-id="${id}">${titleBar}${body}</div>`;
+  return `<div class="combo-result-block" data-block-id="${id}">${titleBar}${body}</div>`;
 }
 
 function buildComboTitleBar(id, label, isPreset, isCollapsed){
@@ -2534,7 +2497,7 @@ function buildComboBlockHtml(id, rolesSelected, isPreset=false){
   const isCollapsed = collapsedComboIds.has(String(id));
   const titleBar = buildComboTitleBar(id, rolesSelected.join(" × "), isPreset, isCollapsed);
   const body = buildComboBody(filteredRows, rolesSelected, isCollapsed);
-  return `<div class="combo-result-block" draggable="true" data-block-id="${id}">${titleBar}${body}</div>`;
+  return `<div class="combo-result-block" data-block-id="${id}">${titleBar}${body}</div>`;
 }
 
 function getAllComboBlocks(){
@@ -2582,45 +2545,13 @@ function renderComboResults(){
     });
   });
 
-  let dragFromId = null;
-  container.querySelectorAll(".combo-result-block").forEach(block=>{
-    block.addEventListener("dragstart", ()=>{
-      dragFromId = block.dataset.blockId;
-      block.style.opacity = "0.4";
+  setupBlockReorder(container, ".combo-result-block", ".combo-drag-handle", b=>b.dataset.blockId, keys=>{
+    // DOM 키 순서에 맞춰 comboBlocks 재정렬(키에 없는 항목은 뒤로)
+    comboBlocks.sort((a,b)=>{
+      const ia=keys.indexOf(String(a.id)), ib=keys.indexOf(String(b.id));
+      return (ia<0?1e9:ia) - (ib<0?1e9:ib);
     });
-    block.addEventListener("dragend", ()=>{ block.style.opacity = ""; });
-    block.addEventListener("dragover", e=>{ e.preventDefault(); block.style.borderTop = "2px solid var(--gold)"; });
-    block.addEventListener("dragleave", ()=>{ block.style.borderTop = ""; });
-    block.addEventListener("drop", e=>{
-      e.preventDefault();
-      block.style.borderTop = "";
-      const dropId = block.dataset.blockId;
-      if(dragFromId===null || dragFromId===dropId) return;
-      const fromIdx = comboBlocks.findIndex(b=>String(b.id)===dragFromId);
-      const dropIdx = comboBlocks.findIndex(b=>String(b.id)===dropId);
-      if(fromIdx===-1 || dropIdx===-1) return;
-      const moved = comboBlocks.splice(fromIdx,1)[0];
-      comboBlocks.splice(dropIdx,0,moved);
-      dragFromId = null;
-      renderComboResults();
-      saveState();
-    });
-  });
-
-  const comboDropEnd = container.querySelector(".combo-drop-end");
-  comboDropEnd.addEventListener("dragover", e=>{ e.preventDefault(); comboDropEnd.style.borderTop = "2px solid var(--gold)"; });
-  comboDropEnd.addEventListener("dragleave", ()=>{ comboDropEnd.style.borderTop = ""; });
-  comboDropEnd.addEventListener("drop", e=>{
-    e.preventDefault();
-    comboDropEnd.style.borderTop = "";
-    if(dragFromId===null) return;
-    const fromIdx = comboBlocks.findIndex(b=>String(b.id)===dragFromId);
-    if(fromIdx===-1) return;
-    const moved = comboBlocks.splice(fromIdx,1)[0];
-    comboBlocks.push(moved);
-    dragFromId = null;
-    renderComboResults();
-    saveState();
+    saveState(); renderComboResults();
   });
 }
 
