@@ -1165,7 +1165,8 @@ function getCastContributions(entry, mode){
   if(mode==="weighted"){
     return items.map(it=>({name:it.name, amount:it.weight/10}));
   }
-  return items.map(it=>({name:it.name, amount:1})); // 'all' (기본값)
+  // 'all'(기본): 공연 중 실제 출연한 배우만(비중 0 = 그날 미출연이므로 제외) 각 1회 집계
+  return items.filter(it=>it.weight>0).map(it=>({name:it.name, amount:1}));
 }
 
 function fmtStatValue(v){
