@@ -1,0 +1,50 @@
+name: Deploy to GitHub Pages
+
+# GitHub Pages 소스를 "GitHub Actions"로 설정해야 동작합니다.
+# (Settings → Pages → Build and deployment → Source: GitHub Actions)
+# Secret DROPBOX_APP_KEY 가 있으면 js/config.js 의 자리표시자에 주입합니다(없으면 백업 기능 비활성).
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Inject Dropbox App key
+        env:
+          DROPBOX_APP_KEY: ${{ secrets.DROPBOX_APP_KEY }}
+        run: |
+          if [ -n "$DROPBOX_APP_KEY" ]; then
+            # Dropbox App key는 영숫자라 sed 치환이 안전(| 구분자 사용)
+            sed -i "s|__DROPBOX_APP_KEY__|${DROPBOX_APP_KEY}|" js/config.js
+            echo "Dropbox App key injected."
+          else
+            echo "DROPBOX_APP_KEY 시크릿이 없습니다 — 백업 기능은 비활성으로 배포됩니다."
+          fi
+
+      - name: Ensure .nojekyll
+        run: touch .nojekyll
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: .
+      - id: deployment
+        uses: actions/deploy-pages@v4
