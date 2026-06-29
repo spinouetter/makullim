@@ -356,8 +356,9 @@
   .date-cell{white-space:nowrap; font-weight:700;}
   .time-cell{color:var(--ink-dim); white-space:nowrap;}
   .seat-cell{width:106px; min-width:106px; max-width:106px;}
-  .seat-input, .note-input{
-    width:100%;
+  .note-input{ width:100%; padding:2px 6px; }
+  .seat-input{
+    width:68px; box-sizing:border-box; /* 고정폭(스케줄·모달 동일) */
     padding:2px 6px; /* 상하 패딩 축소로 행 높이↓ */
   }
   .seat-input::placeholder, .note-input::placeholder{ color:var(--ink-dim); opacity:0.4; } /* 프리셋 더 연하게 */
@@ -439,6 +440,34 @@
   }
   .ticket-trigger{ position:relative; }
   .ticket-trigger .tk-icon + .tk-transfer-dot{ position:absolute; top:1px; right:1px; }
+
+  /* 다중 티켓: 좌석칸 오른쪽 위 + 버튼(코너) / 개수 배지 / 모드 꺼졌을 때 점 */
+  /* + 버튼: 좌석칸 오른쪽 위에 70% 겹치게(30%만 바깥) */
+  .ticket-add-corner{ position:absolute; top:-5px; right:-5px; bottom:auto; left:auto; z-index:3; width:16px; height:16px; border-radius:50%; border:1px solid var(--gold-dim); background:var(--panel); color:var(--gold); font-size:12px; line-height:1; cursor:pointer; display:flex; align-items:center; justify-content:center; padding:0; }
+  .ticket-add-corner:disabled{ opacity:0.3; cursor:default; color:var(--ink-dim); border-color:var(--line); }
+  /* 개수 배지: + 버튼 바로 위에 겹치게(둘 다 살짝 보임) */
+  .ticket-count-badge{ position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); min-width:13px; height:13px; padding:0 2px; border-radius:7px; background:var(--gold); color:#3a2c0c; font-size:9px; font-weight:800; display:flex; align-items:center; justify-content:center; opacity:0.9; }
+  .ticket-count-corner{ position:absolute; top:-5px; right:-5px; bottom:auto; left:auto; z-index:3; min-width:16px; height:16px; padding:0 3px; border-radius:8px; border:1px solid var(--gold-dim); background:var(--gold); color:#3a2c0c; font-size:10px; font-weight:800; line-height:1; cursor:pointer; display:flex; align-items:center; justify-content:center; }
+
+  /* 티켓 관리 모달 */
+  .tm-row{ display:flex; align-items:center; gap:6px; padding:6px 4px; border-bottom:1px solid var(--line); touch-action:none; -webkit-user-select:none; user-select:none; }
+  /* 행 안에서는 드래그 텍스트 선택을 막아 순서변경 제스처가 선택으로 바뀌지 않게(타이핑·캐럿은 유지) */
+  .tm-row *, .tm-seat-input{ -webkit-user-select:none; user-select:none; }
+  .tm-row.tm-top{ background:color-mix(in srgb, var(--gold) 8%, transparent); border-radius:6px; }
+  .tm-drag{ color:var(--ink-dim); font-size:17px; cursor:grab; flex-shrink:0; user-select:none; padding:0 4px; touch-action:none; }
+  .tm-row.tm-dragging{ touch-action:none; }
+  .tm-price{ flex:1; text-align:right; font-size:12px; color:var(--ink); }
+  .tm-row.tm-dragging{ opacity:0.6; background:color-mix(in srgb, var(--gold) 22%, transparent); box-shadow:0 2px 8px rgba(0,0,0,0.35); border-radius:6px; cursor:grabbing; }
+  .tm-row.tm-drop{ border-top:2px solid var(--gold); }
+  .tm-row.tm-drop-end{ border-bottom:2px solid var(--gold); }
+  .tm-trig{ flex-shrink:0; }
+  .tm-addrow{ margin-top:12px; }
+  .tm-add-btn{ width:100%; padding:8px; border:1px dashed var(--line); background:var(--panel2); color:var(--gold); border-radius:8px; cursor:pointer; font-weight:700; }
+  /* 모달 티켓 팝오버: 관리 창 위에 떠서 표시 */
+  .tm-pop-overlay{ position:fixed; inset:0; z-index:240; display:flex; align-items:center; justify-content:center; background:rgba(0,0,0,0.4); padding:20px; }
+  .tm-pop-overlay .ticket-popover{ position:static; }
+  /* 좌석 보기 오버레이는 티켓 관리/팝오버보다 위에 */
+  #seatOverlay{ z-index:260; }
   .tk-icon{font-size:12px; line-height:1;}
 
   .ticket-popover{
