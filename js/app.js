@@ -2932,8 +2932,19 @@ function buildSeatExportJSON(){
   return result;
 }
 
+// 구 버전(레거시) 내보내기: 좌석만. 형식 { sid: "좌석" }. 티켓·메모는 내보내지 않는다.
+// (티켓·메모를 포함한 전체 저장은 '데이터 내보내기/가져오기'를 사용 → buildSeatExportJSON)
+function buildSeatOnlyJSON(){
+  const result = {};
+  performanceData.performances.forEach(p=>{
+    const seat = (p.seat || "").trim();
+    if(seat) result[p.sid] = seat;
+  });
+  return result;
+}
+
 function exportSeatJSON(){
-  downloadJSON(buildSeatExportJSON(), `makollim-seats-${kstStamp()}.json`);
+  downloadJSON(buildSeatOnlyJSON(), `makollim-seats-${kstStamp()}.json`);
 }
 
 // 가져올 때는 항상 기존 좌석/티켓/메모를 모두 지운 뒤 새로 채운다.
@@ -2954,7 +2965,8 @@ function applySeatJSONData(data){
     const list = Array.isArray(val) ? val : (typeof val === "string" ? [val] : null);
     if(!list) return;
 
-    perf.seat = (list[0] == null ? "" : String(list[0])).trim();
+    // 좌석 값에 엑셀 복사로 생긴 불필요한 따옴표(앞뒤 ' 또는 ")가 남아 있으면 제거
+    perf.seat = (list[0] == null ? "" : String(list[0])).trim().replace(/^["']+|["']+$/g, "").trim();
     if(list.length > 1){
       perf.ticketType = list[1] != null ? String(list[1]) : "";
       perf.ticketFee  = !!list[2];
