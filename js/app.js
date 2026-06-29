@@ -1738,7 +1738,18 @@ function buildSeatSvgInner(highlight){
     return `<g class="floor-group" data-floor="${floor}" transform="translate(0,${deltaY})">${border}${rowLabels}${seatMarkupStr}</g>`;
   }).join("");
 
-  return { markup, bbox: dynamicBBox };
+  // 강조 좌석들의 렌더 좌표(층 deltaY 반영) — 팝업 중심/전체 맞춤용
+  let topPos = null; const hiPos = [];
+  hiSet.forEach(id=>{
+    const s = seatmapData.seats.find(x=>x.id===id);
+    if(s && layout[s.floor] && !layout[s.floor].isHidden){
+      const pos = { x: s.svgX, y: s.svgY + layout[s.floor].deltaY };
+      hiPos.push(pos);
+      if(id===topId) topPos = pos;
+    }
+  });
+
+  return { markup, bbox: dynamicBBox, topPos, hiPos };
 }
 
 let mainViewBox = null;
@@ -1747,6 +1758,7 @@ let seatNeedsInitialFit = false; // 초기 뷰가 숨겨진 상태(뷰포트 0)�
 let showSeatNumbers = true; // 좌석번호 기본 표시
 let hiddenFloors = new Set(); // 토글로 숨긴 층 (문자열 "1","2","3")
 let minimapVisible = true; // 미니맵 표시 여부
+let previewDefaultZoom = 2; // 좌석 보기 팝업 기본 배율(1배=전체 맵 ~ 5배)
 
 // 좌석맵 표시 토글/필터
 let seatShowWatched = true;  // 관극: 종료된 공연 좌석 표시
@@ -2656,6 +2668,7 @@ function buildStateSnapshot(){
     showSeatNumbers: showSeatNumbers,
     hiddenStatActors: Object.fromEntries(Object.entries(hiddenStatActors).map(([k,v])=>[k,[...v]])),
     minimapVisible: minimapVisible,
+    previewDefaultZoom: previewDefaultZoom,
     castStatsMode: castStatsMode,
     matchAssumeDefaultWin: matchAssumeDefaultWin,
     matchStatsOrder: [...matchStatsOrder],
@@ -2748,6 +2761,7 @@ function applyState(state){
     Object.entries(state.hiddenStatActors).forEach(([k,v])=>{ hiddenStatActors[k]=new Set(v); });
   }
   if(typeof state.minimapVisible === "boolean") minimapVisible = state.minimapVisible;
+  if(typeof state.previewDefaultZoom === "number") previewDefaultZoom = Math.max(1, Math.min(5, Math.round(state.previewDefaultZoom)));
   if(typeof state.castStatsMode === "string") castStatsMode = state.castStatsMode;
   if(typeof state.matchAssumeDefaultWin === "boolean") matchAssumeDefaultWin = state.matchAssumeDefaultWin;
   if(Array.isArray(state.matchStatsOrder)) matchStatsOrder = state.matchStatsOrder.slice();
@@ -2985,13 +2999,120 @@ function showSeatOverlay(seats, topSeat, doubleLabel){
     ? `<span><i style="background:#fff; box-shadow:0 0 8px rgba(255,255,255,0.8);"></i>${doubleLabel}(이중)</span><span><i style="background:none; box-shadow:inset 0 0 0 2px rgba(255,255,255,0.5);"></i>그 외 좌석</span>`
     : `<span><i style="background:#fff; box-shadow:0 0 8px rgba(255,255,255,0.8);"></i>${doubleLabel}</span>`;
   grid.innerHTML = `
-    <svg viewBox="${vbString(seatSvg.bbox)}" style="width:100%; height:360px; display:block; background:var(--panel2); border-radius:8px;">
+    <div class="seat-overlay-controls">
+      <button id="soZoomIn" title="확대">+</button>
+      <button id="soZoomOut" title="축소">&minus;</button>
+      <button id="soZoomReset" title="전체 보기">전체</button>
+    </div>
+    <svg id="seatOverlaySvg" viewBox="${vbString(seatSvg.bbox)}" style="width:100%; height:360px; display:block; background:var(--panel2); border-radius:8px; touch-action:none;">
       ${seatSvg.markup}
     </svg>
     <div class="legend" style="margin-top:10px;">${legend}</div>
   `;
 
   overlay.style.display = "flex";
+  // 표시 후(컨테이너 크기 측정 가능) 줌/팬 설정. 좌석이 여러 개면 모두 보이게 맞춤.
+  setupSeatOverlayZoom(seatSvg.bbox, seatSvg.topPos, previewDefaultZoom, seatSvg.hiPos);
+}
+
+/* 좌석 보기 팝업 줌/팬: 메인 좌석맵과 별개의 자체 viewBox 상태.
+   1배=맵 전체, 설정 배율로 시작(선택 좌석 중심·맵 경계 클램프), 핀치·드래그·휠·버튼 지원. */
+function setupSeatOverlayZoom(bbox, topPos, mult, hiPos){
+  const svg = document.getElementById("seatOverlaySvg");
+  if(!svg) return;
+  const MAX_MULT = 8; // 수동 줌 상한(설정은 1~5배, 수동은 약간 여유)
+  const rect = svg.getBoundingClientRect();
+  const contAspect = (rect.width>0 && rect.height>0) ? rect.width/rect.height : (bbox.w/bbox.h);
+  // 1배(전체): 맵을 컨테이너 비율로 감싸는 base 박스
+  let baseW, baseH;
+  if(contAspect > bbox.w/bbox.h){ baseH = bbox.h; baseW = bbox.h*contAspect; }
+  else { baseW = bbox.w; baseH = bbox.w/contAspect; }
+  let vb = null;
+  function clamp(v){
+    const minW = baseW/MAX_MULT, maxW = baseW;
+    let w = Math.max(minW, Math.min(maxW, v.w));
+    let h = w * (baseH/baseW);
+    let x = v.x, y = v.y;
+    if(w >= bbox.w) x = bbox.x + (bbox.w-w)/2; else x = Math.max(bbox.x, Math.min(bbox.x+bbox.w-w, x));
+    if(h >= bbox.h) y = bbox.y + (bbox.h-h)/2; else y = Math.max(bbox.y, Math.min(bbox.y+bbox.h-h, y));
+    return {x,y,w,h};
+  }
+  function apply(){ svg.setAttribute("viewBox", vbString(vb)); }
+  function zoomTo(w, cx, cy){
+    // (cx,cy)를 중심으로 폭 w가 되도록
+    const h = w*(baseH/baseW);
+    vb = clamp({ x: cx - w/2, y: cy - h/2, w, h }); apply();
+  }
+  const aspect = baseW/baseH;
+  if(hiPos && hiPos.length>1){
+    // 좌석이 여러 개면 모두 보이도록 그 묶음(바운딩박스)에 여유를 두고 맞춤
+    let minX=Math.min(...hiPos.map(p=>p.x)), maxX=Math.max(...hiPos.map(p=>p.x));
+    let minY=Math.min(...hiPos.map(p=>p.y)), maxY=Math.max(...hiPos.map(p=>p.y));
+    const pad=3; minX-=pad; maxX+=pad; minY-=pad; maxY+=pad;
+    let w=maxX-minX, h=maxY-minY;
+    if(w/h < aspect) w = h*aspect; else h = w/aspect; // 컨테이너 비율로 확장
+    const cx=(minX+maxX)/2, cy=(minY+maxY)/2;
+    vb = clamp({ x: cx-w/2, y: cy-h/2, w, h }); apply();
+  } else {
+    // 단일 좌석: 설정 배율로 선택 좌석 중심
+    const m = Math.max(1, Math.min(5, mult||1));
+    const w0 = baseW/m;
+    const cx0 = topPos ? topPos.x : bbox.x+bbox.w/2;
+    const cy0 = topPos ? topPos.y : bbox.y+bbox.h/2;
+    vb = clamp({ x: cx0-w0/2, y: cy0-(w0/aspect)/2, w:w0, h:w0/aspect }); apply();
+  }
+
+  // 버튼
+  const ctrCx = ()=>vb.x+vb.w/2, ctrCy = ()=>vb.y+vb.h/2;
+  const zi = document.getElementById("soZoomIn");
+  const zo = document.getElementById("soZoomOut");
+  const zr = document.getElementById("soZoomReset");
+  if(zi) zi.onclick = ()=> zoomTo(vb.w*0.8, ctrCx(), ctrCy());
+  if(zo) zo.onclick = ()=> zoomTo(vb.w*1.25, ctrCx(), ctrCy());
+  if(zr) zr.onclick = ()=> { vb = clamp({ x:bbox.x+(bbox.w-baseW)/2, y:bbox.y+(bbox.h-baseH)/2, w:baseW, h:baseH }); apply(); };
+
+  // 드래그(팬) · 핀치 · 휠
+  let dragging=false, sx=0, sy=0, startVb=null;
+  const pts = new Map();
+  let pinchDist=null, pinchVb=null;
+  svg.addEventListener("pointerdown", e=>{
+    pts.set(e.pointerId, {x:e.clientX, y:e.clientY});
+    if(pts.size===2){
+      dragging=false;
+      pts.forEach((_,id)=>{ try{ svg.setPointerCapture(id); }catch(_){}});
+      const a=[...pts.values()]; pinchDist=Math.hypot(a[0].x-a[1].x, a[0].y-a[1].y); pinchVb={...vb};
+    } else if(pts.size===1){
+      dragging=true; sx=e.clientX; sy=e.clientY; startVb={...vb};
+      try{ svg.setPointerCapture(e.pointerId); }catch(_){}
+    }
+  });
+  svg.addEventListener("pointermove", e=>{
+    if(!pts.has(e.pointerId)) return;
+    pts.set(e.pointerId, {x:e.clientX, y:e.clientY});
+    const r = svg.getBoundingClientRect();
+    if(pts.size===2 && pinchDist){
+      const a=[...pts.values()]; const dist=Math.hypot(a[0].x-a[1].x, a[0].y-a[1].y);
+      const midX=(a[0].x+a[1].x)/2, midY=(a[0].y+a[1].y)/2;
+      const f = pinchDist/dist; // 벌리면 확대(f<1)
+      const cx = pinchVb.x + ((midX-r.left)/r.width)*pinchVb.w;
+      const cy = pinchVb.y + ((midY-r.top)/r.height)*pinchVb.h;
+      vb = clamp({ x: cx-(cx-pinchVb.x)*f, y: cy-(cy-pinchVb.y)*f, w: pinchVb.w*f, h: pinchVb.h*f }); apply();
+      return;
+    }
+    if(!dragging) return;
+    const dx=(e.clientX-sx)*(startVb.w/r.width), dy=(e.clientY-sy)*(startVb.h/r.height);
+    vb = clamp({ x: startVb.x-dx, y: startVb.y-dy, w: startVb.w, h: startVb.h }); apply();
+  });
+  function end(e){ pts.delete(e.pointerId); if(pts.size<2){ pinchDist=null; } if(pts.size===0) dragging=false; try{ svg.releasePointerCapture(e.pointerId); }catch(_){} }
+  svg.addEventListener("pointerup", end);
+  svg.addEventListener("pointercancel", end);
+  svg.addEventListener("wheel", e=>{
+    e.preventDefault();
+    const r = svg.getBoundingClientRect();
+    const cx = vb.x + ((e.clientX-r.left)/r.width)*vb.w;
+    const cy = vb.y + ((e.clientY-r.top)/r.height)*vb.h;
+    zoomTo(vb.w*(e.deltaY>0?1.12:0.89), cx, cy);
+  }, { passive:false });
 }
 
 /* === 다중 티켓 관리 모달 === */
@@ -3359,6 +3480,11 @@ function setupScheduleOptions(){
   hs.checked = rowHighlightSave;
   lv.checked = lockVScrollOn;
   if(mt) mt.checked = multiTicketMode;
+  const pz = document.getElementById("optPreviewZoom");
+  if(pz){
+    pz.value = String(previewDefaultZoom);
+    pz.addEventListener("change", ()=>{ previewDefaultZoom = Math.max(1, Math.min(5, parseInt(pz.value,10)||1)); saveState(); });
+  }
 
   fd.addEventListener("change", ()=>{ floatDateOn = fd.checked; saveState(); renderSchedule(); });
   rh.addEventListener("change", ()=>{ rowHighlightOn = rh.checked; saveState(); renderSchedule(); });
