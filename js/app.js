@@ -2934,12 +2934,15 @@ function buildSeatExportJSON(){
     const ticketFee = !!p.ticketFee;
     const note = p.note || "";
     const transferred = !!p.ticketTransferred;
-    const hasExtra = ticketType || ticketFee || note.trim() || p.ticketDiscount != null || transferred;
+    const extraCost = (typeof p.ticketExtra === "number" && p.ticketExtra > 0) ? p.ticketExtra : 0;
+    const hasExtra = ticketType || ticketFee || note.trim() || p.ticketDiscount != null || transferred || extraCost;
     if(!seat && !hasExtra) return; // 아무 정보도 없으면 내보내지 않음
     if(!hasExtra){ result[p.sid] = [seat]; return; }
     const arr = [seat, ticketType, ticketFee, note];
-    if(p.ticketDiscount != null || transferred) arr.push(p.ticketDiscount != null ? p.ticketDiscount : null); // 5번째: 임의 할인율(없으면 null)
-    if(transferred) arr.push(true); // 6번째: 양도받음
+    // 뒤쪽 선택 필드는 위치로 해석되므로, 뒤 필드가 있으면 앞 필드도 채워 자리를 맞춘다.
+    if(p.ticketDiscount != null || transferred || extraCost) arr.push(p.ticketDiscount != null ? p.ticketDiscount : null); // 5번째: 임의 할인율(없으면 null)
+    if(transferred || extraCost) arr.push(!!transferred); // 6번째: 양도받음(없어도 기타비용이 있으면 false로 자리 채움)
+    if(extraCost) arr.push(extraCost); // 7번째: 기타 비용(원)
     result[p.sid] = arr;
   });
   return result;
@@ -2951,11 +2954,11 @@ function exportSeatJSON(){
 
 // 가져올 때는 항상 기존 좌석/티켓/메모를 모두 지운 뒤 새로 채운다.
 //  - 리스트 길이가 1이면 티켓/메모 없음(좌석만).
-//  - 길이가 2 이상이면 [좌석, 티켓종류, 수수료여부, 메모, (선택)임의할인율] 순으로 해석.
+//  - 길이가 2 이상이면 [좌석, 티켓종류, 수수료여부, 메모, (선택)임의할인율, (선택)양도, (선택)기타비용] 순으로 해석.
 function applySeatJSONData(data){
   if(!data || typeof data !== "object") throw new Error("올바른 형식이 아닙니다.");
 
-  performanceData.performances.forEach(p=>{ p.seat = ""; p.ticketType = ""; p.ticketFee = false; p.note = ""; p.ticketDiscount = null; p.ticketExtra = 0; p.ticketTransferred = false; });
+  performanceData.performances.forEach(p=>{ p.seat = ""; p.ticketType = ""; p.ticketFee = false; p.note = ""; p.ticketDiscount = null; p.ticketExtra = 0; p.ticketTransferred = false; p.extraTickets = []; });
 
   const sidMap = {};
   performanceData.performances.forEach(p=>{ sidMap[p.sid] = p; });
@@ -2974,6 +2977,7 @@ function applySeatJSONData(data){
       perf.note       = list[3] != null ? String(list[3]) : "";
       perf.ticketDiscount = (list.length > 4 && list[4] != null && list[4] !== "" && isFinite(Number(list[4]))) ? Number(list[4]) : null;
       perf.ticketTransferred = !!(list.length > 5 && list[5]);
+      perf.ticketExtra = (list.length > 6 && list[6] != null && isFinite(Number(list[6])) && Number(list[6]) > 0) ? Number(list[6]) : 0;
     }
     if(perf.seat || perf.ticketType || (perf.note && perf.note.trim())) appliedCount++;
   });
@@ -3354,6 +3358,7 @@ document.getElementById("deleteSeatDataBtn").addEventListener("click", ()=>{
   if(!confirm("입력한 좌석·티켓·메모를 모두 삭제할까요? 이 작업은 되돌릴 수 없습니다.\n(화면 설정은 유지됩니다)")) return;
   performanceData.performances.forEach(p=>{
     p.seat = ""; p.ticketType = ""; p.ticketFee = false; p.ticketDiscount = null; p.ticketExtra = 0; p.note = "";
+    p.ticketTransferred = false; p.extraTickets = []; // 다중 티켓·양도 정보도 함께 삭제(안 지우면 재로드 시 추가 티켓이 맨 위로 승격됨)
   });
   saveState();
   location.reload();
