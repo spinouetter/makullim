@@ -179,6 +179,14 @@ function formatKRW(n){
   return n.toLocaleString("ko-KR") + "원";
 }
 
+// HTML 특수문자 이스케이프. 템플릿 문자열로 innerHTML/속성에 끼워 넣는 동적 문자열
+// (사용자 입력: 좌석·메모·직접입력 티켓명 / 데이터 이름: 배우·배역·등급·대결명)에 사용해
+// 따옴표·꺾쇠·앰퍼샌드로 인한 렌더 깨짐·주입을 막는다.
+function escHtml(s){
+  return String(s==null ? "" : s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
 // 가격 항목이 이 공연에 적용 가능한지.
 //  - sids: 없으면 전 공연, 있으면 그 공연 ID일 때만.
 //  - times: 없으면 전 시간, 있으면 그 공연 시간일 때만(예: 마티네 14:30).
@@ -230,7 +238,7 @@ function buildTicketPopover(idx, grade, tk){
   const ticketType = tk.ticketType || "";
   const ticketFee = !!tk.ticketFee;
   const isCustom = tk.ticketDiscount != null; // 임의 할인권 선택 상태
-  const customName = isCustom ? String(ticketType).replace(/"/g,'&quot;') : "";
+  const customName = isCustom ? escHtml(ticketType) : "";
   const customRate = isCustom ? tk.ticketDiscount : "";
   // 이 공연에 적용 가능한 티켓만 + 정렬: 위 고정(sort>=0 오름차순) → 가운데(sort 없음: 할인율↓·가나다) → 아래 고정(sort<0)
   const applicable = grade.prices.filter(pr=>priceAppliesTo(pr, perf));
@@ -246,8 +254,8 @@ function buildTicketPopover(idx, grade, tk){
       <div class="ticket-options">
         ${prices.map(pr=>`
           <label class="ticket-option">
-            <input type="radio" name="tkopt-${idx}" value="${pr.name}" ${(!isCustom && ticketType===pr.name)?'checked':''}>
-            <span class="to-name">${pr.name}</span>
+            <input type="radio" name="tkopt-${idx}" value="${escHtml(pr.name)}" ${(!isCustom && ticketType===pr.name)?'checked':''}>
+            <span class="to-name">${escHtml(pr.name)}</span>
             <span class="to-disc">${pr.discount ? pr.discount+'% 할인' : '정가'}</span>
             <span class="to-price">${formatKRW(pr.price)}</span>
           </label>
@@ -344,15 +352,15 @@ function renderSchedule(){
       return `
         <th class="role-head match-head">
           <div style="position:relative;">
-            <button class="match-head-btn" data-match="${m.name}" style="background:none;border:none;color:${hasFilter?'var(--gold)':'inherit'};font:inherit;font-weight:inherit;cursor:pointer;padding:0;display:flex;align-items:center;gap:4px;">
-              <span class="role-name">${m.name}</span><span class="col-arrow">&#9662;${hasFilter ? `<span class="col-filter-badge">${sel.size}</span>` : ""}</span>
+            <button class="match-head-btn" data-match="${escHtml(m.name)}" style="background:none;border:none;color:${hasFilter?'var(--gold)':'inherit'};font:inherit;font-weight:inherit;cursor:pointer;padding:0;display:flex;align-items:center;gap:4px;">
+              <span class="role-name">${escHtml(m.name)}</span><span class="col-arrow">&#9662;${hasFilter ? `<span class="col-filter-badge">${sel.size}</span>` : ""}</span>
             </button>
             ${isOpen ? `
               <div class="role-dropdown align-right">
                 <div class="role-dropdown-title">결과 필터</div>
-                ${opts.map(o=>`<label class="role-dropdown-item"><input type="checkbox" data-match="${m.name}" data-val="${o.v}" ${sel.has(o.v)?'checked':''}> ${o.label}</label>`).join("")}
-                <div class="role-dropdown-actions"><button class="match-clear-btn" data-match="${m.name}">모두 해제</button></div>
-                <div class="role-dropdown-actions" style="border-top:none; margin-top:0; padding-top:0;"><button class="match-hide-btn" data-match="${m.name}">숨기기</button></div>
+                ${opts.map(o=>`<label class="role-dropdown-item"><input type="checkbox" data-match="${escHtml(m.name)}" data-val="${escHtml(o.v)}" ${sel.has(o.v)?'checked':''}> ${escHtml(o.label)}</label>`).join("")}
+                <div class="role-dropdown-actions"><button class="match-clear-btn" data-match="${escHtml(m.name)}">모두 해제</button></div>
+                <div class="role-dropdown-actions" style="border-top:none; margin-top:0; padding-top:0;"><button class="match-hide-btn" data-match="${escHtml(m.name)}">숨기기</button></div>
               </div>
             ` : ""}
           </div>
@@ -367,8 +375,8 @@ function renderSchedule(){
       return `
         <th class="role-head">
           <div style="position:relative;">
-            <button class="role-head-btn" data-role="${role}" style="background:none; border:none; color:${hasFilter?'var(--gold)':'inherit'}; font:inherit; font-weight:inherit; cursor:pointer; padding:0; display:flex; align-items:center; gap:4px;">
-              <span class="role-name">${role}</span><span class="col-arrow">&#9662;${hasFilter ? `<span class="col-filter-badge">${selected.size}</span>` : ""}</span>
+            <button class="role-head-btn" data-role="${escHtml(role)}" style="background:none; border:none; color:${hasFilter?'var(--gold)':'inherit'}; font:inherit; font-weight:inherit; cursor:pointer; padding:0; display:flex; align-items:center; gap:4px;">
+              <span class="role-name">${escHtml(role)}</span><span class="col-arrow">&#9662;${hasFilter ? `<span class="col-filter-badge">${selected.size}</span>` : ""}</span>
             </button>
             ${isOpen ? `
               <div class="role-dropdown ${isLast?'align-right':''}">              <div class="role-dropdown-title">배우 선택</div>
@@ -378,8 +386,8 @@ function renderSchedule(){
                   return performanceData.performances.some(p=>castVisibleNamesOf(p.cast[role]).includes(a.name));
                 }).map(a=>`
                   <label class="role-dropdown-item">
-                    <input type="checkbox" data-role="${role}" data-actor="${a.name}" ${selected.has(a.name)?'checked':''}>
-                    ${a.name}
+                    <input type="checkbox" data-role="${escHtml(role)}" data-actor="${escHtml(a.name)}" ${selected.has(a.name)?'checked':''}>
+                    ${escHtml(a.name)}
                   </label>
                 `).join("")}
                 <div class="role-dropdown-actions">
@@ -548,7 +556,7 @@ function renderSchedule(){
           // 선택 완료(등록 티켓 또는 임의 할인권): 등급 첫글자 · 티켓 이름 첫글자 · 할인율
           inner = `<button class="ticket-trigger selected${transferCls}" data-idx="${idx}" title="티켓 변경">`
             + gradeChip
-            + `<span class="tk-name">${ticketType[0]}</span>`
+            + `<span class="tk-name">${escHtml(ticketType[0])}</span>`
             + `<span class="tk-disc">${discVal}%${transferDot}</span>`
             + `</button>`;
         } else {
@@ -584,7 +592,7 @@ function renderSchedule(){
           const n = it.name;
           const baseCls = lookup[n]==="alternative" ? "alt" : (lookup[n]==="swing" ? "swing":"");
           const zeroCls = it.weight===0 ? "zero-weight" : "";
-          return `<span class="name ${baseCls} ${zeroCls}">${n}</span>`;
+          return `<span class="name ${baseCls} ${zeroCls}">${escHtml(n)}</span>`;
         }).join("")
       }</td>`;
     }).join("");
@@ -603,7 +611,7 @@ function renderSchedule(){
         <td class="seat-cell">
           <div style="display:flex; align-items:center; gap:8px;">
             <span class="seat-input-wrap" style="position:relative; display:inline-flex;">
-              <input class="seat-input${seatInvalid ? ' invalid-seat' : ''}" type="text" value="${p.seat}" placeholder="층-열-번" data-idx="${idx}" data-field="seat">
+              <input class="seat-input${seatInvalid ? ' invalid-seat' : ''}" type="text" value="${escHtml(p.seat)}" placeholder="층-열-번" data-idx="${idx}" data-field="seat">
               ${multiTicketMode
                 ? `<button class="ticket-add-corner" data-idx="${idx}" ${tCount<1?'disabled':''} title="티켓 관리">+${tCount>=2?`<span class="ticket-count-badge">${tCount}</span>`:""}</button>`
                 : (tCount>=2 ? `<button class="ticket-count-corner" data-idx="${idx}" title="티켓 ${tCount}장 관리">${tCount}</button>` : "")}
@@ -623,7 +631,7 @@ function renderSchedule(){
           ${memoPopoverIdx===idx ? `
             <div class="memo-popover">
               <div class="popover-date">${perfDateLabel(p)}</div>
-              <textarea class="memo-popover-input" rows="3" placeholder="메모 입력" data-idx="${idx}">${(p.note||"").replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</textarea>
+              <textarea class="memo-popover-input" rows="3" placeholder="메모 입력" data-idx="${idx}">${escHtml(p.note||"")}</textarea>
               <div class="memo-popover-actions">
                 <button class="memo-cancel-btn" data-idx="${idx}">취소</button>
                 <button class="memo-confirm-btn" data-idx="${idx}">확인</button>
@@ -638,8 +646,8 @@ function renderSchedule(){
           if(w==="무승부"){ disp="무승부"; cls="draw"; }
           else if(w){ disp=w; cls="win"; style=` style="color:${matchRoleColor(m,w)}"`; }
           else { disp = isPast ? "모름" : "미정"; cls="none"; }
-          const noteAttr = (res && res.note) ? ` title="${String(res.note).replace(/"/g,'&quot;')}"` : "";
-          return `<td class="match-cell ${cls}"${style}${noteAttr}>${disp}</td>`;
+          const noteAttr = (res && res.note) ? ` title="${escHtml(res.note)}"` : "";
+          return `<td class="match-cell ${cls}"${style}${noteAttr}>${escHtml(disp)}</td>`;
         }).join("")}
         ${castCells}
       </tr>
@@ -680,7 +688,7 @@ function renderSchedule(){
       ticketPopoverIdx = null;
       renderSchedule();
       renderStats();   // 티켓 변경 → 통계(티켓 금액) 갱신
-      renderSeatMap(); // 시트맵도 함께 갱신
+      renderSeatMap(true); // 시트맵 갱신(사용자 줌/위치 유지)
       saveState();
     });
   });
@@ -707,7 +715,7 @@ function renderSchedule(){
       ticketPopoverIdx = null;
       renderSchedule();
       renderStats();   // 티켓 해제 → 통계(티켓 금액) 갱신
-      renderSeatMap(); // 시트맵도 함께 갱신
+      renderSeatMap(true); // 시트맵 갱신(사용자 줌/위치 유지)
       saveState();
     });
   });
@@ -816,7 +824,7 @@ function renderSchedule(){
       // 좌석이 바뀌었으니 스케줄(티켓 등급·눈 표시)·통계·좌석맵을 갱신
       renderSchedule();
       renderStats();
-      renderSeatMap();
+      renderSeatMap(true); // 좌석맵 줌/위치 유지
       saveState();
     });
   });
@@ -1298,7 +1306,7 @@ function renderStats(){
         return `
           <tr>
             <td>
-              ${name}<br><small style="color:var(--ink-dim); font-size:10px;">${roleTag}</small>
+              ${escHtml(name)}<br><small style="color:var(--ink-dim); font-size:10px;">${roleTag}</small>
             </td>
             <td>${fmtStatValue(s.total)}</td>
             <td>${fmtStatValue(s.ended)}</td>
@@ -1310,13 +1318,13 @@ function renderStats(){
 
     const isCollapsed = collapsedRoles.has(c.role);
     return `
-      <div class="role-stat-block" data-key="${c.role}" data-idx="${orderIdx}" style="margin-bottom:14px;">
+      <div class="role-stat-block" data-key="${escHtml(c.role)}" data-idx="${orderIdx}" style="margin-bottom:14px;">
         <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
           <span class="role-drag-handle" style="color:var(--ink-dim); font-size:22px; line-height:1; cursor:grab; padding:4px 8px;">&#8942;&#8942;</span>
-          <button class="role-toggle" data-role="${c.role}" style="display:flex; align-items:center; gap:6px; background:none; border:none; cursor:pointer; padding:0; font-size:13px; font-weight:700; color:var(--gold); flex:1; text-align:left;">
-            <span class="role-toggle-arrow">${isCollapsed ? "&#9656;" : "&#9662;"}</span> ${c.role}
+          <button class="role-toggle" data-role="${escHtml(c.role)}" style="display:flex; align-items:center; gap:6px; background:none; border:none; cursor:pointer; padding:0; font-size:13px; font-weight:700; color:var(--gold); flex:1; text-align:left;">
+            <span class="role-toggle-arrow">${isCollapsed ? "&#9656;" : "&#9662;"}</span> ${escHtml(c.role)}
           </button>
-          ${(c.role==="빌리"||c.role==="마이클") ? "" : `<button class="role-stat-del-btn stat-del-btn" data-role="${c.role}" title="${c.role} 삭제">삭제</button>`}
+          ${(c.role==="빌리"||c.role==="마이클") ? "" : `<button class="role-stat-del-btn stat-del-btn" data-role="${escHtml(c.role)}" title="${escHtml(c.role)} 삭제">삭제</button>`}
         </div>
         <table class="role-stat-table" style="${isCollapsed ? 'display:none;' : ''}">
           <thead><tr><th>배우 이름</th><th>전체</th><th>종료</th><th>관극</th><th>예매</th></tr></thead>
@@ -1402,12 +1410,12 @@ function renderMatchStats(){
       const acc = roleStatsOf(b.m, b.role);
       title = `${b.m.name} 대결 · ${b.role} 승리`;
       const rows = sortByRate(acc).map(n=>{ const s=acc[n];
-        return `<tr><td>${n}</td><td>${s.total}</td><td>${s.win}</td><td>${s.loss}</td><td>${s.draw}</td><td>${rateStr(s)}</td></tr>`; }).join("")
+        return `<tr><td>${escHtml(n)}</td><td>${s.total}</td><td>${s.win}</td><td>${s.loss}</td><td>${s.draw}</td><td>${rateStr(s)}</td></tr>`; }).join("")
         || `<tr><td colspan="6" style="color:var(--ink-dim);">기록 없음</td></tr>`;
       tableHtml = `<table class="role-stat-table"><thead><tr><th>배우</th><th>전체</th><th>승</th><th>패</th><th>무</th><th>승률</th></tr></thead><tbody>${rows}</tbody></table>`;
     } else {
       const m=b.m, main=m.roles[0], sub=m.roles[1];
-      title = `${m.name} 대결 · ${main}×${sub} 승리`;
+      title = `${escHtml(m.name)} 대결 · ${escHtml(main)}×${escHtml(sub)} 승리`;
       const pair={};
       ended.forEach(p=>{
         const a0=matchParticipant(p,main,m.point), a1=matchParticipant(p,sub,m.point);
@@ -1422,12 +1430,12 @@ function renderMatchStats(){
         const byMain=pair[a0]; if(!byMain) return;
         const subs=Object.keys(byMain).sort((x,y)=> rateNum(byMain[y])-rateNum(byMain[x]) || byMain[y].total-byMain[x].total);
         subs.forEach((a1,si)=>{ const s=byMain[a1];
-          const firstTd = si===0 ? `<td rowspan="${subs.length}">${a0}</td>` : "";
-          rows += `<tr>${firstTd}<td>${a1}</td><td>${s.total}</td><td>${s.win}</td><td>${s.loss}</td><td>${s.draw}</td><td>${rateStr(s)}</td></tr>`;
+          const firstTd = si===0 ? `<td rowspan="${subs.length}">${escHtml(a0)}</td>` : "";
+          rows += `<tr>${firstTd}<td>${escHtml(a1)}</td><td>${s.total}</td><td>${s.win}</td><td>${s.loss}</td><td>${s.draw}</td><td>${rateStr(s)}</td></tr>`;
         });
       });
       if(!rows) rows = `<tr><td colspan="7" style="color:var(--ink-dim);">기록 없음</td></tr>`;
-      tableHtml = `<table class="role-stat-table"><thead><tr><th>${main}</th><th>${sub}</th><th>전체</th><th>승</th><th>패</th><th>무</th><th>승률</th></tr></thead><tbody>${rows}</tbody></table>`;
+      tableHtml = `<table class="role-stat-table"><thead><tr><th>${escHtml(main)}</th><th>${escHtml(sub)}</th><th>전체</th><th>승</th><th>패</th><th>무</th><th>승률</th></tr></thead><tbody>${rows}</tbody></table>`;
     }
     return `
       <div class="match-stat-block" data-key="${b.key}" style="margin-bottom:14px;">
@@ -1513,8 +1521,8 @@ function renderEtcStats(){
       const span=j-i;
       for(let k=i;k<j;k++){
         const b=arr[k];
-        const gradeTd = (k===i) ? `<td rowspan="${span}">${b.grade}</td>` : "";
-        rows += `<tr>${gradeTd}<td>${b.type}</td><td>${b.watched}</td><td>${b.upcoming}</td><td>${formatKRW(b.amount)}</td></tr>`;
+        const gradeTd = (k===i) ? `<td rowspan="${span}">${escHtml(b.grade)}</td>` : "";
+        rows += `<tr>${gradeTd}<td>${escHtml(b.type)}</td><td>${b.watched}</td><td>${b.upcoming}</td><td>${formatKRW(b.amount)}</td></tr>`;
       }
       i=j;
     }
@@ -1819,9 +1827,9 @@ function renderSeatFilterBody(){
       || performanceData.performances.some(p=>castVisibleNamesOf(p.cast[role]).includes(a.name)));
     return `
       <div class="filter-role">
-        <div class="filter-role-title">${role}</div>
+        <div class="filter-role-title">${escHtml(role)}</div>
         <div class="filter-actor-list">
-          ${actors.map(a=>`<label class="filter-actor"><input type="checkbox" data-role="${role}" data-actor="${a.name}" ${sel.has(a.name)?'checked':''}> ${a.name}</label>`).join("")}
+          ${actors.map(a=>`<label class="filter-actor"><input type="checkbox" data-role="${escHtml(role)}" data-actor="${escHtml(a.name)}" ${sel.has(a.name)?'checked':''}> ${escHtml(a.name)}</label>`).join("")}
         </div>
       </div>`;
   }).join("");
@@ -1888,6 +1896,16 @@ function clampViewBox(vb){
   vb.x = Math.max(SEAT_BBOX.x, Math.min(SEAT_BBOX.x+SEAT_BBOX.w-vb.w, vb.x));
   vb.y = Math.max(SEAT_BBOX.y, Math.min(SEAT_BBOX.y+SEAT_BBOX.h-vb.h, vb.y));
   return vb;
+}
+
+// SVG는 preserveAspectRatio 기본값(xMidYMid meet)이라 viewBox 비율과 요소 비율이 다르면
+// 가장자리에 빈 여백(레터박스)이 생긴다. 화면 좌표를 SVG 좌표로 바꿀 땐 이 배율·여백을 반영해야
+// 팬·핀치·휠·미니맵이 손가락/커서와 정확히 일치한다.
+function svgMeetScale(rect, vb){ return Math.min(rect.width/vb.w, rect.height/vb.h); }
+function clientToSvgPt(rect, vb, clientX, clientY){
+  const s = svgMeetScale(rect, vb);
+  const offX = (rect.width - vb.w*s)/2, offY = (rect.height - vb.h*s)/2; // 중앙 정렬 여백
+  return { x: vb.x + (clientX - rect.left - offX)/s, y: vb.y + (clientY - rect.top - offY)/s };
 }
 
 function zoomBy(factor, centerX, centerY){
@@ -2116,14 +2134,14 @@ function setupSeatMapInteractions(){
     if(activePointers.size===2 && pinchStartDist){
       const pts = [...activePointers.values()];
       const dist = Math.hypot(pts[0].x-pts[1].x, pts[0].y-pts[1].y);
+      if(!dist) return;                          // 두 점이 겹치면 0 나눗셈(Infinity) 방지
       const midX = (pts[0].x+pts[1].x)/2, midY = (pts[0].y+pts[1].y)/2;
       const rect = mainSvg.getBoundingClientRect();
       const scaleFactor = pinchStartDist / dist; // 손가락이 멀어지면(확대) factor<1
-      const cx = pinchStartVb.x + ((midX-rect.left)/rect.width)*pinchStartVb.w;
-      const cy = pinchStartVb.y + ((midY-rect.top)/rect.height)*pinchStartVb.h;
+      const c = clientToSvgPt(rect, pinchStartVb, midX, midY); // 레터박스 보정된 핀치 중심
       mainViewBox = clampViewBox({
-        x: cx - (cx-pinchStartVb.x)*scaleFactor,
-        y: cy - (cy-pinchStartVb.y)*scaleFactor,
+        x: c.x - (c.x-pinchStartVb.x)*scaleFactor,
+        y: c.y - (c.y-pinchStartVb.y)*scaleFactor,
         w: pinchStartVb.w*scaleFactor,
         h: pinchStartVb.h*scaleFactor
       });
@@ -2141,11 +2159,10 @@ function setupSeatMapInteractions(){
       mainSvg.classList.add("dragging");
     }
     const rect = mainSvg.getBoundingClientRect();
-    const scaleX = startVb.w / rect.width;
-    const scaleY = startVb.h / rect.height;
+    const s = svgMeetScale(rect, startVb);   // 레터박스 반영한 실제 화면 배율
     mainViewBox = clampViewBox({
-      x: startVb.x - dxScreen*scaleX,
-      y: startVb.y - dyScreen*scaleY,
+      x: startVb.x - dxScreen/s,
+      y: startVb.y - dyScreen/s,
       w: startVb.w, h: startVb.h
     });
     applyMainViewBox();
@@ -2154,6 +2171,12 @@ function setupSeatMapInteractions(){
   function endPointer(e){
     activePointers.delete(e.pointerId);
     if(activePointers.size<2){ pinchStartDist = null; pinchStartVb = null; }
+    if(activePointers.size===1){
+      // 핀치에서 한 손가락만 떼면 남은 손가락으로 단일 팬을 다시 시작(끊김 방지)
+      const [pt] = [...activePointers.values()];
+      isDragging = true; svgDidDrag = true;          // 제스처 직후 click(좌석 선택) 억제 유지
+      startScreenX = pt.x; startScreenY = pt.y; startVb = { ...mainViewBox };
+    }
     if(activePointers.size===0){
       isDragging = false;
       mainSvg.classList.remove("dragging");
@@ -2167,11 +2190,9 @@ function setupSeatMapInteractions(){
   mainSvg.addEventListener("wheel", e=>{
     e.preventDefault();
     const rect = mainSvg.getBoundingClientRect();
-    const px = e.clientX - rect.left, py = e.clientY - rect.top;
-    const sx = mainViewBox.x + (px/rect.width)*mainViewBox.w;
-    const sy = mainViewBox.y + (py/rect.height)*mainViewBox.h;
+    const c = clientToSvgPt(rect, mainViewBox, e.clientX, e.clientY); // 레터박스 보정된 커서 위치
     const factor = e.deltaY > 0 ? 1.12 : 0.89;
-    zoomBy(factor, sx, sy);
+    zoomBy(factor, c.x, c.y);
   }, { passive:false });
   } // end panReady guard
 
@@ -2180,10 +2201,7 @@ function setupSeatMapInteractions(){
   const miniSvg = document.getElementById("minimapSvg");
   const miniToSvg = (clientX, clientY)=>{
     const r = miniSvg.getBoundingClientRect();
-    return {
-      x: SEAT_BBOX.x + ((clientX - r.left) / r.width)  * SEAT_BBOX.w,
-      y: SEAT_BBOX.y + ((clientY - r.top)  / r.height) * SEAT_BBOX.h
-    };
+    return clientToSvgPt(r, SEAT_BBOX, clientX, clientY); // 미니맵도 meet 레터박스 보정
   };
   const centerMainOn = (x, y)=>{
     mainViewBox = clampViewBox({ x: x - mainViewBox.w/2, y: y - mainViewBox.h/2, w: mainViewBox.w, h: mainViewBox.h });
@@ -2234,13 +2252,13 @@ function showSeatDetail(seatId){
           roleInfo.actors.forEach(a=>lookup[a.name]=a.role);
           return `<td class="cast-cell">${names.map(n=>{
             const cls = lookup[n]==="alternative" ? "alt" : (lookup[n]==="swing" ? "swing" : (lookup[n]==="cover" ? "cover" : (lookup[n]==="standby" ? "standby" : "")));
-            return `<span class="name ${cls}">${n}</span>`;
+            return `<span class="name ${cls}">${escHtml(n)}</span>`;
           }).join("")}</td>`;
         }).join("");
         const dcolor = dateColorOf(p.date);
         const noteVal = (p.note || "").trim();
         const memoCell = noteVal
-          ? `<button class="seat-memo-icon" data-note="${noteVal.replace(/"/g,'&quot;')}" title="${noteVal.replace(/"/g,'&quot;')}" style="background:none; border:none; cursor:pointer; padding:2px; color:var(--gold); display:inline-flex;">
+          ? `<button class="seat-memo-icon" data-note="${escHtml(noteVal)}" title="${escHtml(noteVal)}" style="background:none; border:none; cursor:pointer; padding:2px; color:var(--gold); display:inline-flex;">
                <svg width="13" height="16" viewBox="0 0 16 20" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="1" y="1" width="14" height="18" rx="1.5"/><line x1="4" y1="6" x2="12" y2="6"/><line x1="4" y1="10" x2="12" y2="10"/><line x1="4" y1="14" x2="9" y2="14"/></svg>
              </button>`
           : "";
@@ -2315,7 +2333,7 @@ function renderComboPicker(){
         const idx = comboRoleSelection.indexOf(role);
         const selected = idx>=0;
         const badge = selected ? `<span class="chip-badge">${idx+1}</span>` : "";
-        return `<div class="combo-chip ${selected?'selected':''}" data-role="${role}">${role}${badge}</div>`;
+        return `<div class="combo-chip ${selected?'selected':''}" data-role="${escHtml(role)}">${escHtml(role)}${badge}</div>`;
       }).join("")}
     </div>
   `;
@@ -2403,7 +2421,7 @@ function buildComboTitleBar(id, label, isPreset, isCollapsed){
     <div class="combo-title-bar" style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
       ${dragHandle}
       <button class="combo-toggle" data-id="${id}" style="display:flex; align-items:center; gap:6px; background:none; border:none; cursor:pointer; padding:0; font-size:13px; font-weight:700; color:var(--gold); flex:1; text-align:left;">
-        <span class="combo-toggle-arrow">${isCollapsed ? "&#9656;" : "&#9662;"}</span> ${label}
+        <span class="combo-toggle-arrow">${isCollapsed ? "&#9656;" : "&#9662;"}</span> ${escHtml(label)}
       </button>
       ${deleteBtn}
     </div>
@@ -2435,11 +2453,11 @@ function buildComboBody(rows, rolesSelected, isCollapsed){
       i=j+1;
     }
   }
-  const head = `<tr>${rolesSelected.map(r=>`<th>${r}</th>`).join("")}<th>전체</th><th>종료</th><th>관극</th><th>예매</th></tr>`;
+  const head = `<tr>${rolesSelected.map(r=>`<th>${escHtml(r)}</th>`).join("")}<th>전체</th><th>종료</th><th>관극</th><th>예매</th></tr>`;
   const body = rows.map((row,idx)=>{
     const roleCells = rolesSelected.map((_,col)=>{
       if(skip[idx][col]) return "";
-      return `<td rowspan="${rowspan[idx][col]}">${row.tuple[col]}</td>`;
+      return `<td rowspan="${rowspan[idx][col]}">${escHtml(row.tuple[col])}</td>`;
     }).join("");
     const s = row.stats;
     return `<tr>${roleCells}<td>${fmtStatValue(s.total)}</td><td>${fmtStatValue(s.ended)}</td><td>${fmtStatValue(s.watched)}</td><td>${fmtStatValue(s.upcoming)}</td></tr>`;
@@ -3092,6 +3110,7 @@ function setupSeatOverlayZoom(bbox, topPos, mult, hiPos){
     const r = svg.getBoundingClientRect();
     if(pts.size===2 && pinchDist){
       const a=[...pts.values()]; const dist=Math.hypot(a[0].x-a[1].x, a[0].y-a[1].y);
+      if(!dist) return;                          // 두 점이 겹치면 0 나눗셈 방지
       const midX=(a[0].x+a[1].x)/2, midY=(a[0].y+a[1].y)/2;
       const f = pinchDist/dist; // 벌리면 확대(f<1)
       const cx = pinchVb.x + ((midX-r.left)/r.width)*pinchVb.w;
@@ -3103,7 +3122,7 @@ function setupSeatOverlayZoom(bbox, topPos, mult, hiPos){
     const dx=(e.clientX-sx)*(startVb.w/r.width), dy=(e.clientY-sy)*(startVb.h/r.height);
     vb = clamp({ x: startVb.x-dx, y: startVb.y-dy, w: startVb.w, h: startVb.h }); apply();
   });
-  function end(e){ pts.delete(e.pointerId); if(pts.size<2){ pinchDist=null; } if(pts.size===0) dragging=false; try{ svg.releasePointerCapture(e.pointerId); }catch(_){} }
+  function end(e){ pts.delete(e.pointerId); if(pts.size<2){ pinchDist=null; } if(pts.size===1){ const [p]=[...pts.values()]; dragging=true; sx=p.x; sy=p.y; startVb={...vb}; } if(pts.size===0) dragging=false; try{ svg.releasePointerCapture(e.pointerId); }catch(_){} }
   svg.addEventListener("pointerup", end);
   svg.addEventListener("pointercancel", end);
   svg.addEventListener("wheel", e=>{
@@ -3124,7 +3143,7 @@ function tmCommit(){
   saveState();
   renderSchedule();
   renderStats();    // 맨 위 티켓이 통계/좌석맵에 반영되므로 함께 갱신(좌석 변경·순서변경·삭제 시)
-  renderSeatMap();
+  renderSeatMap(true); // 좌석맵 줌/위치 유지
 }
 function openTicketManager(idx){
   tmIdx = idx; tmEditTi = -1;
@@ -3164,7 +3183,7 @@ function renderTicketManager(){
       const discVal = (t.ticketDiscount!=null) ? t.ticketDiscount : (sel ? (sel.discount||0) : null);
       const dot = t.ticketTransferred ? `<span class="tk-transfer-dot"></span>` : "";
       if(t.ticketType && discVal!=null){
-        trig = `<button class="tm-ticket-trigger ticket-trigger selected" data-ti="${ti}">${chip}<span class="tk-name">${t.ticketType[0]}</span><span class="tk-disc">${discVal}%${dot}</span></button>`;
+        trig = `<button class="tm-ticket-trigger ticket-trigger selected" data-ti="${ti}">${chip}<span class="tk-name">${escHtml(t.ticketType[0])}</span><span class="tk-disc">${discVal}%${dot}</span></button>`;
       } else {
         trig = `<button class="tm-ticket-trigger ticket-trigger" data-ti="${ti}">${chip}<span class="tk-icon" aria-hidden="true">&#127903;</span>${dot}</button>`;
       }
@@ -3174,7 +3193,7 @@ function renderTicketManager(){
       <div class="tm-row${ti===0?' tm-top':''}" data-ti="${ti}">
         <span class="tm-drag" title="길게 눌러 순서 변경">&#8942;&#8942;</span>
         <span class="seat-input-wrap" style="position:relative; display:inline-flex;">
-          <input class="seat-input tm-seat-input${invalid?' invalid-seat':''}" type="text" value="${seat}" placeholder="층-열-번" data-ti="${ti}" readonly>
+          <input class="seat-input tm-seat-input${invalid?' invalid-seat':''}" type="text" value="${escHtml(seat)}" placeholder="층-열-번" data-ti="${ti}" readonly>
         </span>
         <button class="tm-eye-btn seat-eye-btn" data-ti="${ti}" ${(seat&&!invalid)?'':'disabled'} title="좌석표에서 보기" style="background:none;border:none;padding:2px 3px;display:flex;align-items:center;line-height:0;color:${(seat&&!invalid)?'var(--gold)':'var(--ink-dim)'};">
           <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>
@@ -3624,7 +3643,7 @@ async function init(){
     if(nowEndedCount !== lastEndedCount){
       lastEndedCount = nowEndedCount;
       renderStats();
-      renderSeatMap();
+      renderSeatMap(true); // 종료 카운트 변화 시 갱신하되 줌/위치 유지
     }
   }, 30000); // 30초마다 확인
 }
