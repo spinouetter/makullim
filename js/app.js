@@ -763,7 +763,7 @@ function renderSchedule(){
       const p = performanceData.performances[idx];
       const seats = allTickets(p).map(t=>(t.seat||"").trim()).filter(Boolean);
       if(!seats.length) return;
-      showSeatOverlay(seats, seats[0]); // 맨 위=이중 테두리, 나머지=단일
+      showSeatOverlay(seats, seats[0], "맨 위 좌석", "나의 좌석"); // 다중=맨 위 이중 테두리, 단일=나의 좌석(단일 테두리)
     });
   });
 
@@ -1071,10 +1071,14 @@ function isEnded(p){
 function hasSeat(p){
   return !!(p.seat && p.seat.trim()!=="");
 }
-// 마티네(낮공연): 시작 시각이 17시 이전
+// 마티네(평일 낮공연): 시작 시각이 17시 이전이면서 주말·공휴일이 아닌 날
 function isMatinee(p){
   const h = parseInt((p.time||"").slice(0,2), 10);
-  return Number.isFinite(h) && h < 17;
+  if(!(Number.isFinite(h) && h < 17)) return false;
+  const dow = dowOf(p.date);
+  if(dow===0 || dow===6) return false;            // 토·일 제외
+  if(holidaySet.has((p.date||"").trim())) return false; // 공휴일 제외
+  return true;
 }
 
 /* =========================================================
@@ -1493,7 +1497,7 @@ function renderEtcStats(){
       if(holidaySet.has((p.date||"").trim()) && !weekend) add(hol, p);
     });
     let rows = DOW.map((name,i)=>`<tr><td>${name}</td>${cells(d[i])}</tr>`).join("");
-    rows += `<tr class="etc-subrow"><td>마티네</td>${cells(mat)}</tr>`;
+    rows += `<tr class="etc-subrow"><td>마티네(평일 낮)</td>${cells(mat)}</tr>`;
     rows += `<tr class="etc-subrow"><td>휴일(주말 제외)</td>${cells(hol)}</tr>`;
     return `<table class="role-stat-table"><thead><tr><th>요일</th><th>전체</th><th>종료</th><th>관극</th><th>예매</th></tr></thead><tbody>${rows}</tbody></table>`;
   }
@@ -1642,7 +1646,8 @@ function buildSeatSvgInner(highlight){
     const g = gradeOf(s.id);
     const count = seatMapCount(s.id);
     const isHighlighted = hiSet.has(s.id);
-    const isTop = s.id===topId;
+    // 이중 테두리(맨 위 강조)는 하이라이트 좌석이 둘 이상(다중 티켓)일 때만. 단일이면 단일 테두리.
+    const isTop = s.id===topId && hiSet.size > 1;
     const fill = gradeFillVar(g); // 좌석 채움은 등급 색(테두리 없음)
     const opacity = isHighlighted ? 1 : seatVisualStyle(count).opacity; // 강조 좌석=선명, 미관극=흐림
     // 선택 좌석(top)=이중·굵은 흰 테두리(강조), 그 외 강조=기존 단일 흰 테두리
@@ -3036,8 +3041,9 @@ function importSeatJSONFile(file){
 /* =========================================================
    INIT
    ========================================================= */
-function showSeatOverlay(seats, topSeat, doubleLabel){
+function showSeatOverlay(seats, topSeat, doubleLabel, singleLabel){
   doubleLabel = doubleLabel || "맨 위 좌석";
+  singleLabel = singleLabel || doubleLabel;
   const overlay = document.getElementById("seatOverlay");
   const grid = document.getElementById("seatOverlayGrid");
   const title = document.getElementById("seatOverlayTitle");
@@ -3058,9 +3064,11 @@ function showSeatOverlay(seats, topSeat, doubleLabel){
     + (seats.length>1 ? ` 외 ${seats.length-1}좌석` : "");
 
   const seatSvg = buildSeatSvgInner({ top:topSeat, all:seats });
-  const legend = seats.length>1
+  // 서로 다른 좌석이 둘 이상일 때만 '다중'(이중 테두리). 같은 좌석 중복은 단일 취급.
+  const multi = new Set(seats).size > 1;
+  const legend = multi
     ? `<span><i style="background:#fff; box-shadow:0 0 8px rgba(255,255,255,0.8);"></i>${doubleLabel}(이중)</span><span><i style="background:none; box-shadow:inset 0 0 0 2px rgba(255,255,255,0.5);"></i>그 외 좌석</span>`
-    : `<span><i style="background:#fff; box-shadow:0 0 8px rgba(255,255,255,0.8);"></i>${doubleLabel}</span>`;
+    : `<span><i style="background:#fff; box-shadow:0 0 8px rgba(255,255,255,0.8);"></i>${singleLabel}</span>`;
   grid.innerHTML = `
     <div class="seat-overlay-controls">
       <button id="soZoomIn" title="확대">+</button>
