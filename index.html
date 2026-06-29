@@ -198,7 +198,7 @@
       <p style="color:var(--ink-dim); font-size:13px; margin:6px 0 0;">팝업에서 손가락(핀치)·드래그, 또는 <b>+ / −</b> 버튼으로 확대·이동할 수 있습니다. 선택한 좌석이 가운데에 오도록 시작합니다.</p>
     </div>
     <div class="stat-section">
-      <h2>설정 내보내기 / 가져오기</h2>
+      <h2>데이터 내보내기 / 가져오기</h2>
       <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px;">
         <button id="exportSettingsBtn">JSON으로 내보내기</button>
         <button id="importSettingsBtn">JSON 가져오기</button>
@@ -208,11 +208,9 @@
     </div>
 
     <div class="stat-section">
-      <h2>공연 좌석·티켓·메모 JSON 내보내기 / 가져오기</h2>
+      <h2>구 버전 방식의 JSON 내보내기 / 가져오기</h2>
       <p style="color:var(--ink-dim); font-size:13px; margin-bottom:10px;">
-        각 공연은 시간순으로 s1, s2, s3... 같은 숨겨진 ID를 가지고 있습니다.<br>
-        형식: <code>{"sid": [좌석, 티켓종류, 수수료여부, 메모]}</code> — 리스트 첫 항목이 좌석이고, 나머지는 티켓종류·수수료여부(true/false)·메모 순입니다. (임의 할인권은 5번째에 할인율을 더 붙입니다: <code>[좌석, 이름, 수수료, 메모, 할인율]</code>)<br>
-        티켓과 메모가 모두 없으면 <code>["1-7-23"]</code>처럼 좌석 하나만 넣습니다. 예: <code>{"s2": ["1-7-23", "청소년", true, "1열 명당석"], "s30": ["1-6-24"]}</code><br>
+        엑셀 정산판과 같이 단순히 <b>좌석을 저장하고 읽어오는</b> 기능을 합니다. 최신 버전의 모든 기능을 저장하기 위해서는 위의 <b>데이터 내보내기 / 가져오기</b>를 이용해주세요.<br>
         가져오기를 하면 <b>기존 좌석·티켓·메모를 전부 지우고</b> 가져온 내용으로 다시 채웁니다.
       </p>
       <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px;">
@@ -222,7 +220,7 @@
       </div>
       <div>
         <div class="role-dropdown-title" style="margin-bottom:6px;">또는 JSON 텍스트를 직접 붙여넣기 (모바일 엑셀에서 복사한 깨진 JSON도 인식합니다)</div>
-        <textarea id="seatJsonTextarea" rows="6" style="width:100%; background:var(--panel2); border:1px solid var(--line); color:var(--ink); border-radius:8px; padding:10px; font-family:monospace; font-size:12px;" placeholder='{"s2": ["1-7-23", "청소년", true, "1열 명당석"], "s30": ["1-6-24"]}'></textarea>
+        <textarea id="seatJsonTextarea" rows="6" style="width:100%; background:var(--panel2); border:1px solid var(--line); color:var(--ink); border-radius:8px; padding:10px; font-family:monospace; font-size:12px;" placeholder='{"s2": "1-7-23", "s30": "1-6-24"}'></textarea>
         <button id="applySeatJsonTextBtn" style="margin-top:8px;">이 텍스트로 좌석 적용</button>
       </div>
     </div>
@@ -287,6 +285,6 @@
   </div>
 </div>
 
-<script src="js/app.js?v=84"></script>
+<script src="js/app.js?v=85"></script>
 </body>
 </html>
