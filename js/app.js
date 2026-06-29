@@ -2837,11 +2837,38 @@ function downloadJSON(obj, filename){
   URL.revokeObjectURL(url);
 }
 
+// 다중 티켓(2번째 이후) 내보내기: sid 기준. 맨 위 티켓은 seats(buildSeatExportJSON)에 이미 들어감.
+function buildExtraTicketsExport(){
+  const result = {};
+  performanceData.performances.forEach(p=>{
+    const ex = Array.isArray(p.extraTickets) ? p.extraTickets.filter(t=>t && t.seat && String(t.seat).trim()) : [];
+    if(ex.length) result[p.sid] = ex.map(t=>({
+      seat:String(t.seat).trim(), ticketType:t.ticketType||"", ticketFee:!!t.ticketFee,
+      ticketDiscount:(t.ticketDiscount!=null?t.ticketDiscount:null), ticketExtra:t.ticketExtra||0, ticketTransferred:!!t.ticketTransferred
+    }));
+  });
+  return result;
+}
+// 가져오기: sid별 추가 티켓 복원(applySeatJSONData가 맨 위 티켓을 채운 뒤 호출)
+function applyExtraTicketsData(map){
+  if(!map || typeof map !== "object" || Array.isArray(map)) return;
+  const sidMap = {};
+  performanceData.performances.forEach(p=>{ sidMap[p.sid] = p; });
+  Object.entries(map).forEach(([sid, arr])=>{
+    const perf = sidMap[sid];
+    if(!perf || !Array.isArray(arr)) return;
+    perf.extraTickets = arr.filter(t=>t && t.seat && String(t.seat).trim()).map(t=>({
+      seat:String(t.seat).trim(), ticketType:t.ticketType||"", ticketFee:!!t.ticketFee,
+      ticketDiscount:(t.ticketDiscount!=null?t.ticketDiscount:null), ticketExtra:t.ticketExtra||0, ticketTransferred:!!t.ticketTransferred
+    }));
+  });
+}
+
 function exportStateToFile(){
   // 전체 공연 목록은 서버에서 받으므로 저장하지 않고, 좌석 정보는 sid 기준으로 포함
   const snap = buildStateSnapshot();
   delete snap.performances;
-  const out = { id: APP_ID, ...snap, seats: buildSeatExportJSON() };
+  const out = { id: APP_ID, ...snap, seats: buildSeatExportJSON(), extraTickets: buildExtraTicketsExport() };
   downloadJSON(out, `makollim-settings-seats-${kstStamp()}.json`);
 }
 
@@ -2857,7 +2884,8 @@ function importStateFromFile(file){
       applyState(state); // 화면 설정 + (구버전 파일이면 performances 배열도 인덱스 기준 적용)
       // 신버전: 좌석 정보는 sid 기준 seats로 적용
       if(state.seats && typeof state.seats === "object" && !Array.isArray(state.seats)){
-        applySeatJSONData(state.seats);
+        applySeatJSONData(state.seats);     // 맨 위 티켓(평면 필드) 복원 — extraTickets는 일단 비움
+        applyExtraTicketsData(state.extraTickets); // 다중 티켓(2번째 이후) 복원
       }
       saveState();
       renderSchedule();
