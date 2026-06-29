@@ -670,6 +670,16 @@
     z-index:200;
     padding:20px;
   }
+  .seat-overlay-controls{
+    display:flex; align-items:center; justify-content:flex-end; gap:6px; margin-bottom:8px;
+  }
+  .seat-overlay-controls button{
+    width:30px; height:28px; padding:0; font-size:14px; line-height:1;
+    background:var(--panel2); color:var(--ink); border:1px solid var(--line); border-radius:6px; cursor:pointer;
+  }
+  .seat-overlay-controls button#soZoomReset{ width:auto; font-size:11px; padding:0 10px; }
+  #seatOverlaySvg{ cursor:grab; }
+  #seatOverlaySvg:active{ cursor:grabbing; }
   .seat-overlay-content{
     background:var(--panel);
     border:1px solid var(--line);

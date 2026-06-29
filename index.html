@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>막올림</title>
-<link rel="stylesheet" href="css/styles.css?v=61">
+<link rel="stylesheet" href="css/styles.css?v=62">
 </head>
 <body>
 
@@ -184,6 +184,20 @@
       <p style="color:var(--ink-dim); font-size:13px; margin:4px 0 0;"><b>통계·가격·좌석표에는 맨 위 티켓만 반영</b>됩니다. 추가 티켓은 관리·기록용이며 총 금액이나 관극 횟수에 합산되지 않습니다.</p>
     </div>
     <div class="stat-section">
+      <h2>좌석 보기</h2>
+      <label class="opt-row" style="justify-content:space-between;">
+        <span><b>기본 배율</b> — 좌석 보기 팝업을 열 때의 확대 정도</span>
+        <select id="optPreviewZoom" style="font:inherit;">
+          <option value="1">1배 (전체 맵)</option>
+          <option value="2">2배</option>
+          <option value="3">3배</option>
+          <option value="4">4배</option>
+          <option value="5">5배</option>
+        </select>
+      </label>
+      <p style="color:var(--ink-dim); font-size:13px; margin:6px 0 0;">팝업에서 손가락(핀치)·드래그, 또는 <b>+ / −</b> 버튼으로 확대·이동할 수 있습니다. 선택한 좌석이 가운데에 오도록 시작합니다.</p>
+    </div>
+    <div class="stat-section">
       <h2>설정 내보내기 / 가져오기</h2>
       <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px;">
         <button id="exportSettingsBtn">JSON으로 내보내기</button>
@@ -273,6 +287,6 @@
   </div>
 </div>
 
-<script src="js/app.js?v=80"></script>
+<script src="js/app.js?v=82"></script>
 </body>
 </html>
