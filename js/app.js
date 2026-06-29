@@ -9,6 +9,7 @@ let SEAT_BBOX = null;
 function computeSeatBBox(){
   const xs = seatmapData.seats.map(s=>s.svgX);
   const ys = seatmapData.seats.map(s=>s.svgY);
+  if(!xs.length) return { x:0, y:0, w:10, h:10 }; // 좌석 데이터 없음 방어(Math.min(...[])=Infinity 회피)
   const pad = 3;
   const minX = Math.min(...xs) - pad;
   const maxX = Math.max(...xs) + pad;
@@ -76,6 +77,15 @@ document.querySelectorAll(".tab-btn").forEach(btn=>{
     document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
     btn.classList.add("active");
     document.getElementById("page-"+btn.dataset.page).classList.add("active");
+    // 좌석맵이 처음 보일 때: 숨겨진 채 계산된 임시 초기 뷰를 실제 뷰포트 크기로 재맞춤
+    if(btn.dataset.page === "seatmap" && seatNeedsInitialFit){
+      const vp = document.getElementById("svgViewport");
+      if(vp && vp.clientWidth > 0){
+        mainViewBox = computeInitialViewBox();
+        applyMainViewBox();
+        seatNeedsInitialFit = false;
+      }
+    }
   });
 });
 
@@ -1687,10 +1697,12 @@ function buildSeatSvgInner(highlight){
     `;
   }
 
-  const floors = [1,2,3];
+  // 층 목록은 데이터에서 도출(공연장 파일마다 층 구성이 달라도 안전: 빈 층에 대한 Math.min(...[]) 회피)
+  const floors = [...new Set(seatmapData.seats.map(s=>s.floor))].sort((a,b)=>a-b);
+  if(!floors.length) return { markup:"", bbox:{ x:0, y:0, w:10, h:10 } };
   const LABEL_ONLY_H = 1.4; // 좌석을 숨긴 층의 축소된 박스 높이 (라벨만 보임)
   const FLOOR_VISUAL_GAP = 1.0;
-  const BOTTOM_EXTRA = 7; // 3층 아래 여유 공간 (미니맵이 좌석을 가리지 않도록)
+  const BOTTOM_EXTRA = 7; // 맨 아래층 아래 여유 공간 (미니맵이 좌석을 가리지 않도록)
 
   // 1차: 각 층의 원래 경계 계산 (가장 넓은 층의 너비로 모두 통일)
   const floorBoxes = {};
@@ -1746,14 +1758,16 @@ function buildSeatSvgInner(highlight){
     let rowLabels = "";
     let seatMarkupStr = "";
     if(!isHidden){
-      const labels = [];
-      for(let r=1; r<=meta.centerMaxRow; r++){
-        const y = (seats.find(s=>s.floor===floor && s.row===r && s.column>=16) || {}).svgY;
-        if(y===undefined) continue;
-        labels.push(`<text x="${meta.centerOriginX-0.5}" y="${y+0.14}" text-anchor="end" font-size="0.32" fill="var(--ink-dim)">${r}</text>`);
-        labels.push(`<text x="${meta.centerOriginX+meta.centerWidth+0.5}" y="${y+0.14}" text-anchor="start" font-size="0.32" fill="var(--ink-dim)">${r}</text>`);
+      if(meta){ // floorMeta가 있는 층만 행 번호 라벨 표시(없어도 좌석 자체는 그림)
+        const labels = [];
+        for(let r=1; r<=meta.centerMaxRow; r++){
+          const y = (seats.find(s=>s.floor===floor && s.row===r && s.column>=16) || {}).svgY;
+          if(y===undefined) continue;
+          labels.push(`<text x="${meta.centerOriginX-0.5}" y="${y+0.14}" text-anchor="end" font-size="0.32" fill="var(--ink-dim)">${r}</text>`);
+          labels.push(`<text x="${meta.centerOriginX+meta.centerWidth+0.5}" y="${y+0.14}" text-anchor="start" font-size="0.32" fill="var(--ink-dim)">${r}</text>`);
+        }
+        rowLabels = labels.join("");
       }
-      rowLabels = labels.join("");
       seatMarkupStr = seats.map(seatMarkup).join("");
     }
 
@@ -1765,6 +1779,7 @@ function buildSeatSvgInner(highlight){
 
 let mainViewBox = null;
 let pendingSeatViewBox = null; // 새로고침 복원용: 저장된 시트맵 뷰(첫 렌더에서 1회 적용)
+let seatNeedsInitialFit = false; // 초기 뷰가 숨겨진 상태(뷰포트 0)에서 계산됨 → 좌석맵이 보일 때 재맞춤 필요
 let showSeatNumbers = true; // 좌석번호 기본 표시
 let hiddenFloors = new Set(); // 토글로 숨긴 층 (문자열 "1","2","3")
 let minimapVisible = true; // 미니맵 표시 여부
@@ -1914,7 +1929,9 @@ function computeInitialViewBox(){
   const viewport = document.getElementById("svgViewport");
   const rectW = viewport.clientWidth || 360;
   const rectH = viewport.clientHeight || 440;
-  const meta = seatmapData.floorMeta[1];
+  const fm = seatmapData.floorMeta || {};
+  const meta = fm[1] || fm[Object.keys(fm).sort((a,b)=>a-b)[0]];
+  if(!meta) return clampViewBox({ x:SEAT_BBOX.x, y:SEAT_BBOX.y, w:SEAT_BBOX.w, h:SEAT_BBOX.h }); // floorMeta 없으면 전체 보기
   const desiredUnits = meta.centerWidth + 6; // 중앙 구역 전체 + 좌우 3칸씩
   const MOBILE_REF_PX = 390; // 모바일 화면 기준 너비
   const ZOOM_OUT_STEPS = 3; // 기본 배율을 3단계 더 낮춰서 더 넓게 보이게 함
@@ -1953,6 +1970,9 @@ function renderSeatMap(preserveZoom){
     pendingSeatViewBox = null;
   } else {
     mainViewBox = computeInitialViewBox();
+    // 좌석맵 페이지가 아직 숨겨져(display:none) 뷰포트 크기가 0이면 임시값이므로, 보일 때 재맞춤한다.
+    const vp = document.getElementById("svgViewport");
+    seatNeedsInitialFit = !(vp && vp.clientWidth > 0);
   }
   applyMainViewBox();
   updateMinimapVisibility();
