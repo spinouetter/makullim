@@ -2864,12 +2864,28 @@ function applyExtraTicketsData(map){
   });
 }
 
-function exportStateToFile(){
-  // 전체 공연 목록은 서버에서 받으므로 저장하지 않고, 좌석 정보는 sid 기준으로 포함
+// 데이터 내보내기 payload(파일·Dropbox 백업 공용). 전체 공연 목록은 서버에서 받으므로 제외.
+function buildExportPayload(){
   const snap = buildStateSnapshot();
   delete snap.performances;
-  const out = { id: APP_ID, ...snap, seats: buildSeatExportJSON(), extraTickets: buildExtraTicketsExport() };
-  downloadJSON(out, `makollim-settings-seats-${kstStamp()}.json`);
+  return { id: APP_ID, ...snap, seats: buildSeatExportJSON(), extraTickets: buildExtraTicketsExport() };
+}
+
+// 가져온 state 객체 적용(파일·Dropbox 공용).
+//  includeSettings=true → 화면 설정까지 덮어씀. false → 좌석/티켓/메모(스케줄 입력)만 덮어씀.
+function applyImportedState(state, includeSettings){
+  if(!state || typeof state !== "object") throw new Error("올바른 형식이 아닙니다.");
+  if(includeSettings) applyState(state); // 화면 설정 + (구버전 파일이면 performances 배열도 인덱스 기준 적용)
+  if(state.seats && typeof state.seats === "object" && !Array.isArray(state.seats)){
+    applySeatJSONData(state.seats);            // 맨 위 티켓(평면 필드) 복원 — extraTickets 비움
+    applyExtraTicketsData(state.extraTickets); // 다중 티켓(2번째 이후) 복원
+  }
+  saveState();
+  renderSchedule(); renderStats(); renderSeatMap(); renderComboPicker(); renderComboResults();
+}
+
+function exportStateToFile(){
+  downloadJSON(buildExportPayload(), `makollim-settings-seats-${kstStamp()}.json`);
 }
 
 function importStateFromFile(file){
@@ -2881,18 +2897,7 @@ function importStateFromFile(file){
       if(state && state.id && state.id !== APP_ID){
         if(!confirm(`다른 막올림의 설정 파일입니다.\n파일 id: ${state.id}\n현재 막올림: ${APP_ID}\n그래도 현재 막올림에 불러올까요?`)) return;
       }
-      applyState(state); // 화면 설정 + (구버전 파일이면 performances 배열도 인덱스 기준 적용)
-      // 신버전: 좌석 정보는 sid 기준 seats로 적용
-      if(state.seats && typeof state.seats === "object" && !Array.isArray(state.seats)){
-        applySeatJSONData(state.seats);     // 맨 위 티켓(평면 필드) 복원 — extraTickets는 일단 비움
-        applyExtraTicketsData(state.extraTickets); // 다중 티켓(2번째 이후) 복원
-      }
-      saveState();
-      renderSchedule();
-      renderStats();
-      renderSeatMap();
-      renderComboPicker();
-      renderComboResults();
+      applyImportedState(state, true); // 파일 가져오기는 설정까지 전체 적용
       alert("설정과 좌석을 불러왔습니다.");
     } catch(err){
       alert("파일을 읽지 못했습니다. 올바른 JSON 파일인지 확인해주세요.");
