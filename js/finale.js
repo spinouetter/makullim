@@ -1,82 +1,52 @@
 /* =========================================================
    finale.js — 트위터 공유용 '인증 이미지'(Finale) 탭
-   - casts.json(배역 순서·로스터) + casting_by_date.json(날짜별 상세 캐스트)로
-     배역별 배우 카드(관극 / 전체)와 내가 본 좌석 히트맵을 한 장의 포스터 SVG로.
-   - 숫자(관극 횟수)는 클릭해 직접 수정 가능. SVG / PNG / JPG / PDF(벡터) 저장.
+   - images/finale-board.svg(빌리 캐스트보드 템플릿)을 불러와 슬롯 id에
+     현재 casts.json 캐스트를 채운다(슬롯>캐스트→NAME, 슬롯<캐스트→위에서부터).
+   - 관극수는 통계 4모드(first/start/all/weighted)에 따라 재계산.
+   - 좌석 영역은 실제 좌석 다이어그램(테두리+STAGE+히트맵)으로 교체.
+   - 미리보기 핀치/터치 줌. SVG/PNG/JPG/PDF 저장.
    주의: app.js 전역(performanceData, seatmapData, isEnded, hasSeat,
-        countHeatColor, kstStamp)을 함수 호출 시점에 참조한다. (app.js 이후 로드)
+        countHeatColor, kstStamp, getCastContributions) 참조(app.js 이후 로드).
    ========================================================= */
 (function(){
   "use strict";
 
-  // ---- 설정값 ----
-  const CBD_PATH = "json/casting_by_date.json";
-  // PDF 벡터화용 외부 라이브러리 + 한글 폰트(요청 시 1회 로드, 캐시)
+  const BOARD_URL = "images/finale-board.svg?v=3";
+  const META_URL  = "images/finale-board.meta.json?v=3";
+  const CBD_PATH  = "json/casting_by_date.json";
   const JSPDF_URL   = "https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js";
   const SVG2PDF_URL = "https://cdn.jsdelivr.net/npm/svg2pdf.js@2.2.3/dist/svg2pdf.umd.min.js";
   const KRFONT_URL  = "https://cdn.jsdelivr.net/gh/google/fonts/ofl/nanumgothic/NanumGothic-Regular.ttf";
 
-  // 레이아웃 상수(SVG 내부 좌표 = px)
-  const CARD_W = 116, PHOTO = 96, CARD_GAP = 6;
-  const CARD_H = PHOTO + 48;          // 사진 + 태그줄 + 이름 + 카운트
-  const UNIT = CARD_W + CARD_GAP;     // 카드 1칸 폭
-  const PER_ROW = 8;                  // 한 블록 내 카드 최대 가로 개수
-  const HDR_H = 30;                   // 배역 헤더 높이
-  const CARD_ROW_GAP = 8;
-  const CONTENT_W = PER_ROW * UNIT;   // 패널 내부 콘텐츠 폭
-  const BLOCK_GAP_X = 20, BLOCK_GAP_Y = 22;
-  const PANEL_PAD = 26, OUTER = 20;
-  const HEADER_H = 150;               // 상단 제목 영역(흰 배경)
-  const SEAT_W = 5 * UNIT;            // 좌석 블록 폭
+  const VB_W = 760.394, VB_H = 1387.13;   // finale-board.svg viewBox
 
-  const RED = "#c41e1e", RED_DK = "#a81717", GOLD = "#ffd24a";
+  // 보드 영문 SLUG → casts.json 한글 배역 키
+  const ROLE_KEY = {
+    BILLY:"빌리", MICHAEL:"마이클", DEBBIE:"데비", TALL_BOY:"톨보이", SMALL_BOY:"스몰보이",
+    DAD:"아빠", MRS_WILKINSON:"Mrs. 윌킨슨", TONY:"토니", GRANDMA:"할머니", GEORGE:"조지",
+    MR_BRAITHWAITE:"브웨", DEAD_MUM:"데드맘", OLD_BILLY:"성인빌리"
+  };
+  // 발레걸즈/앙상블 보드 슬롯(개별 로스터는 casting_by_date 집계로 채움)
+  const BALLET_SLUGS = ["BALLET_GIRLS_ASHINGTON","BALLET_GIRLS_BEDLINGTON","BALLET_GIRLS_ADULTS"];
+  const ENSEMBLE_SLUGS = ["ENSEMBLE"];
 
-  // ---- 상태 ----
-  let cbdCache = null;
-  let finaleOverrides = loadOverrides();   // {key: number}
+  const ROLE_ALIAS = { "브레이스웨이트":"브웨" };
+  function normRole(r){ return ROLE_ALIAS[r] || r; }
+  function firstName(v){ return Array.isArray(v) ? String(v[0]||"").trim() : String(v||"").trim(); }
+  function fmt(v){ return Number.isInteger(v) ? String(v) : v.toFixed(1); }
+
+  let cbdCache = null, seatBox = [400.7,692.1,670,913.6];
+  let finaleMode = (typeof castStatsMode === "string") ? castStatsMode : "all";
   let booted = false;
-
-  // ---- 유틸 ----
-  function ovrKey(){ return "makollim:finale:" + (performanceData && performanceData.title ? performanceData.title : "default"); }
-  function loadOverrides(){ try{ return JSON.parse(localStorage.getItem("makollim:finaleOverrides")||"{}") || {}; }catch(e){ return {}; } }
-  function saveOverrides(){ try{ localStorage.setItem("makollim:finaleOverrides", JSON.stringify(finaleOverrides)); }catch(e){} }
-  function setOverride(key, val){ if(val==null || isNaN(val)) delete finaleOverrides[key]; else finaleOverrides[key]=val; saveOverrides(); }
-  function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
 
   async function loadCbd(){
     if(cbdCache) return cbdCache;
     try{ const r = await fetch(CBD_PATH); cbdCache = r.ok ? await r.json() : {}; }
-    catch(e){ console.warn("casting_by_date 로드 실패:", e.message); cbdCache = {}; }
+    catch(e){ cbdCache = {}; }
     return cbdCache;
   }
-
-  // ---- 캐스트 정규화 ----
-  const ROLE_ALIAS = { "브레이스웨이트": "브웨" };       // casting_by_date 역할명 → casts.json 키
-  const ROLE_LABEL = { "브웨": "브레이스웨이트" };       // 표시용 라벨 보정
-  const TAG_LABEL  = { cast:"", cover:"커버", standby:"스탠바이", swing:"스윙" };
-  function normRole(r){ return ROLE_ALIAS[r] || r; }
-  function roleLabel(r){ return ROLE_LABEL[r] || r; }
-  function tagOf(t){ return TAG_LABEL[t] !== undefined ? TAG_LABEL[t] : (t || ""); }
-  function firstName(v){ return Array.isArray(v) ? String(v[0]||"").trim() : String(v||"").trim(); }
-
-  // 한 공연의 상세 캐스트 {role: name} + 앙상블 세부배역 {name: subrole}
-  function castOfPerf(p, cbd){
-    const out = {}, sub = {};
-    if(p.cast) for(const role in p.cast){ const nm = firstName(p.cast[role]); if(nm) out[normRole(role)] = [nm]; }
-    const entry = cbd[`${p.date} ${p.time}`];
-    if(entry){
-      delete out["발레걸즈"];   // 그룹 → 상세 배역으로 대체
-      for(const role in entry){
-        const val = entry[role];
-        if(role === "앙상블" && Array.isArray(val)){
-          out["앙상블"] = val.map(x=>Array.isArray(x)?x[0]:x).filter(Boolean);
-          val.forEach(x=>{ if(Array.isArray(x) && x[0]) sub[x[0]] = x[1] || ""; });
-        } else {
-          const nm = firstName(val); if(nm) out[normRole(role)] = [nm];
-        }
-      }
-    }
-    return { cast: out, sub };
+  async function loadMeta(){
+    try{ const r = await fetch(META_URL); if(r.ok){ const m = await r.json(); if(Array.isArray(m.seatBox)) seatBox = m.seatBox; } }catch(e){}
   }
 
   function periodStr(){
@@ -87,388 +57,340 @@
   function seatWatchCount(id){
     return performanceData.performances.filter(p => p.seat===id && isEnded(p)).length;
   }
+  function rosterOf(roleKey){
+    const c = (performanceData.casts||[]).find(c=>normRole(c.role)===roleKey);
+    return c ? c.actors.map(a=>a.name) : [];
+  }
 
-  // ---- 데이터 집계 ----
-  function computeFinaleData(cbd){
-    const perfs = performanceData.performances;
+  // ---- 통계 집계(모드 반영) ----
+  function computeData(mode, cbd){
+    const perfs = performanceData.performances || [];
     const casts = performanceData.casts || [];
-    const principalSet = new Set(casts.map(c=>normRole(c.role)));
+    const principalSet = new Set(casts.map(c=>normRole(c.role)).filter(r=>r!=="발레걸즈"));
 
-    const agg = {};      // role -> Map(name -> {total, watched, sub})
-    const ensSub = {};
-    function bump(role, name, ended, seated, subrole){
-      if(!agg[role]) agg[role] = new Map();
-      let m = agg[role].get(name);
-      if(!m){ m = {total:0, watched:0, sub:subrole||""}; agg[role].set(name, m); }
-      m.total++; if(ended && seated) m.watched++;
-      if(subrole && !m.sub) m.sub = subrole;
+    const pStat = {};   // 주연: role -> Map(name->{w,t})
+    function pbump(role, name, amount, won){
+      if(!pStat[role]) pStat[role] = new Map();
+      let m = pStat[role].get(name); if(!m){ m={w:0,t:0}; pStat[role].set(name,m); }
+      m.t += amount; if(won) m.w += amount;
     }
+    // 발레/앙상블: cbd 상세 기준 단순 집계
+    const ballet = new Map(), ensemble = new Map();
+    function gbump(map, name, won){
+      let m = map.get(name); if(!m){ m={w:0,t:0}; map.set(name,m); }
+      m.t++; if(won) m.w++;
+    }
+
     perfs.forEach(p=>{
-      const ended = isEnded(p), seated = hasSeat(p);
-      const { cast, sub } = castOfPerf(p, cbd);
-      Object.assign(ensSub, sub);
-      for(const role in cast) cast[role].forEach(nm => bump(role, nm, ended, seated, sub[nm]));
+      const ended = isEnded(p), seated = hasSeat(p), won = ended && seated;
+      // 주연 — 모드별 기여
+      if(p.cast) for(const role in p.cast){
+        const rk = normRole(role);
+        if(!principalSet.has(rk)) continue;
+        const contribs = (typeof getCastContributions === "function")
+          ? getCastContributions(p.cast[role], mode)
+          : [{name:firstName(p.cast[role]), amount:1}];
+        contribs.forEach(c=>{ if(c.name) pbump(rk, c.name, c.amount, won); });
+      }
+      // 발레/앙상블 — casting_by_date 상세
+      const entry = cbd[`${p.date} ${p.time}`];
+      if(entry){
+        for(const role in entry){
+          const rk = normRole(role);
+          if(principalSet.has(rk)) continue;
+          const val = entry[role];
+          if(role === "앙상블" && Array.isArray(val)){
+            val.forEach(x=>{ const nm = Array.isArray(x)?x[0]:x; if(nm) gbump(ensemble, nm, won); });
+          } else {
+            const nm = firstName(val); if(nm) gbump(ballet, nm, won);
+          }
+        }
+      } else if(p.cast && p.cast["발레걸즈"]){
+        const nm = firstName(p.cast["발레걸즈"]); if(nm) gbump(ballet, nm, won);
+      }
     });
 
-    const groups = [];
-    // (a) 주연 역할 — casts.json 순서, 발레걸즈는 따로
-    casts.forEach(c=>{
-      const role = normRole(c.role);
-      if(role === "발레걸즈") return;
-      const m = agg[role] || new Map();
-      const roster = [], seen = new Set();
-      c.actors.forEach(a=>{ roster.push({name:a.name, tag:tagOf(a.role)}); seen.add(a.name); });
-      m.forEach((v,name)=>{ if(!seen.has(name)){ roster.push({name, tag:tagOf(v.sub)}); seen.add(name); } });
-      const cards = roster.map(r=>{ const v = m.get(r.name) || {total:0,watched:0}; return {name:r.name, tag:r.tag, total:v.total, watched:v.watched}; });
-      groups.push({ role: roleLabel(role), cards });
-    });
-    // (b) 발레걸즈 — 주연 밖 + 앙상블 제외 역할의 배우 합산
-    const ballet = new Map();
-    for(const role in agg){
-      if(principalSet.has(role) || role === "앙상블") continue;
-      agg[role].forEach((v,name)=>{
-        let b = ballet.get(name);
-        if(!b){ b = {total:0, watched:0, sub:v.sub||role}; ballet.set(name, b); }
-        b.total += v.total; b.watched += v.watched;
-      });
-    }
-    if(ballet.size){
-      const cards = [];
-      ballet.forEach((v,name)=>cards.push({name, tag:v.sub||"", total:v.total, watched:v.watched}));
-      cards.sort((a,b)=>b.total-a.total);
-      groups.push({ role:"발레걸즈", cards });
-    }
-    // (c) 앙상블
-    if(agg["앙상블"]){
-      const cards = [];
-      agg["앙상블"].forEach((v,name)=>cards.push({name, tag:ensSub[name]||"", total:v.total, watched:v.watched}));
-      cards.sort((a,b)=>b.total-a.total);
-      groups.push({ role:"앙상블", cards });
-    }
-
-    const seats = seatmapData.seats.map(s=>({ x:s.svgX, y:s.svgY, floor:s.floor, count: seatWatchCount(s.id) }));
+    const balletPool = [...ballet.entries()].map(([name,v])=>({name,...v})).sort((a,b)=>b.t-a.t);
+    const ensemblePool = [...ensemble.entries()].map(([name,v])=>({name,...v})).sort((a,b)=>b.t-a.t);
     const totalRun = perfs.length;
     const totalWatched = perfs.filter(p=>isEnded(p) && hasSeat(p)).length;
-    return { groups, seats, totalRun, totalWatched,
-             title: performanceData.title || "MAKOLLIM",
-             theatre: (seatmapData && seatmapData.theater) || "",
-             period: periodStr() };
+    return { pStat, balletPool, ensemblePool, totalRun, totalWatched };
   }
 
-  // ---- 컴팩트 좌석 히트맵 ----
-  function seatGridSvg(seats, maxW){
-    const floors = [...new Set(seats.map(s=>s.floor))].sort((a,b)=>a-b);
-    const GAPF = 1.5;
-    let cursorY = 0, worldMinX = Infinity, worldMaxX = -Infinity;
-    const blocks = [];
+  // ---- 보드 채우기 ----
+  function setText(svg, id, txt){ const el = svg.getElementById ? svg.getElementById(id) : document.getElementById(id); if(el) el.textContent = txt; return el; }
+
+  function fillRole(svg, slug, names, statMap){
+    let i = 0;
+    while(true){
+      const nameEl = svg.querySelector(`#fn-name-${slug}-${i}`);
+      if(!nameEl) break;
+      const cntEl = svg.querySelector(`#fn-cnt-${slug}-${i}`);
+      const nm = names[i];
+      if(nm){
+        nameEl.textContent = nm;
+        const m = statMap && statMap.get ? statMap.get(nm) : (statMap ? statMap[nm] : null);
+        if(cntEl) cntEl.textContent = m ? `${fmt(m.w)} / ${fmt(m.t)}` : "0 / 0";
+      } else {
+        nameEl.textContent = "NAME";
+        if(cntEl) cntEl.textContent = "";
+      }
+      i++;
+    }
+    return i; // 슬롯 수
+  }
+
+  function fillBoard(svg, data){
+    // 주연
+    for(const slug in ROLE_KEY){
+      const rk = ROLE_KEY[slug];
+      fillRole(svg, slug, rosterOf(rk), data.pStat[rk] || new Map());
+    }
+    // 발레걸즈(애싱턴·베들링턴·어른) — 풀에서 순차 배분
+    let bi = 0;
+    BALLET_SLUGS.forEach(slug=>{
+      // 슬롯 수 만큼 풀에서 가져오기
+      const slots = [];
+      let i=0; while(svg.querySelector(`#fn-name-${slug}-${i}`)){ slots.push(i); i++; }
+      const names = slots.map(()=> (data.balletPool[bi] ? data.balletPool[bi++].name : null));
+      const map = new Map(data.balletPool.map(p=>[p.name,p]));
+      fillRole(svg, slug, names.map(n=>n||undefined), map);
+    });
+    // 앙상블
+    ENSEMBLE_SLUGS.forEach(slug=>{
+      const slots=[]; let i=0; while(svg.querySelector(`#fn-name-${slug}-${i}`)){ slots.push(i); i++; }
+      const names = slots.map((_,k)=> data.ensemblePool[k] ? data.ensemblePool[k].name : null);
+      const map = new Map(data.ensemblePool.map(p=>[p.name,p]));
+      fillRole(svg, slug, names.map(n=>n||undefined), map);
+    });
+    // Total / 기간·장소
+    svg.querySelectorAll("text").forEach(t=>{
+      const s = (t.textContent||"").trim();
+      if(/^Total/.test(s)) t.textContent = `Total  ${data.totalWatched} / ${data.totalRun}`;
+      else if(/\d{4}\.\s*\d/.test(s)){ // 로고 날짜·장소
+        const sub = [periodStr(), (seatmapData && seatmapData.theater) || ""].filter(Boolean).join("  ");
+        if(sub) t.textContent = sub;
+      }
+    });
+  }
+
+  // ---- 좌석 다이어그램 교체 ----
+  const HEAT = ['#4aa3ff','#2fd0c8','#46c84e','#c2d92a','#ffd21f','#ff9a1f','#ff6322','#ef3b2f','#d81e4a','#b3126e'];
+  function heatColor(c){ return HEAT[Math.max(1,Math.min(10,c))-1]; }
+  function hx(c){ return [parseInt(c.slice(1,3),16),parseInt(c.slice(3,5),16),parseInt(c.slice(5,7),16)]; }
+  function mix(a,b,t){ const A=hx(a),B=hx(b); return '#'+[0,1,2].map(i=>Math.round(A[i]+(B[i]-A[i])*t).toString(16).padStart(2,'0')).join(''); }
+  // 등급 기본색: VIP=기존 좌석색, R·S·A로 갈수록 회색
+  const GRADE_RAMP = { VIP:0, R:0.5, S:0.68, A:0.82 };
+  function gradeBase(grade){ const f = GRADE_RAMP[grade]!=null ? GRADE_RAMP[grade] : 0.9; return mix("#e0a13a", "#6f6c64", f); }
+
+  function injectSeatmap(svg){
+    const sm = seatmapData; if(!sm || !sm.seats) return;
+    const grades = performanceData.grades || [];
+    const gradeOf = id => { for(const g of grades){ if(g.seatIds && g.seatIds.includes(id)) return g.name; } return null; };
+
+    // 기존 좌석 그리드 + STAGE/층/범례 텍스트 제거(+ 빨강 패널로 덮어 잔상 제거)
+    const grid = svg.querySelector("#fn-seatgrid"); if(grid) grid.remove();
+    svg.querySelectorAll("text").forEach(t=>{ const s=(t.textContent||"").trim();
+      if(["STAGE","1F","2F","3F","1회","2회","3회","4회 이상"].includes(s)) t.remove(); });
+
+    const cover = { x:396, y:664, w:278, h:284 };           // 좌석 패널 영역
+    const chart = { x:408, y:678, w:254, h:218 };           // 좌석도 영역
+    const legendY = 906;
+
+    const floors = [...new Set(sm.seats.map(s=>s.floor))].sort((a,b)=>a-b);
+    const GAP = 2; let cursor=0, minX=1e9, maxX=-1e9; const placed=[];
     floors.forEach(f=>{
-      const fs = seats.filter(s=>s.floor===f);
-      if(!fs.length) return;
-      const xs = fs.map(s=>s.x), ys = fs.map(s=>s.y);
-      const minX = Math.min(...xs), maxX = Math.max(...xs), minY = Math.min(...ys), maxY = Math.max(...ys);
-      blocks.push({ fs, minX, minY, top: cursorY });
-      cursorY += (maxY - minY) + GAPF;
-      worldMinX = Math.min(worldMinX, minX); worldMaxX = Math.max(worldMaxX, maxX);
+      const fs = sm.seats.filter(s=>s.floor===f); if(!fs.length) return;
+      const fm = (sm.floorMeta||{})[f] || {};
+      let xs=fs.map(s=>s.svgX), ys=fs.map(s=>s.svgY);
+      (fm.outline||[]).forEach(poly=>poly.forEach(p=>{ xs.push(p[0]); ys.push(p[1]); }));
+      if(fm.stage){ const st=fm.stage; xs.push(st.cx-st.w/2, st.cx+st.w/2); ys.push(st.cy-st.h/2, st.cy+st.h/2); }
+      const fMinX=Math.min(...xs), fMaxX=Math.max(...xs), fMinY=Math.min(...ys), fMaxY=Math.max(...ys);
+      placed.push({fs,fm,fMinX,fMinY,top:cursor});
+      cursor += (fMaxY-fMinY)+GAP; minX=Math.min(minX,fMinX); maxX=Math.max(maxX,fMaxX);
     });
-    const worldW = (worldMaxX - worldMinX) || 1;
-    const worldH = cursorY - GAPF;
-    const scale = maxW / (worldW + 1);
-    const sz = Math.max(2.4, 0.86 * scale);
-    let mk = "";
-    blocks.forEach(b=>{
-      b.fs.forEach(s=>{
-        const x = (s.x - worldMinX) * scale;
-        const y = (b.top + (s.y - b.minY)) * scale;
-        const color = s.count > 0 ? countHeatColor(s.count) : "rgba(255,255,255,0.14)";
-        mk += `<rect x="${(x-sz/2).toFixed(1)}" y="${(y-sz/2).toFixed(1)}" width="${sz.toFixed(1)}" height="${sz.toFixed(1)}" rx="${(sz*0.18).toFixed(1)}" fill="${color}"/>`;
+    const worldW=(maxX-minX)||1, worldH=(cursor-GAP)||1;
+    const scale=Math.min(chart.w/worldW, chart.h/worldH);
+    const offX=chart.x+(chart.w-worldW*scale)/2, offY=chart.y+(chart.h-worldH*scale)/2;
+    const X=x=>offX+(x-minX)*scale;
+
+    let mk = `<rect x="${cover.x}" y="${cover.y}" width="${cover.w}" height="${cover.h}" rx="10" fill="#de6363"/>`;
+    placed.forEach(b=>{
+      const Y=y=>offY+(b.top+(y-b.fMinY))*scale;
+      (b.fm.outline||[]).forEach(poly=>{
+        mk += `<polyline points="${poly.map(p=>X(p[0]).toFixed(1)+','+Y(p[1]).toFixed(1)).join(' ')}" fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="0.8"/>`;
       });
+      const sz=Math.max(1.4, 0.82*scale);
+      b.fs.forEach(s=>{
+        const cnt=seatWatchCount(s.id);
+        const color = cnt>0 ? heatColor(cnt) : gradeBase(gradeOf(s.id));
+        mk += `<rect x="${(X(s.svgX)-sz/2).toFixed(1)}" y="${(Y(s.svgY)-sz/2).toFixed(1)}" width="${sz.toFixed(1)}" height="${sz.toFixed(1)}" rx="${(sz*0.22).toFixed(1)}" fill="${color}"/>`;
+      });
+      if(b.fm.stage){ const st=b.fm.stage;
+        const sx=X(st.cx-st.w/2), sy=Y(st.cy-st.h/2), sw=st.w*scale, sh=Math.max(5, st.h*scale);
+        mk += `<rect x="${sx.toFixed(1)}" y="${sy.toFixed(1)}" width="${sw.toFixed(1)}" height="${sh.toFixed(1)}" rx="1.5" fill="#2b2b2b"/>`;
+        mk += `<text x="${X(st.cx).toFixed(1)}" y="${(sy+sh*0.72).toFixed(1)}" text-anchor="middle" font-size="${(sh*0.62).toFixed(1)}" fill="#fff" font-weight="700" letter-spacing="1.5">STAGE</text>`;
+      }
     });
-    return { markup: mk, w: maxW, h: Math.max(40, worldH * scale) };
-  }
-
-  // ---- 카드 / 블록 ----
-  function cardMarkup(card, key){
-    const num = (key in finaleOverrides && finaleOverrides[key] != null) ? finaleOverrides[key] : card.watched;
-    const px = (CARD_W - PHOTO) / 2;
-    const tag = card.tag ? `<text x="${CARD_W/2}" y="${PHOTO+12}" text-anchor="middle" font-size="9" fill="#ffe9a8">${esc(card.tag)}</text>` : "";
-    return `
-      <g>
-        <rect x="${px}" y="0" width="${PHOTO}" height="${PHOTO}" rx="6" fill="#eef1f4"/>
-        <use href="#finaleFace" x="${px}" y="0" width="${PHOTO}" height="${PHOTO}"/>
-        <rect x="${px}" y="0" width="${PHOTO}" height="${PHOTO}" rx="6" fill="none" stroke="rgba(0,0,0,0.12)" stroke-width="1"/>
-        ${tag}
-        <text x="${CARD_W/2}" y="${PHOTO+27}" text-anchor="middle" font-size="13" font-weight="700" fill="#fff">${esc(card.name)}</text>
-        <text x="${CARD_W/2}" y="${PHOTO+43}" text-anchor="middle" font-size="12" fill="#ffffff">
-          <tspan class="finale-num" data-key="${esc(key)}" fill="${GOLD}" font-weight="700">${num}</tspan> / ${card.total}
-        </text>
-      </g>`;
-  }
-
-  function roleBlock(group){
-    const n = group.cards.length;
-    const per = Math.min(n, PER_ROW) || 1;
-    const rows = Math.ceil(n / PER_ROW) || 1;
-    const w = per * UNIT;
-    const h = HDR_H + rows * (CARD_H + CARD_ROW_GAP) - CARD_ROW_GAP;
-    let cards = "";
-    group.cards.forEach((c,i)=>{
-      const col = i % PER_ROW, row = Math.floor(i / PER_ROW);
-      const cx = col * UNIT, cy = HDR_H + row * (CARD_H + CARD_ROW_GAP);
-      cards += `<g transform="translate(${cx},${cy})">${cardMarkup(c, `c|${group.role}|${c.name}`)}</g>`;
-    });
-    const markup = `
-      <text x="0" y="18" font-size="17" font-weight="800" fill="#fff" letter-spacing="0.4">${esc(group.role)}</text>
-      <rect x="0" y="24" width="${w-CARD_GAP}" height="2.4" fill="rgba(255,255,255,0.7)"/>
-      ${cards}`;
-    return { type:"role", w, h, markup };
-  }
-
-  function seatBlock(data){
-    const grid = seatGridSvg(data.seats, SEAT_W);
-    const legendY = HDR_H + grid.h + 14;
-    const items = [["1",1],["2",2],["3",3],["4+",4]];
-    let legend = `<text x="0" y="${legendY}" font-size="11" fill="rgba(255,255,255,0.85)">관극 횟수</text>`;
-    let lx = 70;
-    items.forEach(([lab,c])=>{
-      legend += `<rect x="${lx}" y="${legendY-9}" width="11" height="11" rx="2" fill="${countHeatColor(c)}"/>`
-              + `<text x="${lx+15}" y="${legendY}" font-size="11" fill="#fff">${lab}</text>`;
-      lx += 42;
-    });
-    legend += `<rect x="${lx}" y="${legendY-9}" width="11" height="11" rx="2" fill="rgba(255,255,255,0.14)"/>`
-            + `<text x="${lx+15}" y="${legendY}" font-size="11" fill="#fff">안 봄</text>`;
-    const totalY = legendY + 30;
-    const tNum = ("t|total" in finaleOverrides && finaleOverrides["t|total"] != null) ? finaleOverrides["t|total"] : data.totalWatched;
-    const total = `<text x="${SEAT_W}" y="${totalY}" text-anchor="end" font-size="24" font-style="italic" font-weight="800" fill="#fff">`
-                + `Total <tspan class="finale-num" data-key="t|total" fill="${GOLD}">${tNum}</tspan> / ${data.totalRun}</text>`;
-    const markup = `
-      <text x="0" y="18" font-size="17" font-weight="800" fill="#fff">관극 좌석</text>
-      <rect x="0" y="24" width="${SEAT_W}" height="2.4" fill="rgba(255,255,255,0.7)"/>
-      <g transform="translate(0,${HDR_H})">${grid.markup}</g>
-      ${legend}
-      ${total}`;
-    return { type:"seat", w: SEAT_W, h: totalY + 8, markup };
-  }
-
-  // 블록을 콘텐츠 폭에 맞춰 좌→우로 채우는 셸프 패커
-  function packBlocks(blocks){
-    let x = 0, y = 0, rowH = 0;
-    blocks.forEach(b=>{
-      if(x > 0 && x + b.w > CONTENT_W){ x = 0; y += rowH + BLOCK_GAP_Y; rowH = 0; }
-      b.x = x; b.y = y;
-      x += b.w + BLOCK_GAP_X; rowH = Math.max(rowH, b.h);
-    });
-    return y + rowH; // 전체 콘텐츠 높이
-  }
-
-  // ---- 포스터 SVG 조립 ----
-  function buildFinaleSvg(data){
-    const blocks = data.groups.map(roleBlock);
-    const seat = seatBlock(data);
-    blocks.splice(Math.min(10, blocks.length), 0, seat);   // 주연 뒤쯤에 좌석 블록
-    const contentH = Math.ceil(packBlocks(blocks));
-
-    const W = OUTER*2 + PANEL_PAD*2 + CONTENT_W;
-    const panelX = OUTER, panelY = HEADER_H;
-    const panelW = W - OUTER*2;
-    const panelH = PANEL_PAD*2 + contentH;
-    const H = HEADER_H + panelH + OUTER;
-
-    const body = blocks.map(b=>`<g transform="translate(${panelX+PANEL_PAD+b.x},${panelY+PANEL_PAD+b.y})">${b.markup}</g>`).join("");
-
-    const sub = [data.period, data.theatre].filter(Boolean).join("   ·   ");
-    const defs = `
-      <defs>
-        <style>text{font-family:'Pretendard','Apple SD Gothic Neo','Malgun Gothic','Noto Sans KR',sans-serif;}</style>
-        <symbol id="finaleFace" viewBox="0 0 100 100">
-          <rect width="100" height="100" fill="#dfe3e8"/>
-          <circle cx="50" cy="39" r="19" fill="#aeb6bf"/>
-          <path d="M14 96c0-21 16-32 36-32s36 11 36 32z" fill="#aeb6bf"/>
-        </symbol>
-      </defs>`;
-
-    return {
-      svg: `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
-        ${defs}
-        <rect width="${W}" height="${H}" fill="#ffffff"/>
-        <text x="${W/2}" y="74" text-anchor="middle" font-size="46" font-weight="900" fill="${RED}" letter-spacing="0.5">${esc(data.title)}</text>
-        <text x="${W/2}" y="112" text-anchor="middle" font-size="18" font-weight="700" fill="#444">${esc(sub)}</text>
-        <rect x="${panelX}" y="${panelY}" width="${panelW}" height="${panelH}" rx="22" fill="${RED}"/>
-        <rect x="${panelX}" y="${panelY}" width="${panelW}" height="${panelH}" rx="22" fill="none" stroke="${RED_DK}" stroke-width="2"/>
-        ${body}
-      </svg>`,
-      w: W, h: H
-    };
+    // 하단 범례: 관극 횟수 1~10 (색은 시트맵과 동일, 숫자는 아래)
+    const sw=14, gap=2, total=10*sw+9*gap, lx=(cover.x+cover.w/2)-total/2;
+    mk += `<text x="${cover.x+cover.w/2}" y="${(legendY-7).toFixed(1)}" text-anchor="middle" font-size="9" font-weight="700" fill="#fff">관극 횟수</text>`;
+    for(let i=0;i<10;i++){
+      const x=lx+i*(sw+gap);
+      mk += `<rect x="${x.toFixed(1)}" y="${legendY}" width="${sw}" height="9" rx="2" fill="${HEAT[i]}"/>`;
+      mk += `<text x="${(x+sw/2).toFixed(1)}" y="${legendY+19}" text-anchor="middle" font-size="8" fill="#fff">${i+1}</text>`;
+    }
+    const g=document.createElementNS("http://www.w3.org/2000/svg","g");
+    g.setAttribute("id","fn-seatmap-live"); g.innerHTML=mk;
+    svg.appendChild(g);
   }
 
   // ---- 렌더 ----
   function getPreview(){ return document.getElementById("finalePreview"); }
-  function currentSvg(){ const c = getPreview(); return c ? c.querySelector("svg") : null; }
+  function currentSvg(){ const c=getPreview(); return c ? c.querySelector("svg") : null; }
+  function dataReady(){ return typeof performanceData!=="undefined" && performanceData && performanceData.performances && typeof seatmapData!=="undefined" && seatmapData; }
 
-  function dataReady(){ return typeof performanceData !== "undefined" && performanceData && performanceData.performances && typeof seatmapData !== "undefined" && seatmapData; }
+  let boardText = null;
+  async function loadBoard(){ if(boardText==null){ const r=await fetch(BOARD_URL); boardText = await r.text(); } return boardText; }
+
   async function renderFinale(){
     const container = getPreview();
     if(!container || !dataReady()) return;
-    const cbd = await loadCbd();
-    const { svg, w, h } = buildFinaleSvg(computeFinaleData(cbd));
-    container.innerHTML = svg;
-    const el = container.querySelector("svg");
-    if(el){ el.dataset.w = w; el.dataset.h = h; el.style.width = "100%"; el.style.height = "auto"; }
+    const [txt, cbd] = await Promise.all([loadBoard(), loadCbd(), loadMeta()]);
+    container.innerHTML = txt;
+    const svg = container.querySelector("svg");
+    if(!svg) return;
+    svg.removeAttribute("width"); svg.removeAttribute("height");
+    svg.setAttribute("viewBox", `0 0 ${VB_W} ${VB_H}`);
+    svg.dataset.w = VB_W; svg.dataset.h = VB_H;
+    svg.style.width = "100%"; svg.style.height = "auto"; svg.style.transformOrigin = "0 0";
+    fillBoard(svg, computeData(finaleMode, cbd));
+    injectSeatmap(svg);
+    resetZoom();
   }
 
-  // ---- 숫자 클릭 편집 ----
-  function attachEditing(){
-    const container = getPreview();
-    if(!container) return;
-    container.addEventListener("click", e=>{
-      const t = e.target.closest(".finale-num");
-      if(!t || container.querySelector(".finale-edit-input")) return;
-      const key = t.getAttribute("data-key");
-      const r = t.getBoundingClientRect(), cr = container.getBoundingClientRect();
-      const inp = document.createElement("input");
-      inp.type = "number"; inp.min = "0"; inp.className = "finale-edit-input";
-      inp.value = t.textContent.trim();
-      inp.style.cssText = `position:absolute; left:${r.left-cr.left}px; top:${r.top-cr.top-2}px;`
-        + `width:${Math.max(40, r.width+18)}px; font:700 13px sans-serif; text-align:center;`
-        + `border:2px solid ${RED}; border-radius:5px; padding:1px 2px; z-index:5; background:#fff; color:#111;`;
-      container.appendChild(inp); inp.focus(); inp.select();
-      let done = false;
-      const commit = ()=>{ if(done) return; done = true; const v = parseInt(inp.value, 10); setOverride(key, isNaN(v)?null:v); inp.remove(); renderFinale(); };
-      inp.addEventListener("keydown", ev=>{ if(ev.key==="Enter") commit(); else if(ev.key==="Escape"){ done=true; inp.remove(); } });
-      inp.addEventListener("blur", commit);
+  // ---- 핀치/터치 줌 ----
+  let zScale=1, zx=0, zy=0;
+  const pointers = new Map(); let pinchDist=0, panStart=null;
+  function applyZoom(){ const svg=currentSvg(); if(svg) svg.style.transform = `translate(${zx}px,${zy}px) scale(${zScale})`; }
+  function resetZoom(){ zScale=1; zx=0; zy=0; applyZoom(); }
+  function clampZoom(){ zScale=Math.max(1, Math.min(6, zScale)); if(zScale===1){ zx=0; zy=0; } }
+  function wireZoom(){
+    const c=getPreview(); if(!c) return;
+    c.style.touchAction="none"; c.style.overflow="hidden";
+    c.addEventListener("wheel", e=>{
+      e.preventDefault();
+      const r=c.getBoundingClientRect(), ox=e.clientX-r.left, oy=e.clientY-r.top;
+      const f=e.deltaY<0?1.12:0.89, ns=Math.max(1,Math.min(6,zScale*f));
+      const k=ns/zScale; zx=ox-(ox-zx)*k; zy=oy-(oy-zy)*k; zScale=ns; clampZoom(); applyZoom();
+    }, {passive:false});
+    c.addEventListener("pointerdown", e=>{ c.setPointerCapture(e.pointerId); pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
+      if(pointers.size===1) panStart={x:e.clientX-zx,y:e.clientY-zy};
+      else if(pointers.size===2){ const p=[...pointers.values()]; pinchDist=Math.hypot(p[0].x-p[1].x,p[0].y-p[1].y); }
     });
+    c.addEventListener("pointermove", e=>{
+      if(!pointers.has(e.pointerId)) return;
+      pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
+      const pts=[...pointers.values()];
+      if(pts.length===2){
+        const d=Math.hypot(pts[0].x-pts[1].x,pts[0].y-pts[1].y);
+        if(pinchDist>0){ const r=c.getBoundingClientRect();
+          const mx=(pts[0].x+pts[1].x)/2-r.left, my=(pts[0].y+pts[1].y)/2-r.top;
+          const ns=Math.max(1,Math.min(6,zScale*(d/pinchDist))), k=ns/zScale;
+          zx=mx-(mx-zx)*k; zy=my-(my-zy)*k; zScale=ns; }
+        pinchDist=d; clampZoom(); applyZoom();
+      } else if(pts.length===1 && panStart && zScale>1){
+        zx=e.clientX-panStart.x; zy=e.clientY-panStart.y; applyZoom();
+      }
+    });
+    const up=e=>{ pointers.delete(e.pointerId); if(pointers.size<2) pinchDist=0; if(pointers.size===0) panStart=null;
+      else if(pointers.size===1){ const p=[...pointers.values()][0]; panStart={x:p.x-zx,y:p.y-zy}; } };
+    c.addEventListener("pointerup", up); c.addEventListener("pointercancel", up);
   }
 
   // ---- 내보내기 ----
-  function stamp(){ return (typeof kstStamp === "function") ? kstStamp() : "export"; }
+  function stamp(){ return (typeof kstStamp==="function") ? kstStamp() : "export"; }
   function triggerDownload(blob, name){
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url; a.download = name;
-    document.body.appendChild(a); a.click(); document.body.removeChild(a);
-    setTimeout(()=>URL.revokeObjectURL(url), 1000);
+    const url=URL.createObjectURL(blob), a=document.createElement("a");
+    a.href=url; a.download=name; document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(()=>URL.revokeObjectURL(url),1000);
   }
   function serializeSvg(el){
-    const clone = el.cloneNode(true);
-    clone.removeAttribute("style");
-    clone.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+    const clone=el.cloneNode(true);
+    clone.removeAttribute("style"); clone.setAttribute("xmlns","http://www.w3.org/2000/svg");
+    clone.setAttribute("width", VB_W); clone.setAttribute("height", VB_H);
     return new XMLSerializer().serializeToString(clone);
   }
-
-  function exportSVG(){
-    const el = currentSvg(); if(!el) return;
-    const data = '<?xml version="1.0" encoding="UTF-8"?>\n' + serializeSvg(el);
-    triggerDownload(new Blob([data], {type:"image/svg+xml;charset=utf-8"}), `makollim-finale-${stamp()}.svg`);
-  }
-
+  function exportSVG(){ const el=currentSvg(); if(!el) return;
+    triggerDownload(new Blob(['<?xml version="1.0" encoding="UTF-8"?>\n'+serializeSvg(el)],{type:"image/svg+xml;charset=utf-8"}), `makollim-finale-${stamp()}.svg`); }
   async function rasterize(type, quality){
-    const el = currentSvg(); if(!el) return null;
-    const W = +el.dataset.w, H = +el.dataset.h, scale = 2;
-    const svgStr = serializeSvg(el);
-    const url = URL.createObjectURL(new Blob([svgStr], {type:"image/svg+xml;charset=utf-8"}));
+    const el=currentSvg(); if(!el) return null;
+    const scale=2, svgStr=serializeSvg(el);
+    const url=URL.createObjectURL(new Blob([svgStr],{type:"image/svg+xml;charset=utf-8"}));
     try{
-      const img = new Image();
-      await new Promise((res,rej)=>{ img.onload = res; img.onerror = ()=>rej(new Error("SVG 이미지 로드 실패")); img.src = url; });
-      const canvas = document.createElement("canvas");
-      canvas.width = W*scale; canvas.height = H*scale;
-      const ctx = canvas.getContext("2d");
-      if(type === "image/jpeg"){ ctx.fillStyle = "#fff"; ctx.fillRect(0,0,canvas.width,canvas.height); }
-      ctx.setTransform(scale,0,0,scale,0,0);
-      ctx.drawImage(img, 0, 0);
-      return await new Promise(res=>canvas.toBlob(res, type, quality));
+      const img=new Image();
+      await new Promise((res,rej)=>{ img.onload=res; img.onerror=()=>rej(new Error("SVG 로드 실패")); img.src=url; });
+      const canvas=document.createElement("canvas"); canvas.width=VB_W*scale; canvas.height=VB_H*scale;
+      const ctx=canvas.getContext("2d");
+      if(type==="image/jpeg"){ ctx.fillStyle="#fff"; ctx.fillRect(0,0,canvas.width,canvas.height); }
+      ctx.setTransform(scale,0,0,scale,0,0); ctx.drawImage(img,0,0);
+      return await new Promise(res=>canvas.toBlob(res,type,quality));
     } finally { URL.revokeObjectURL(url); }
   }
   async function exportRaster(type, ext, quality){
-    const blob = await rasterize(type, quality);
-    if(blob) triggerDownload(blob, `makollim-finale-${stamp()}.${ext}`);
-    else alert("이미지를 만들지 못했습니다.");
+    const blob=await rasterize(type,quality);
+    if(blob) triggerDownload(blob, `makollim-finale-${stamp()}.${ext}`); else alert("이미지를 만들지 못했습니다.");
   }
-
-  function loadScript(src){
-    return new Promise((res,rej)=>{
-      const s = document.createElement("script");
-      s.src = src; s.onload = res; s.onerror = ()=>rej(new Error("스크립트 로드 실패: "+src));
-      document.head.appendChild(s);
-    });
-  }
-  let krFontB64 = null;
-  async function loadKoreanFontB64(){
-    if(krFontB64) return krFontB64;
-    const r = await fetch(KRFONT_URL);
-    if(!r.ok) throw new Error("한글 폰트 로드 실패");
-    const buf = await r.arrayBuffer();
-    let bin = ""; const bytes = new Uint8Array(buf);
-    for(let i=0;i<bytes.length;i++) bin += String.fromCharCode(bytes[i]);
-    krFontB64 = btoa(bin);
-    return krFontB64;
-  }
+  function loadScript(src){ return new Promise((res,rej)=>{ const s=document.createElement("script"); s.src=src; s.onload=res; s.onerror=()=>rej(new Error("스크립트 로드 실패")); document.head.appendChild(s); }); }
+  let krFontB64=null;
+  async function loadKoreanFontB64(){ if(krFontB64) return krFontB64;
+    const r=await fetch(KRFONT_URL); if(!r.ok) throw new Error("폰트 로드 실패");
+    const buf=await r.arrayBuffer(); let bin=""; const b=new Uint8Array(buf);
+    for(let i=0;i<b.length;i++) bin+=String.fromCharCode(b[i]); krFontB64=btoa(bin); return krFontB64; }
   async function ensurePdfLibs(){
     if(!window.jspdf) await loadScript(JSPDF_URL);
-    if(!window.svg2pdf && !(window.jspdf && window.jspdf.jsPDF && window.jspdf.jsPDF.API && window.jspdf.jsPDF.API.svg))
-      await loadScript(SVG2PDF_URL);
+    if(!window.svg2pdf && !(window.jspdf&&window.jspdf.jsPDF&&window.jspdf.jsPDF.API&&window.jspdf.jsPDF.API.svg)) await loadScript(SVG2PDF_URL);
   }
-
   async function exportPDF(btn){
-    const el = currentSvg(); if(!el) return;
-    const W = +el.dataset.w, H = +el.dataset.h;
-    const label = btn ? btn.textContent : "";
-    if(btn){ btn.disabled = true; btn.textContent = "PDF 생성 중…"; }
+    const el=currentSvg(); if(!el) return;
+    const label=btn?btn.textContent:""; if(btn){ btn.disabled=true; btn.textContent="PDF 생성 중…"; }
     try{
-      await ensurePdfLibs();
-      const { jsPDF } = window.jspdf;
-      const doc = new jsPDF({ orientation: W>H ? "l" : "p", unit:"pt", format:[W, H] });
-      // 한글 폰트 임베드(가능하면 벡터 텍스트로). 실패하면 기본 폰트로 진행.
-      let fontName = null;
-      try{
-        const b64 = await loadKoreanFontB64();
-        doc.addFileToVFS("NanumGothic.ttf", b64);
-        doc.addFont("NanumGothic.ttf", "NanumGothic", "normal");
-        doc.addFont("NanumGothic.ttf", "NanumGothic", "bold");
-        doc.setFont("NanumGothic");
-        fontName = "NanumGothic";
-      }catch(fe){ console.warn("PDF 한글 폰트 임베드 실패, 기본 폰트로 진행:", fe.message); }
-
-      const svgForPdf = el.cloneNode(true);
-      if(fontName) svgForPdf.querySelectorAll("text, tspan").forEach(t=>t.setAttribute("font-family", fontName));
-
-      if(typeof doc.svg === "function") await doc.svg(svgForPdf, { x:0, y:0, width:W, height:H });
-      else await window.svg2pdf(svgForPdf, doc, { x:0, y:0, width:W, height:H });
+      await ensurePdfLibs(); const { jsPDF }=window.jspdf;
+      const doc=new jsPDF({ orientation: VB_W>VB_H?"l":"p", unit:"pt", format:[VB_W,VB_H] });
+      let fontName=null;
+      try{ const b64=await loadKoreanFontB64(); doc.addFileToVFS("NanumGothic.ttf",b64);
+        doc.addFont("NanumGothic.ttf","NanumGothic","normal"); doc.addFont("NanumGothic.ttf","NanumGothic","bold");
+        doc.setFont("NanumGothic"); fontName="NanumGothic"; }catch(fe){}
+      const svgForPdf=el.cloneNode(true); svgForPdf.removeAttribute("style");
+      if(fontName) svgForPdf.querySelectorAll("text,tspan").forEach(t=>t.setAttribute("font-family",fontName));
+      if(typeof doc.svg==="function") await doc.svg(svgForPdf,{x:0,y:0,width:VB_W,height:VB_H});
+      else await window.svg2pdf(svgForPdf,doc,{x:0,y:0,width:VB_W,height:VB_H});
       doc.save(`makollim-finale-${stamp()}.pdf`);
     }catch(err){
-      console.error(err);
-      // 벡터 실패 시 고해상도 PNG를 담은 PDF로 대체
-      try{
-        await ensurePdfLibs();
-        const { jsPDF } = window.jspdf;
-        const blob = await rasterize("image/png");
-        const dataUrl = await new Promise(res=>{ const fr = new FileReader(); fr.onload = ()=>res(fr.result); fr.readAsDataURL(blob); });
-        const doc = new jsPDF({ orientation: W>H ? "l":"p", unit:"pt", format:[W, H] });
-        doc.addImage(dataUrl, "PNG", 0, 0, W, H);
-        doc.save(`makollim-finale-${stamp()}.pdf`);
-        alert("벡터 변환에 실패하여 고해상도 이미지로 된 PDF로 저장했습니다.");
-      }catch(e2){ alert("PDF를 만들지 못했습니다: " + err.message); }
-    }finally{
-      if(btn){ btn.disabled = false; btn.textContent = label; }
-    }
+      try{ await ensurePdfLibs(); const { jsPDF }=window.jspdf;
+        const blob=await rasterize("image/png");
+        const dataUrl=await new Promise(res=>{ const fr=new FileReader(); fr.onload=()=>res(fr.result); fr.readAsDataURL(blob); });
+        const doc=new jsPDF({ orientation: VB_W>VB_H?"l":"p", unit:"pt", format:[VB_W,VB_H] });
+        doc.addImage(dataUrl,"PNG",0,0,VB_W,VB_H); doc.save(`makollim-finale-${stamp()}.pdf`);
+        alert("벡터 변환에 실패하여 고해상도 이미지 PDF로 저장했습니다.");
+      }catch(e2){ alert("PDF를 만들지 못했습니다: "+err.message); }
+    }finally{ if(btn){ btn.disabled=false; btn.textContent=label; } }
   }
 
   // ---- 초기화 ----
   function init(){
-    if(booted) return; booted = true;
-    attachEditing();
-    const wire = (id, fn)=>{ const b = document.getElementById(id); if(b) b.addEventListener("click", ()=>fn(b)); };
+    if(booted) return; booted=true;
+    wireZoom();
+    const sel=document.getElementById("finaleModeSelect");
+    if(sel){ sel.value=finaleMode; sel.addEventListener("change", ()=>{ finaleMode=sel.value; renderFinale(); }); }
+    const wire=(id,fn)=>{ const b=document.getElementById(id); if(b) b.addEventListener("click",()=>fn(b)); };
     wire("finaleSvgBtn", ()=>exportSVG());
-    wire("finalePngBtn", ()=>exportRaster("image/png", "png"));
-    wire("finaleJpgBtn", ()=>exportRaster("image/jpeg", "jpg", 0.95));
+    wire("finalePngBtn", ()=>exportRaster("image/png","png"));
+    wire("finaleJpgBtn", ()=>exportRaster("image/jpeg","jpg",0.95));
     wire("finalePdfBtn", (b)=>exportPDF(b));
-    const reset = document.getElementById("finaleResetBtn");
-    if(reset) reset.addEventListener("click", ()=>{
-      if(!Object.keys(finaleOverrides).length) return;
-      if(confirm("직접 수정한 숫자를 모두 자동값으로 되돌릴까요?")){ finaleOverrides = {}; saveOverrides(); renderFinale(); }
-    });
   }
 
-  // app.js 탭 전환에서 호출
   window.renderFinale = function(){ renderFinale(); };
-  if(document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
+  if(document.readyState==="loading") document.addEventListener("DOMContentLoaded", init);
   else init();
 })();
