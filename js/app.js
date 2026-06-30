@@ -1696,8 +1696,14 @@ function buildSeatSvgInner(highlight){
   const floors = [...new Set(seatmapData.seats.map(s=>s.floor))].sort((a,b)=>a-b);
   if(!floors.length) return { markup:"", bbox:{ x:0, y:0, w:10, h:10 } };
   const LABEL_ONLY_H = 1.4; // 좌석을 숨긴 층의 축소된 박스 높이 (라벨만 보임)
-  const FLOOR_VISUAL_GAP = 1.0;
-  const BOTTOM_EXTRA = 7; // 맨 아래층 아래 여유 공간 (미니맵이 좌석을 가리지 않도록)
+  // 층 사이 간격(해당 층 '위'에 적용). 음수면 위층과 더 붙음.
+  const FLOOR_GAP_DEFAULT = -4;
+  const FLOOR_GAPS = { 3: -4.5 }; // 키는 층 번호, 값은 그 층 위쪽 간격(2-3층 = -4.5)
+  const gapAbove = (floor)=>{
+    const g = FLOOR_GAPS[floor] ?? FLOOR_GAPS[String(floor)];
+    return g === undefined ? FLOOR_GAP_DEFAULT : g;
+  };
+  const BOTTOM_EXTRA = 1; // 맨 아래층 아래 여유 공간 (미니맵이 좌석을 가리지 않도록)
 
   // 1차: 각 층의 원래 경계 계산 (가장 넓은 층의 너비로 모두 통일)
   const floorBoxes = {};
@@ -1705,6 +1711,10 @@ function buildSeatSvgInner(highlight){
   floors.forEach(floor=>{
     const seats = seatmapData.seats.filter(s=>s.floor===floor);
     const xs = seats.map(s=>s.svgX), ys = seats.map(s=>s.svgY);
+    // 외곽선(outline)·무대(stage)가 있으면 박스 범위에 포함(좌석 밖으로 나가도 잘리지 않게)
+    const fmeta = (seatmapData.floorMeta||{})[floor] || {};
+    (fmeta.outline||[]).forEach(poly=>poly.forEach(pt=>{ xs.push(pt[0]); ys.push(pt[1]); }));
+    if(fmeta.stage){ const s=fmeta.stage; xs.push(s.cx-s.w/2, s.cx+s.w/2); ys.push(s.cy-s.h/2, s.cy+s.h/2); }
     const pad = 0.9;
     const bx = Math.min(...xs)-pad, by = Math.min(...ys)-pad;
     const bw = Math.max(...xs)-bx+pad, bh = Math.max(...ys)-by+pad;
@@ -1716,15 +1726,16 @@ function buildSeatSvgInner(highlight){
   // 2차: 숨긴 층은 라벨만 남기고 박스를 줄여서, 아래 층들이 위로 채워지도록 다시 쌓기
   let cum = 0;
   const layout = {};
-  floors.forEach(floor=>{
+  floors.forEach((floor, idx)=>{
     const isHidden = hiddenFloors.has(String(floor));
     const box = floorBoxes[floor];
     const thisH = isHidden ? LABEL_ONLY_H : box.bh;
+    if(idx > 0) cum += gapAbove(floor); // 첫 층 위에는 간격 없음
     const deltaY = cum - box.by;
     layout[floor] = { isHidden, thisH, deltaY, box };
-    cum += thisH + FLOOR_VISUAL_GAP;
+    cum += thisH;
   });
-  const totalHeight = cum - FLOOR_VISUAL_GAP + BOTTOM_EXTRA;
+  const totalHeight = cum + BOTTOM_EXTRA;
 
   // 모든 층 박스가 항상 같은 위치/너비를 갖도록 공유 중심선을 사용한다 (켜고 끌 때도 동일)
   const sharedCx = floors.reduce((sum,f)=>sum+floorBoxes[f].cx, 0) / floors.length;
@@ -1747,8 +1758,24 @@ function buildSeatSvgInner(highlight){
     const bx = sharedBx;
     const by = box.by;
 
-    const border = `<rect x="${bx}" y="${by}" width="${bw}" height="${thisH}" rx="0.6" fill="none" stroke="var(--line)" stroke-width="0.06"></rect>
-      <text x="${bx+0.35}" y="${by+0.55}" font-size="0.5" font-weight="700" fill="var(--gold)">${floor}F${isHidden ? ' (숨김)' : ''}</text>`;
+    // 외곽선: 좌석 그림에 맞춰 그린 outline(있으면)으로, 없으면 기본 사각 박스
+    let border;
+    if(meta && Array.isArray(meta.outline) && meta.outline.length && !isHidden){
+      const polys = meta.outline.map(poly=>
+        `<polyline points="${poly.map(p=>p[0]+','+p[1]).join(' ')}" fill="none" stroke="var(--line)" stroke-width="0.06"></polyline>`).join("");
+      const stage = meta.stage
+        ? `<rect x="${meta.stage.cx-meta.stage.w/2}" y="${meta.stage.cy-meta.stage.h/2}" width="${meta.stage.w}" height="${meta.stage.h}" rx="0.2" fill="none" stroke="var(--line)" stroke-width="0.06"></rect>`
+          + `<text x="${meta.stage.cx}" y="${meta.stage.cy+0.25}" text-anchor="middle" font-size="0.7" font-weight="700" letter-spacing="0.15" fill="var(--ink-dim)">STAGE</text>`
+        : "";
+      border = polys + stage
+        + `<text x="${bx+0.35}" y="${by+0.55}" font-size="0.5" font-weight="700" fill="var(--gold)">${floor}F</text>`;
+    } else if(isHidden){
+      // 숨긴 층: 박스 없이 라벨만
+      border = `<text x="${bx+0.35}" y="${by+0.55}" font-size="0.5" font-weight="700" fill="var(--gold)">${floor}F (숨김)</text>`;
+    } else {
+      border = `<rect x="${bx}" y="${by}" width="${bw}" height="${thisH}" rx="0.6" fill="none" stroke="var(--line)" stroke-width="0.06"></rect>
+        <text x="${bx+0.35}" y="${by+0.55}" font-size="0.5" font-weight="700" fill="var(--gold)">${floor}F</text>`;
+    }
 
     let rowLabels = "";
     let seatMarkupStr = "";
