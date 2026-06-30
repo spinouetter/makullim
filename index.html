@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>막올림</title>
-<link rel="stylesheet" href="css/styles.css?v=62">
+<link rel="stylesheet" href="css/styles.css?v=63">
 </head>
 <body>
 
@@ -20,6 +20,7 @@
   <button class="tab-btn active" data-page="schedule">Schedule</button>
   <button class="tab-btn" data-page="stats">Statistics</button>
   <button class="tab-btn" data-page="seatmap">Seat map</button>
+  <button class="tab-btn" data-page="finale">Finale</button>
   <button class="tab-btn" data-page="settings">Settings</button>
 </nav>
 </div>
@@ -184,6 +185,11 @@
       <p style="color:var(--ink-dim); font-size:13px; margin:4px 0 0;"><b>통계·가격·좌석표에는 맨 위 티켓만 반영</b>됩니다. 추가 티켓은 관리·기록용이며 총 금액이나 관극 횟수에 합산되지 않습니다.</p>
     </div>
     <div class="stat-section">
+      <h2>기능 표시</h2>
+      <label class="opt-row"><input type="checkbox" id="optFinaleView"><span><b>Finale 보기</b> — 공연 후 트위터에 올릴 <b>관극 인증 이미지</b> 탭을 표시</span></label>
+      <p style="color:var(--ink-dim); font-size:13px; margin:6px 0 0;">켜면 상단에 <b>Finale</b> 탭이 생겨 배역별 배우·관극 좌석을 한 장의 이미지(SVG/PNG/JPG/PDF)로 저장할 수 있습니다.</p>
+    </div>
+    <div class="stat-section">
       <h2>좌석 보기</h2>
       <label class="opt-row" style="justify-content:space-between;">
         <span><b>기본 배율</b> — 좌석 보기 팝업을 열 때의 확대 정도</span>
@@ -248,6 +254,20 @@
     </div>
   </section>
 
+  <section class="page" id="page-finale">
+    <div class="toolbar">
+      <div class="show-name">공연이 끝난 뒤 트위터 등에 올릴 <b>관극 인증 이미지</b>입니다. 배역별 배우와 <b>관극 / 전체</b> 횟수, 내가 본 좌석이 한 장에 담깁니다. <b>숫자를 클릭하면 직접 수정</b>할 수 있어요. (얼굴은 템플릿 이미지)</div>
+    </div>
+    <div class="finale-bar">
+      <button id="finaleSvgBtn" class="primary-btn">SVG 저장</button>
+      <button id="finalePngBtn">PNG 저장</button>
+      <button id="finaleJpgBtn">JPG 저장</button>
+      <button id="finalePdfBtn">PDF 저장</button>
+      <button id="finaleResetBtn" style="margin-left:auto;">숫자 초기화</button>
+    </div>
+    <div id="finalePreview" class="finale-preview"></div>
+  </section>
+
 </main>
 
 <div id="seatOverlay" class="seat-overlay" style="display:none;">
@@ -288,7 +308,8 @@
 </div>
 
 <script src="js/config.js?v=1"></script>
-<script src="js/app.js?v=87"></script>
+<script src="js/app.js?v=89"></script>
 <script src="js/dropbox.js?v=4"></script>
+<script src="js/finale.js?v=1"></script>
 </body>
 </html>
