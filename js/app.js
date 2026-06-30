@@ -123,6 +123,15 @@ const COL_PRICE = "__price__";
 const TICKET_FEE = 2000; // 선택 시 더해지는 수수료(원)
 function colLabel(id){ return id===COL_TICKET ? "티켓" : (id===COL_PRICE ? "가격" : (id.indexOf("match:")===0 ? id.slice(6) : id)); }
 
+// 티켓 타입 머지(별칭): grades.json의 각 price에 alias:[옛이름…]을 두면, 그 옛이름으로
+// 저장된 데이터도 이 타입으로 인식한다(표시·통계·가격조회). 저장은 새 이름으로 기록 → 수동 마이그레이션.
+//  - 이름이 정확히 일치하는 항목을 우선, 없으면 alias에 포함하는 항목을 찾는다.
+function resolveTicketEntry(grade, type){
+  if(!grade || !type) return null;
+  const ps = grade.prices || [];
+  return ps.find(p=>p.name===type) || ps.find(p=>Array.isArray(p.alias) && p.alias.includes(type)) || null;
+}
+
 // 등급의 정가(할인율 0) 항목을 찾는다.
 function gradeFacePrice(grade){
   const f = (grade.prices||[]).find(x=>x.discount===0) || (grade.prices||[])[0];
@@ -143,7 +152,7 @@ function ticketPriceOf(seatId, type, fee, customDiscount, extra){
     if(face == null) return null;
     base = Math.round(face * (1 - customDiscount/100));
   } else {
-    const pr = (grade.prices||[]).find(x=>x.name===type);
+    const pr = resolveTicketEntry(grade, type);
     if(!pr) return null;
     base = pr.price;
   }
@@ -252,6 +261,7 @@ function buildTicketPopover(idx, grade, tk){
   const midG = applicable.filter(p=>typeof p.sort!=='number')
     .sort((a,b)=> (b.discount||0)-(a.discount||0) || a.name.localeCompare(b.name,'ko'));
   const prices = [...topG, ...midG, ...botG];
+  const selEntry = isCustom ? null : resolveTicketEntry(grade, ticketType); // 옛 이름(alias)도 해당 타입으로 선택 표시
   return `
     <div class="ticket-popover" data-idx="${idx}">
       <div class="popover-date">${perfDateLabel(perf)}</div>
@@ -259,7 +269,7 @@ function buildTicketPopover(idx, grade, tk){
       <div class="ticket-options">
         ${prices.map(pr=>`
           <label class="ticket-option">
-            <input type="radio" name="tkopt-${idx}" value="${escHtml(pr.name)}" ${(!isCustom && ticketType===pr.name)?'checked':''}>
+            <input type="radio" name="tkopt-${idx}" value="${escHtml(pr.name)}" ${(selEntry===pr)?'checked':''}>
             <span class="to-name">${escHtml(pr.name)}</span>
             <span class="to-disc">${pr.discount ? pr.discount+'% 할인' : '정가'}</span>
             <span class="to-price">${formatKRW(pr.price)}</span>
@@ -553,7 +563,7 @@ function renderSchedule(){
         inner = `<span class="tk-none">—</span>`;
       } else {
         const gradeChip = `<span class="tk-grade" style="background:${gradeFillVar(gradeName)};">${gradeName[0]}</span>`;
-        const sel = grade.prices.find(x=>x.name===ticketType);
+        const sel = resolveTicketEntry(grade, ticketType);
         const discVal = (ticketDiscount != null) ? ticketDiscount : (sel ? (sel.discount||0) : null);
         const transferCls = ticketTransferred ? ' transferred' : '';
         const transferDot = ticketTransferred ? `<span class="tk-transfer-dot" title="양도받음"></span>` : '';
@@ -1514,7 +1524,10 @@ function renderEtcStats(){
     perfs.forEach(p=>{
       if(!hasSeat(p)) return;
       const grade = gradeOf((p.seat||"").trim()) || "기타";
-      const type = (p.ticketDiscount!=null) ? (p.ticketType||"임의 할인권") : (p.ticketType||"(미지정)");
+      const gradeObj = performanceData.grades.find(g=>g.name===grade);
+      const ent = (p.ticketDiscount==null && gradeObj) ? resolveTicketEntry(gradeObj, p.ticketType) : null;
+      // 옛 이름(alias)이면 통합 타입 이름으로 묶는다(임의 할인권/미지정은 그대로)
+      const type = (p.ticketDiscount!=null) ? (p.ticketType||"임의 할인권") : (ent ? ent.name : (p.ticketType||"(미지정)"));
       const key = grade+"||"+type;
       const b = map[key] || (map[key]={grade, type, watched:0, upcoming:0, amount:0});
       if(isEnded(p)) b.watched++; else b.upcoming++;
@@ -3239,7 +3252,7 @@ function renderTicketManager(){
     if(!grade){ trig = `<span class="tk-none">—</span>`; }
     else {
       const chip = `<span class="tk-grade" style="background:${gradeFillVar(gname)};">${gname[0]}</span>`;
-      const sel = grade.prices.find(x=>x.name===t.ticketType);
+      const sel = resolveTicketEntry(grade, t.ticketType);
       const discVal = (t.ticketDiscount!=null) ? t.ticketDiscount : (sel ? (sel.discount||0) : null);
       const dot = t.ticketTransferred ? `<span class="tk-transfer-dot"></span>` : "";
       if(t.ticketType && discVal!=null){
