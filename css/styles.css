@@ -918,3 +918,19 @@
     #scheduleTable thead th{ padding:8px 5px; }
     #scheduleTable tbody td{ padding:4px 5px; }
   }
+/* ===== Finale(인증 이미지) 탭 ===== */
+.finale-bar{
+  display:flex; gap:10px; flex-wrap:wrap; align-items:center;
+  margin:0 0 14px; padding:0 2px;
+}
+.finale-preview{
+  position:relative;
+  background:var(--panel2);
+  border:1px solid var(--line);
+  border-radius:12px;
+  padding:12px;
+  overflow:auto;
+}
+.finale-preview svg{ display:block; max-width:100%; height:auto; border-radius:8px; }
+.finale-num{ cursor:pointer; }
+.finale-edit-input{ outline:none; }
