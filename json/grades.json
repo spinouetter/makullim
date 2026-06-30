@@ -1051,7 +1051,17 @@
       {
         "name": "로터리",
         "price": 50000,
-        "discount": 71
+        "discount": 71,
+        "sort": -2,
+        "dateFrom": "2026-06-30",
+        "dateTo": "2026-07-12",
+        "excludeSids": [
+          "s95",
+          "s97",
+          "s100",
+          "s103",
+          "s105"
+        ]
       },
       {
         "name": "초대권",
@@ -1778,7 +1788,17 @@
       {
         "name": "로터리",
         "price": 50000,
-        "discount": 64
+        "discount": 64,
+        "sort": -2,
+        "dateFrom": "2026-06-30",
+        "dateTo": "2026-07-12",
+        "excludeSids": [
+          "s95",
+          "s97",
+          "s100",
+          "s103",
+          "s105"
+        ]
       },
       {
         "name": "초대권",
@@ -2264,7 +2284,17 @@
       {
         "name": "로터리",
         "price": 50000,
-        "discount": 58
+        "discount": 58,
+        "sort": -2,
+        "dateFrom": "2026-06-30",
+        "dateTo": "2026-07-12",
+        "excludeSids": [
+          "s95",
+          "s97",
+          "s100",
+          "s103",
+          "s105"
+        ]
       },
       {
         "name": "초대권",
@@ -2819,7 +2849,17 @@
       {
         "name": "로터리",
         "price": 50000,
-        "discount": 38
+        "discount": 38,
+        "sort": -2,
+        "dateFrom": "2026-06-30",
+        "dateTo": "2026-07-12",
+        "excludeSids": [
+          "s95",
+          "s97",
+          "s100",
+          "s103",
+          "s105"
+        ]
       },
       {
         "name": "초대권",
