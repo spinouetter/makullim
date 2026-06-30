@@ -77,6 +77,10 @@ document.querySelectorAll(".tab-btn").forEach(btn=>{
     document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
     btn.classList.add("active");
     document.getElementById("page-"+btn.dataset.page).classList.add("active");
+    // Finale(인증 이미지): 탭을 열 때마다 최신 데이터로 포스터 SVG 생성
+    if(btn.dataset.page === "finale" && typeof window.renderFinale === "function"){
+      window.renderFinale();
+    }
     // 좌석맵이 처음 보일 때: 숨겨진 채 계산된 임시 초기 뷰를 실제 뷰포트 크기로 재맞춤
     if(btn.dataset.page === "seatmap" && seatNeedsInitialFit){
       const vp = document.getElementById("svgViewport");
