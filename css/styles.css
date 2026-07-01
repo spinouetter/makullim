@@ -1,3 +1,22 @@
+  /* Anton — 무료(SIL OFL) heavy condensed 그로테스크. Compacta BT(상용) 대체용.
+     라이선스: fonts/Anton-OFL.txt */
+  @font-face{
+    font-family:'Anton';
+    font-weight:400; font-style:normal; font-display:swap;
+    src:url('../fonts/Anton-400.woff2') format('woff2');
+  }
+  /* Finale 관극 수: 분자=Handlee(손글씨), 분모=Paytone One(둥근 산스). 둘 다 SIL OFL */
+  @font-face{
+    font-family:'Handlee';
+    font-weight:400; font-style:normal; font-display:swap;
+    src:url('../fonts/Handlee-400.woff2') format('woff2');
+  }
+  @font-face{
+    font-family:'Paytone One';
+    font-weight:400; font-style:normal; font-display:swap;
+    src:url('../fonts/PaytoneOne-400.woff2') format('woff2');
+  }
+
   :root{
     /* === 기본 테마: 석탄 앰버 (Coal Amber). 설정에서 data-theme로 교체 === */
     --bg:#16181c; --panel:#1f232a; --panel2:#282d35; --line:#3a414b;
