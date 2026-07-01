@@ -11,7 +11,7 @@
 (function(){
   "use strict";
 
-  const BOARD_URL = "images/finale-board.svg?v=5";
+  const BOARD_URL = "images/finale-board.svg?v=6";
   const META_URL  = "images/finale-board.meta.json?v=3";
   const CBD_PATH  = "json/casting_by_date.json";
   // SVG에 임베드할 웹폰트(무료 OFL). 미리보기·PNG/JPG/PDF 내보내기 모두 자급자족.
