@@ -11,7 +11,7 @@
 (function(){
   "use strict";
 
-  const BOARD_URL = "images/finale-board.svg?v=14";
+  const BOARD_URL = "images/finale-board.svg?v=19";
   const META_URL  = "images/finale-board.meta.json?v=3";
   const CBD_PATH  = "json/casting_by_date.json";
   // SVG에 임베드할 웹폰트(무료 OFL). 미리보기·PNG/JPG/PDF 내보내기 모두 자급자족.
@@ -150,6 +150,20 @@
     cntEl.appendChild(numTspan(fmt(w))); cntEl.appendChild(b);
   }
 
+  // 사진: images/<배우이름>.jpeg (없으면 플레이스홀더.jpeg). 슬롯을 가득 채우고(cover) 넘치는 부분은 크롭 — SVG preserveAspectRatio="xMidYMid slice".
+  const XLINK = "http://www.w3.org/1999/xlink";
+  const PHOTO_PLACEHOLDER = "images/" + encodeURIComponent("플레이스홀더") + ".jpeg";
+  function photoUrl(name){ return "images/" + encodeURIComponent(name) + ".jpeg"; }
+  function setPhoto(svg, id, name){
+    const el = svg.querySelector("#" + id); if(!el) return;
+    const url = name ? photoUrl(name) : PHOTO_PLACEHOLDER;
+    el.addEventListener("error", function onerr(){    // 사진 없으면 플레이스홀더로
+      el.removeEventListener("error", onerr);
+      el.setAttributeNS(XLINK, "href", PHOTO_PLACEHOLDER); el.setAttribute("href", PHOTO_PLACEHOLDER);
+    }, { once: true });
+    el.setAttributeNS(XLINK, "href", url); el.setAttribute("href", url);
+  }
+
   function fillRole(svg, slug, names, statMap){
     let i = 0;
     while(true){
@@ -165,6 +179,7 @@
         nameEl.textContent = "NAME";
         if(cntEl) cntEl.textContent = "";
       }
+      setPhoto(svg, `fn-photo-${slug}-${i}`, nm);   // 슬롯 사진
       i++;
     }
     return i; // 슬롯 수
