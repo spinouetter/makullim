@@ -1,0 +1,55 @@
+{
+  "background": {
+    "type": "svg",
+    "src": "images/finale-board.svg?v=27",
+    "viewBox": [11.3386, 11.3386, 737.717, 1364.46]
+  },
+
+  "fonts": [
+    { "family": "Anton",                 "woff2": "fonts/Anton-400.woff2",          "ttf": "fonts/Anton-400.ttf" },
+    { "family": "Handlee",               "woff2": "fonts/Handlee-400.woff2" },
+    { "family": "Paytone One",           "woff2": "fonts/PaytoneOne-400.woff2" },
+    { "family": "IBM Plex Sans KR Medm", "woff2": "fonts/IBMPlexSansKR-Medm.woff2", "ttf": "fonts/IBMPlexSansKR-Medm.ttf" },
+    { "family": "IBM Plex Sans KR",      "woff2": "fonts/IBMPlexSansKR-Regular.woff2" }
+  ],
+
+  "styles": {
+    "name":      { "fontFamily": "IBM Plex Sans KR Medm", "fill": "#000000" },
+    "roleLabel": { "fontFamily": "Anton" },
+    "count": {
+      "numerator":   { "fontFamily": "Handlee", "fill": "#ffd24a", "stroke": "#ffd24a", "strokeWidth": 0.42 },
+      "denominator": { "fontFamily": "Paytone One", "prefix": " / " },
+      "textAnchor": "end"
+    },
+    "total":     { "label": "TOTAL ", "fontFamily": "Anton", "dy": 10 },
+    "subtitle":  { "fontFamily": "IBM Plex Sans KR Medm", "fill": "#ce1b1b" }
+  },
+
+  "photos": { "pattern": "images/{name}.jpeg", "placeholder": "images/플레이스홀더.jpeg" },
+
+  "slotTemplate": {
+    "fields": [
+      { "type": "text",  "id": "fn-name-{slot}-{i}",  "bind": "$item.name", "style": "name" },
+      { "type": "count", "id": "fn-cnt-{slot}-{i}",   "bind": "$item.stat", "style": "count" },
+      { "type": "photo", "id": "fn-photo-{slot}-{i}", "bind": "$item.name" }
+    ],
+    "groupCount": { "id": "fn-group-{actor}", "style": "count" }
+  },
+
+  "onUnplaced": "warn",
+
+  "totalCount": { "svgId": "fn-total",    "style": "count", "labelStyle": "total" },
+  "subtitle":   { "svgId": "fn-subtitle", "style": "subtitle" },
+  "headings":   { "selector": "text.st21, text.st23", "style": "roleLabel" },
+
+  "seatmap": {
+    "target":    { "rect": { "x": 396, "y": 664, "w": 278, "h": 284 } },
+    "panel":     { "fill": "#de6363", "rx": 10 },
+    "heat":      ["#4aa3ff", "#2fd0c8", "#46c84e", "#c2d92a", "#ffd21f", "#ff9a1f", "#ff6322", "#ef3b2f", "#d81e4a", "#b3126e"],
+    "gradeRamp": { "VIP": 0, "R": 0.1, "S": 0.2, "A": 0.3, "default": 0.35 },
+    "floorGap":  { "default": -2, "3": -2.5 },
+    "padding":   { "x": 10, "top": 10, "legendZone": 26 },
+    "legend":    { "count": 10 },
+    "stage":     { "fill": "#f2e8d5", "textFill": "#9c1a1a", "label": "STAGE" }
+  }
+}

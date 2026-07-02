@@ -1,5 +1,6 @@
 [
   {
+    "id": "billy",
     "role": "빌리",
     "fullName": "빌리 엘리엇",
     "actors": [
@@ -22,6 +23,7 @@
     ]
   },
   {
+    "id": "michael",
     "role": "마이클",
     "fullName": "마이클 캐프리",
     "actors": [
@@ -44,6 +46,7 @@
     ]
   },
   {
+    "id": "debbie",
     "role": "데비",
     "fullName": "데비 윌킨슨",
     "actors": [
@@ -62,6 +65,7 @@
     ]
   },
   {
+    "id": "small_boy",
     "role": "스몰보이",
     "actors": [
       {
@@ -79,6 +83,7 @@
     ]
   },
   {
+    "id": "tall_boy",
     "role": "톨보이",
     "actors": [
       {
@@ -96,6 +101,7 @@
     ]
   },
   {
+    "id": "mrs_wilkinson",
     "role": "Mrs. 윌킨슨",
     "fullName": "산드라 윌킨슨",
     "actors": [
@@ -114,6 +120,7 @@
     ]
   },
   {
+    "id": "dad",
     "role": "아빠",
     "fullName": "재키 엘리엇",
     "actors": [
@@ -132,6 +139,7 @@
     ]
   },
   {
+    "id": "grandma",
     "role": "할머니",
     "fullName": "에드나",
     "actors": [
@@ -150,6 +158,7 @@
     ]
   },
   {
+    "id": "tony",
     "role": "토니",
     "fullName": "토니 엘리엇",
     "actors": [
@@ -160,6 +169,7 @@
     ]
   },
   {
+    "id": "dead_mum",
     "role": "데드맘",
     "fullName": "제니 엘리엇",
     "actors": [
@@ -174,6 +184,7 @@
     ]
   },
   {
+    "id": "old_billy",
     "role": "성인빌리",
     "actors": [
       {
@@ -191,6 +202,7 @@
     ]
   },
   {
+    "id": "george",
     "role": "조지",
     "fullName": "조지 왓슨",
     "actors": [
@@ -205,6 +217,7 @@
     ]
   },
   {
+    "id": "mr_braithwaite",
     "role": "브레이스웨이트",
     "shortName": "브웨",
     "actors": [
@@ -219,14 +232,17 @@
     ]
   },
   {
+    "id": "ballet_girls",
     "role": "발레걸즈",
     "group": true,
     "actors": [
       {
+        "id": "bedlington",
         "name": "베들링턴",
         "role": "cast"
       },
       {
+        "id": "ashington",
         "name": "애싱턴",
         "role": "cast"
       }
@@ -294,6 +310,7 @@
     ]
   },
   {
+    "id": "ensemble",
     "role": "앙상블",
     "group": true,
     "members": [

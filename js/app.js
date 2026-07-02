@@ -1204,6 +1204,25 @@ function fmtStatValue(v){
   return Number.isInteger(v) ? String(v) : v.toFixed(1);
 }
 
+// 배역별 배우 통계 집계(전체/종료/관극/예매) — 모드(first/start/all/weighted) 반영.
+// 통계표(renderStats)와 Finale 정산판이 공유하는 단일 소스.
+function computeRoleActorStats(role, mode){
+  const c = (performanceData.casts||[]).find(cast=>cast.role===role);
+  const stats = {};
+  if(c && c.actors) c.actors.forEach(a=>{ stats[a.name] = {total:0, ended:0, watched:0, upcoming:0}; });
+  (performanceData.performances||[]).forEach(p=>{
+    const contributions = getCastContributions(p.cast ? p.cast[role] : null, mode);
+    const ended = isEnded(p), seated = hasSeat(p);
+    contributions.forEach(({name:n, amount})=>{
+      if(!stats[n]) stats[n] = {total:0, ended:0, watched:0, upcoming:0};
+      stats[n].total += amount;
+      if(ended){ stats[n].ended += amount; if(seated) stats[n].watched += amount; }
+      else if(seated) stats[n].upcoming += amount;
+    });
+  });
+  return stats;
+}
+
 let castStatsMode = "all"; // 'first' | 'start' | 'all' | 'weighted'
 let matchAssumeDefaultWin = false; // 대결: 결과 미기록 완료공연을 defaultWinner 승리로 간주
 let matchStatsOrder = [];          // 대결 통계 블록 표시 순서(키 배열)
@@ -1300,24 +1319,7 @@ function renderStats(){
   const roleStatsEl = document.getElementById("roleStats");
   roleStatsEl.innerHTML = roleStatsOrder.map((roleName, orderIdx)=>{
     const c = performanceData.casts.find(cast=>cast.role===roleName);
-    const stats = {};
-    c.actors.forEach(a=>{ stats[a.name] = {total:0, ended:0, watched:0, upcoming:0}; });
-
-    perfs.forEach(p=>{
-      const contributions = getCastContributions(p.cast[c.role], castStatsMode);
-      const ended = isEnded(p);
-      const seated = hasSeat(p);
-      contributions.forEach(({name:n, amount})=>{
-        if(!stats[n]) stats[n] = {total:0, ended:0, watched:0, upcoming:0};
-        stats[n].total += amount;
-        if(ended){
-          stats[n].ended += amount;
-          if(seated) stats[n].watched += amount;
-        } else {
-          if(seated) stats[n].upcoming += amount;
-        }
-      });
-    });
+    const stats = computeRoleActorStats(roleName, castStatsMode);   // 공용 집계(Finale와 공유)
 
     const hiddenActors = hiddenStatActors[c.role] || new Set();
     const rows = Object.entries(stats)
