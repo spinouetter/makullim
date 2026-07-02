@@ -6,8 +6,10 @@ name: Deploy to GitHub Pages
 
 on:
   push:
-    branches: [main]
+    branches: [main]          # 커밋(피날레 모양에 영향 줄 수 있는 수정) 시 썸네일 재생성
   workflow_dispatch:
+  schedule:
+    - cron: '0 15 * * *'      # 매일 00:00 KST(15:00 UTC) — 공연이 끝난 뒤 '마지막 공연' 시드가 바뀌면 썸네일 갱신
 
 permissions:
   contents: read
@@ -38,6 +40,34 @@ jobs:
           else
             echo "DROPBOX_APP_KEY 시크릿이 없습니다 — 백업 기능은 비활성으로 배포됩니다."
           fi
+
+      # 피날레 탭 디자인 썸네일: 관극수·좌석수를 랜덤으로, 사진 없는 배우는 플레이스홀더로
+      # 채운 '관극 인증 이미지' 미리보기를 매 배포마다 새로 생성해 배포물에 포함(커밋 안 함).
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Generate finale preview thumbnail
+        run: |
+          set -e
+          # 러너에 이미 깔린 Google Chrome을 재사용 → 크로미엄(~150MB) 다운로드 생략(배포 속도 ↑).
+          npm i --no-save playwright-core@1.44
+          CHROME="$(command -v google-chrome || command -v google-chrome-stable || command -v chromium-browser || true)"
+          if [ -n "$CHROME" ]; then
+            echo "시스템 Chrome 사용: $CHROME"
+            PW_CHROMIUM="$CHROME" node scripts/gen-finale-preview.js
+          else
+            echo "시스템 Chrome 없음 → playwright 크로미엄 설치로 폴백"
+            npm i --no-save playwright@1.44
+            npx playwright install chromium
+            node scripts/gen-finale-preview.js
+          fi
+          ls -l images/finale-preview.png   # 산출물 확인(없으면 여기서 실패로 표시)
+        continue-on-error: true   # 미리보기 생성 실패해도 배포는 계속(앱이 라이브 보드로 폴백)
+
+      # 성공/실패와 무관하게 임시 설치물 정리(안 하면 node_modules가 배포물에 포함됨)
+      - name: Clean up preview build deps
+        if: always()
+        run: rm -rf node_modules package.json package-lock.json
 
       - name: Ensure .nojekyll
         run: touch .nojekyll
