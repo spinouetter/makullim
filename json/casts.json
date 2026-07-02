@@ -1,1 +1,405 @@
-[{"role": "빌리", "actors": [{"name": "김승주", "role": "cast"}, {"name": "조윤우", "role": "cast"}, {"name": "박지후", "role": "cast"}, {"name": "김우진", "role": "cast"}]}, {"role": "마이클", "actors": [{"name": "이서준", "role": "cast"}, {"name": "지윤호", "role": "cast"}, {"name": "이루리", "role": "cast"}, {"name": "김효빈", "role": "cast"}]}, {"role": "데비", "actors": [{"name": "김서윤", "role": "cast"}, {"name": "김예은", "role": "cast"}, {"name": "박예솔", "role": "cast"}]}, {"role": "스몰보이", "actors": [{"name": "유지원", "role": "cast"}, {"name": "고이안", "role": "cast"}, {"name": "허지훈", "role": "cast"}]}, {"role": "톨보이", "actors": [{"name": "전시형", "role": "cast"}, {"name": "장온하", "role": "cast"}, {"name": "박지후", "role": "standby"}]}, {"role": "Mrs. 윌킨슨", "actors": [{"name": "최정원", "role": "cast"}, {"name": "전수미", "role": "cast"}, {"name": "김명희", "role": "cover"}]}, {"role": "아빠", "actors": [{"name": "조정근", "role": "cast"}, {"name": "최동원", "role": "cast"}, {"name": "차정현", "role": "cover"}]}, {"role": "할머니", "actors": [{"name": "박정자", "role": "cast"}, {"name": "홍윤희", "role": "cast"}, {"name": "민경옥", "role": "cast"}]}, {"role": "토니", "actors": [{"name": "구준모", "role": "cast"}]}, {"role": "데드맘", "actors": [{"name": "김명희", "role": "cast"}, {"name": "김기정", "role": "cover"}]}, {"role": "성인빌리", "actors": [{"name": "김명윤", "role": "cast"}, {"name": "임선우", "role": "cast"}, {"name": "고민건", "role": "cast"}]}, {"role": "조지", "actors": [{"name": "차정현", "role": "cast"}, {"name": "김영훈", "role": "cover"}]}, {"role": "브웨", "actors": [{"name": "윤보경", "role": "cast"}, {"name": "송임규", "role": "cover"}]}, {"role": "발레걸즈", "actors": [{"name": "베들링턴", "role": "cast"}, {"name": "애싱턴", "role": "cast"}]}]
+[
+  {
+    "role": "빌리",
+    "fullName": "빌리 엘리엇",
+    "actors": [
+      {
+        "name": "김승주",
+        "role": "cast"
+      },
+      {
+        "name": "조윤우",
+        "role": "cast"
+      },
+      {
+        "name": "박지후",
+        "role": "cast"
+      },
+      {
+        "name": "김우진",
+        "role": "cast"
+      }
+    ]
+  },
+  {
+    "role": "마이클",
+    "fullName": "마이클 캐프리",
+    "actors": [
+      {
+        "name": "이서준",
+        "role": "cast"
+      },
+      {
+        "name": "지윤호",
+        "role": "cast"
+      },
+      {
+        "name": "이루리",
+        "role": "cast"
+      },
+      {
+        "name": "김효빈",
+        "role": "cast"
+      }
+    ]
+  },
+  {
+    "role": "데비",
+    "fullName": "데비 윌킨슨",
+    "actors": [
+      {
+        "name": "김서윤",
+        "role": "cast"
+      },
+      {
+        "name": "김예은",
+        "role": "cast"
+      },
+      {
+        "name": "박예솔",
+        "role": "cast"
+      }
+    ]
+  },
+  {
+    "role": "스몰보이",
+    "actors": [
+      {
+        "name": "유지원",
+        "role": "cast"
+      },
+      {
+        "name": "고이안",
+        "role": "cast"
+      },
+      {
+        "name": "허지훈",
+        "role": "cast"
+      }
+    ]
+  },
+  {
+    "role": "톨보이",
+    "actors": [
+      {
+        "name": "전시형",
+        "role": "cast"
+      },
+      {
+        "name": "장온하",
+        "role": "cast"
+      },
+      {
+        "name": "박지후",
+        "role": "standby"
+      }
+    ]
+  },
+  {
+    "role": "Mrs. 윌킨슨",
+    "fullName": "산드라 윌킨슨",
+    "actors": [
+      {
+        "name": "최정원",
+        "role": "cast"
+      },
+      {
+        "name": "전수미",
+        "role": "cast"
+      },
+      {
+        "name": "김명희",
+        "role": "cover"
+      }
+    ]
+  },
+  {
+    "role": "아빠",
+    "fullName": "재키 엘리엇",
+    "actors": [
+      {
+        "name": "조정근",
+        "role": "cast"
+      },
+      {
+        "name": "최동원",
+        "role": "cast"
+      },
+      {
+        "name": "차정현",
+        "role": "cover"
+      }
+    ]
+  },
+  {
+    "role": "할머니",
+    "fullName": "에드나",
+    "actors": [
+      {
+        "name": "박정자",
+        "role": "cast"
+      },
+      {
+        "name": "홍윤희",
+        "role": "cast"
+      },
+      {
+        "name": "민경옥",
+        "role": "cast"
+      }
+    ]
+  },
+  {
+    "role": "토니",
+    "fullName": "토니 엘리엇",
+    "actors": [
+      {
+        "name": "구준모",
+        "role": "cast"
+      }
+    ]
+  },
+  {
+    "role": "데드맘",
+    "fullName": "제니 엘리엇",
+    "actors": [
+      {
+        "name": "김명희",
+        "role": "cast"
+      },
+      {
+        "name": "김기정",
+        "role": "cover"
+      }
+    ]
+  },
+  {
+    "role": "성인빌리",
+    "actors": [
+      {
+        "name": "김명윤",
+        "role": "cast"
+      },
+      {
+        "name": "임선우",
+        "role": "cast"
+      },
+      {
+        "name": "고민건",
+        "role": "cast"
+      }
+    ]
+  },
+  {
+    "role": "조지",
+    "fullName": "조지 왓슨",
+    "actors": [
+      {
+        "name": "차정현",
+        "role": "cast"
+      },
+      {
+        "name": "김영훈",
+        "role": "cover"
+      }
+    ]
+  },
+  {
+    "role": "브레이스웨이트",
+    "shortName": "브웨",
+    "actors": [
+      {
+        "name": "윤보경",
+        "role": "cast"
+      },
+      {
+        "name": "송임규",
+        "role": "cover"
+      }
+    ]
+  },
+  {
+    "role": "발레걸즈",
+    "group": true,
+    "actors": [
+      {
+        "name": "베들링턴",
+        "role": "cast"
+      },
+      {
+        "name": "애싱턴",
+        "role": "cast"
+      }
+    ],
+    "members": [
+      {
+        "role": "발레걸즈 스윙",
+        "name": "김은희"
+      },
+      {
+        "role": "티나",
+        "fullName": "티나 해머",
+        "name": "김은솔"
+      },
+      {
+        "role": "샤론",
+        "fullName": "샤론 퍼시",
+        "name": "박시연"
+      },
+      {
+        "role": "트레이시",
+        "fullName": "트레이시 앳킨슨",
+        "name": "최지원"
+      },
+      {
+        "role": "알리슨",
+        "fullName": "알리슨 서머스",
+        "byTeam": {
+          "베들링턴": "김주아",
+          "애싱턴": "박솔리"
+        }
+      },
+      {
+        "role": "킬리",
+        "fullName": "킬리 깁슨",
+        "byTeam": {
+          "베들링턴": "전재이",
+          "애싱턴": "박라나"
+        }
+      },
+      {
+        "role": "수잔",
+        "fullName": "수잔 팍스",
+        "byTeam": {
+          "베들링턴": "최서희",
+          "애싱턴": "오서현"
+        }
+      },
+      {
+        "role": "안잘라",
+        "fullName": "안잘라 롭슨",
+        "byTeam": {
+          "베들링턴": "이로운",
+          "애싱턴": "곽재이"
+        }
+      },
+      {
+        "role": "줄리",
+        "fullName": "줄리 호프",
+        "byTeam": {
+          "베들링턴": "오하라",
+          "애싱턴": "임예지"
+        }
+      }
+    ]
+  },
+  {
+    "role": "앙상블",
+    "group": true,
+    "members": [
+      {
+        "name": "이수정",
+        "roles": [
+          "앙상블"
+        ]
+      },
+      {
+        "name": "김기정",
+        "roles": [
+          "앙상블"
+        ]
+      },
+      {
+        "name": "김영훈",
+        "roles": [
+          "앙상블"
+        ]
+      },
+      {
+        "name": "김성수",
+        "roles": [
+          "앙상블"
+        ]
+      },
+      {
+        "name": "이석원",
+        "roles": [
+          "앙상블"
+        ]
+      },
+      {
+        "name": "박세요",
+        "roles": [
+          "앙상블"
+        ]
+      },
+      {
+        "name": "이진시",
+        "roles": [
+          "앙상블"
+        ]
+      },
+      {
+        "name": "최희재",
+        "roles": [
+          "앙상블"
+        ]
+      },
+      {
+        "name": "박상민",
+        "roles": [
+          "앙상블"
+        ]
+      },
+      {
+        "name": "추성욱",
+        "roles": [
+          "앙상블"
+        ]
+      },
+      {
+        "name": "최재석",
+        "roles": [
+          "앙상블"
+        ]
+      },
+      {
+        "name": "고민건",
+        "roles": [
+          "앙상블"
+        ]
+      },
+      {
+        "name": "심형준",
+        "roles": [
+          "스윙",
+          "댄스캡틴"
+        ]
+      },
+      {
+        "name": "이준형",
+        "roles": [
+          "스윙"
+        ]
+      },
+      {
+        "name": "이서호",
+        "roles": [
+          "스윙"
+        ]
+      },
+      {
+        "name": "정윤희",
+        "roles": [
+          "스윙"
+        ]
+      },
+      {
+        "name": "송임규",
+        "roles": [
+          "앙상블"
+        ]
+      }
+    ]
+  }
+]

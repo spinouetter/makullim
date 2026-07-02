@@ -36,13 +36,13 @@
   const ROLE_KEY = {
     BILLY:"빌리", MICHAEL:"마이클", DEBBIE:"데비", TALL_BOY:"톨보이", SMALL_BOY:"스몰보이",
     DAD:"아빠", MRS_WILKINSON:"Mrs. 윌킨슨", TONY:"토니", GRANDMA:"할머니", GEORGE:"조지",
-    MR_BRAITHWAITE:"브웨", DEAD_MUM:"데드맘", OLD_BILLY:"성인빌리"
+    MR_BRAITHWAITE:"브레이스웨이트", DEAD_MUM:"데드맘", OLD_BILLY:"성인빌리"
   };
   // 발레걸즈/앙상블 보드 슬롯(개별 로스터는 casting_by_date 집계로 채움)
   const BALLET_SLUGS = ["BALLET_GIRLS_ASHINGTON","BALLET_GIRLS_BEDLINGTON","BALLET_GIRLS_ADULTS"];
   const ENSEMBLE_SLUGS = ["ENSEMBLE"];
 
-  const ROLE_ALIAS = { "브레이스웨이트":"브웨" };
+  const ROLE_ALIAS = {};  // casts.json·casting_by_date 배역 키가 통일되어 별칭 불필요(있으면 여기에)
   function normRole(r){ return ROLE_ALIAS[r] || r; }
   function firstName(v){ return Array.isArray(v) ? String(v[0]||"").trim() : String(v||"").trim(); }
   function fmt(v){ return Number.isInteger(v) ? String(v) : v.toFixed(1); }
@@ -78,7 +78,7 @@
   function computeData(mode, cbd){
     const perfs = performanceData.performances || [];
     const casts = performanceData.casts || [];
-    const principalSet = new Set(casts.map(c=>normRole(c.role)).filter(r=>r!=="발레걸즈"));
+    const principalSet = new Set(casts.filter(c=>!c.group).map(c=>normRole(c.role)));  // group(발레걸즈·앙상블)은 cbd로 집계
 
     const pStat = {};   // 주연: role -> Map(name->{w,t})
     function pbump(role, name, amount, won){

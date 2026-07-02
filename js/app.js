@@ -122,6 +122,10 @@ const COL_TICKET = "__ticket__";
 const COL_PRICE = "__price__";
 const TICKET_FEE = 2000; // 선택 시 더해지는 수수료(원)
 function colLabel(id){ return id===COL_TICKET ? "티켓" : (id===COL_PRICE ? "가격" : (id.indexOf("match:")===0 ? id.slice(6) : id)); }
+// 캐스팅 대상(actors 보유) 역할만 — 스케줄/통계/좌석맵 컬럼용. group 참조전용(앙상블 등)은 제외.
+function castRoleObjs(){ return performanceData.casts.filter(c=>Array.isArray(c.actors) && c.actors.length>0); }
+// 스케줄 표 헤더용 라벨: shortName 있으면 그걸, 없으면 role.
+function scheduleRoleLabel(role){ const c=performanceData.casts.find(x=>x.role===role); return (c&&c.shortName)?c.shortName:role; }
 
 // 티켓 타입 머지(별칭): grades.json의 각 price에 alias:[옛이름…]을 두면, 그 옛이름으로
 // 저장된 데이터도 이 타입으로 인식한다(표시·통계·가격조회). 저장은 새 이름으로 기록 → 수동 마이그레이션.
@@ -299,7 +303,7 @@ function renderSchedule(){
   const body = document.getElementById("scheduleBody");
   const table = document.getElementById("scheduleTable");
   table.classList.toggle("hl-mode", rowHighlightOn);  // 방법2(날짜 셀 클릭 가능)
-  const allRoles = performanceData.casts.map(c=>c.role);
+  const allRoles = castRoleObjs().map(c=>c.role);
   const visibleRoles = allRoles.filter(r=>!scheduleHiddenCols.has(r));
   const showTicket = !scheduleHiddenCols.has(COL_TICKET);
   const showPrice = !scheduleHiddenCols.has(COL_PRICE);
@@ -391,7 +395,7 @@ function renderSchedule(){
         <th class="role-head">
           <div style="position:relative;">
             <button class="role-head-btn" data-role="${escHtml(role)}" style="background:none; border:none; color:${hasFilter?'var(--gold)':'inherit'}; font:inherit; font-weight:inherit; cursor:pointer; padding:0; display:flex; align-items:center; gap:4px;">
-              <span class="role-name">${escHtml(role)}</span><span class="col-arrow">&#9662;${hasFilter ? `<span class="col-filter-badge">${selected.size}</span>` : ""}</span>
+              <span class="role-name">${escHtml(scheduleRoleLabel(role))}</span><span class="col-arrow">&#9662;${hasFilter ? `<span class="col-filter-badge">${selected.size}</span>` : ""}</span>
             </button>
             ${isOpen ? `
               <div class="role-dropdown ${isLast?'align-right':''}">              <div class="role-dropdown-title">배우 선택</div>
@@ -1870,7 +1874,7 @@ function updateSeatFilterButton(){
 
 function renderSeatFilterBody(){
   const body = document.getElementById("seatFilterBody");
-  body.innerHTML = performanceData.casts.map(c=>{
+  body.innerHTML = castRoleObjs().map(c=>{
     const role = c.role;
     const sel = seatFilterTemp[role] || new Set();
     const actors = c.actors.filter(a=> a.role==="cast"
@@ -2288,7 +2292,7 @@ function showSeatDetail(seatId){
   const detail = document.getElementById("seatDetail");
   const price = grade ? grade.prices[0] : null;
 
-  const roles = performanceData.casts.map(c=>c.role);
+  const roles = castRoleObjs().map(c=>c.role);
   const perfsHere = performanceData.performances.filter(p=>p.seat===seatId);
 
   const perfRows = perfsHere.length===0
@@ -2376,7 +2380,7 @@ document.querySelectorAll(".collapse-h2[data-sec]").forEach(h=>{
 
 function renderComboPicker(){
   const picker = document.getElementById("comboPicker");
-  const roles = performanceData.casts.map(c=>c.role);
+  const roles = castRoleObjs().map(c=>c.role);
   picker.innerHTML = `
     <div class="combo-actor-chips">
       ${roles.map(role=>{
@@ -2813,7 +2817,7 @@ function applyState(state){
   if(Array.isArray(state.roleStatsOrder)){
     // 저장된 목록을 그대로(순서·삭제 반영) 권위 있는 소스로 사용한다.
     // 데이터(casts)에서 사라진 배역만 걸러내고, 누락된 배역은 다시 채우지 않는다(= 삭제 유지).
-    const validRoles = performanceData.casts.map(c=>c.role);
+    const validRoles = castRoleObjs().map(c=>c.role);
     roleStatsOrder = state.roleStatsOrder.filter(r=>validRoles.includes(r));
   }
 
@@ -3720,7 +3724,7 @@ async function init(){
     return;
   }
 
-  roleStatsOrder = performanceData.casts.map(c=>c.role);
+  roleStatsOrder = castRoleObjs().map(c=>c.role);
 
   // 타이틀: "막올림 · {공연 제목}" (헤더 H1 + 브라우저 탭)
   const fullTitle = ("막올림 · " + (performanceData.title || "").trim()).trim();
