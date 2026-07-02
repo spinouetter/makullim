@@ -5,3 +5,6 @@
 .DS_Store
 Thumbs.db
 desktop.ini
+
+# 작업용 원본(로컬 전용)
+temp/
