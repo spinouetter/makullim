@@ -327,13 +327,16 @@
         return true;
       });
       const slots = renderSlotGroup(svg, mani, tmpl, g.slot, items, mani.photos);
-      if(items.length > slots){   // 배우가 슬롯보다 많음 → 배치 못함
-        unplaced.push(g.slot + "(" + items.slice(slots).map(x => x.name).join(",") + ")");
+      if(items.length > slots){
+        // 슬롯을 넘긴 배우: 커버류(cover/standby/alternative)라도 실제 공연 이력(stat.t>0)이 있으면
+        // 정산판에 나와야 하므로 경고 대상. 공연 이력이 없는 커버류만 정상 오버플로(전용 슬롯 없음)로 무시.
+        const isCover = r => r === "cover" || r === "standby" || r === "alternative";
+        const over = items.slice(slots).filter(x => !isCover(x.role) || (x.stat && x.stat.t > 0));
+        if(over.length) unplaced.push(g.slot + "(" + over.map(x => x.name).join(",") + ")");
       }
     });
-    if(mani.onUnplaced === "warn" && unplaced.length){
-      const msg = "정산판에 배치하지 못한 배우가 있습니다 — " + unplaced.join(" / ");
-      console.warn("[finale] " + msg); try{ alert(msg); }catch(e){}
+    if(mani.onUnplaced === "warn" && unplaced.length){   // 공개 보드라 콘솔 경고만(alert 없음)
+      console.warn("[finale] 정산판에 배치하지 못한 배우가 있습니다 — " + unplaced.join(" / "));
     }
 
     // ── 구조적: 그룹 actor 총계(fn-group-{actor} = 그 팀의 actorStat). 값 암묵 ──
