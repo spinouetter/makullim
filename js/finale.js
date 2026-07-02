@@ -11,7 +11,7 @@
 (function(){
   "use strict";
 
-  const BOARD_URL = "images/finale-board.svg?v=19";
+  const BOARD_URL = "images/finale-board.svg?v=22";
   const META_URL  = "images/finale-board.meta.json?v=3";
   const CBD_PATH  = "json/casting_by_date.json";
   // SVG에 임베드할 웹폰트(무료 OFL). 미리보기·PNG/JPG/PDF 내보내기 모두 자급자족.
@@ -29,7 +29,8 @@
   const ANTON_TTF_URL  = "fonts/Anton-400.ttf";           // PDF 배역 헤딩(로컬 TTF)
   const KRFONT_TTF_URL = "fonts/IBMPlexSansKR-Medm.ttf";  // PDF 한글 벡터(로컬 TTF, CDN 불필요)
 
-  const VB_W = 760.394, VB_H = 1387.13;   // finale-board.svg viewBox
+  // viewBox를 흰 패널(st1)에 딱 맞게 크롭 → 바깥 투명 여백 제거(원본 760.394×1387.13에서 11.3386씩 잘라냄)
+  const VB_X = 11.3386, VB_Y = 11.3386, VB_W = 737.717, VB_H = 1364.46;
 
   // 보드 영문 SLUG → casts.json 한글 배역 키
   const ROLE_KEY = {
@@ -376,8 +377,9 @@
   }
 
   // ---- 렌더 ----
-  function getPreview(){ return document.getElementById("finalePreview"); }
-  function currentSvg(){ const c=getPreview(); return c ? c.querySelector("svg") : null; }
+  function getViewport(){ return document.getElementById("finaleZoomViewport"); }
+  function boardSvg(){ return document.getElementById("finaleBoardSvg"); }
+  function currentSvg(){ return boardSvg(); }
   function dataReady(){ return typeof performanceData!=="undefined" && performanceData && performanceData.performances && typeof seatmapData!=="undefined" && seatmapData; }
 
   let boardText = null;
@@ -396,12 +398,13 @@
   }
 
   async function renderFinale(){
-    const container = getPreview();
-    if(!container || !dataReady()) return;
+    const vp = getViewport();
+    if(!vp || !dataReady()) return;
     const [txt, cbd, , css] = await Promise.all([loadBoard(), loadCbd(), loadMeta(), loadFontCss()]);
-    container.innerHTML = txt;
-    const svg = container.querySelector("svg");
+    vp.innerHTML = txt;
+    const svg = vp.querySelector("svg");
     if(!svg) return;
+    svg.id = "finaleBoardSvg";
     // 웹폰트 임베드 + 배역 라벨(st21·st23)을 Anton으로 교체(미리보기·내보내기 자급자족)
     if(css){
       const fst = document.createElementNS("http://www.w3.org/2000/svg","style");
@@ -409,29 +412,135 @@
       svg.insertBefore(fst, svg.firstChild);
     }
     svg.removeAttribute("width"); svg.removeAttribute("height");
-    svg.setAttribute("viewBox", `0 0 ${VB_W} ${VB_H}`);
+    svg.setAttribute("viewBox", `${VB_X} ${VB_Y} ${VB_W} ${VB_H}`);
     svg.dataset.w = VB_W; svg.dataset.h = VB_H;
-    svg.style.width = "100%"; svg.style.height = "auto"; svg.style.transformOrigin = "0 0";
     fillBoard(svg, computeData(finaleMode, cbd));
     injectSeatmap(svg);
     if(css){ try{ if(document.fonts && document.fonts.load) await document.fonts.load('20px "Anton"'); }catch(e){} fitRoleLabels(svg); }
-    resetZoom();
+    buildThumbs(svg);
+    if(document.getElementById("finaleOverlay").style.display !== "none") fitBoard();
   }
 
-  // ---- 핀치/터치 줌 ----
-  let zScale=1, zx=0, zy=0;
+  // ---- 디자인 썸네일(현재 캐스트보드 1종 + placeholder 여러 개) ----
+  let DESIGNS = null, designOrder = null, lastLayoutW = -1;
+  function ensureDesigns(){
+    if(DESIGNS) return;
+    DESIGNS = [{ real:true, ar: VB_W/VB_H }];   // 실제 보드는 원래 비율(세로형)
+    for(let i=0;i<5;i++){
+      // placeholder 가로세로 비율 랜덤 — 0.75~1.35(줄 높이 통일 시 면적 차 최소화)
+      const ar = 0.75 + Math.random() * (1.35 - 0.75);
+      // 색은 다양하게(색상 전체 범위, 다크 UI에 맞게 채도·명도는 낮게)
+      const color = `hsl(${Math.floor(Math.random()*360)} ${24+Math.floor(Math.random()*20)}% ${22+Math.floor(Math.random()*12)}%)`;
+      DESIGNS.push({ real:false, ar, color });
+    }
+    designOrder = DESIGNS.map((_,i)=>i);
+    for(let i=designOrder.length-1;i>0;i--){         // Fisher–Yates: refresh마다 랜덤 순서
+      const j = Math.floor(Math.random()*(i+1));
+      [designOrder[i],designOrder[j]] = [designOrder[j],designOrder[i]];
+    }
+  }
+  function buildThumbs(svg){
+    ensureDesigns();
+    const wrap = document.getElementById("finaleThumbs");
+    if(!wrap) return;
+    wrap.innerHTML = "";
+    designOrder.forEach(idx=>{
+      const d = DESIGNS[idx];
+      const card = document.createElement("div");
+      card.className = "finale-thumb " + (d.real ? "real" : "placeholder");
+      card.dataset.ar = d.ar;                        // 저스티파이드 레이아웃용 비율
+      if(d.real){
+        const clone = svg.cloneNode(true);
+        clone.removeAttribute("id"); clone.removeAttribute("style");
+        card.appendChild(clone);
+        const badge = document.createElement("div");
+        badge.className = "finale-thumb-badge"; badge.textContent = "크게 보기";
+        card.appendChild(badge);
+        card.addEventListener("click", openFinaleOverlay);
+      } else {
+        card.style.backgroundColor = d.color;
+        card.innerHTML = '<div class="ph-inner"><span class="ph-icon">🎭</span><span class="ph-label">디자인 준비 중</span></div>';
+        // placeholder는 클릭 반응 없음(핸들러 미등록)
+      }
+      wrap.appendChild(card);
+    });
+    lastLayoutW = -1;
+    layoutThumbs();
+  }
+  // 같은 높이 저스티파이드 갤러리(Flickr식): 각 줄의 사진들은 높이를 통일하고
+  // 폭을 컨테이너에 꽉 차게 맞춘다(비율 유지, 줄 안·사이 여백 없음). 모바일은 한 줄 2장까지.
+  function layoutThumbs(){
+    const wrap = document.getElementById("finaleThumbs");
+    if(!wrap) return;
+    const W = wrap.clientWidth;
+    if(W <= 0) return;                 // 탭이 숨겨져 폭 0이면 보일 때 ResizeObserver가 재호출
+    lastLayoutW = W;
+    const GAP = 8;
+    const isMobile = W < 560;
+    const targetH = isMobile ? 200 : 240;      // 기준 줄 높이
+    const maxPerRow = isMobile ? 2 : Infinity;  // 모바일은 한 줄 최대 2장
+    const cards = [...wrap.children];
+    let y = 0, row = [], rowAr = 0;
+    const flush = (last)=>{
+      if(!row.length) return;
+      let h = (W - GAP*(row.length-1)) / rowAr;      // 폭을 꽉 채우는 줄 높이
+      if(last) h = Math.min(h, targetH);             // 마지막 줄은 과도하게 확대하지 않음
+      let x = 0;
+      row.forEach(c=>{
+        const w = (+c.dataset.ar) * h;
+        c.style.position = "absolute";
+        c.style.left = x + "px"; c.style.top = y + "px";
+        c.style.width = w + "px"; c.style.height = h + "px";
+        x += w + GAP;
+      });
+      y += h + GAP; row = []; rowAr = 0;
+    };
+    cards.forEach(c=>{
+      row.push(c); rowAr += (+c.dataset.ar);
+      const h = (W - GAP*(row.length-1)) / rowAr;
+      if(h <= targetH || row.length >= maxPerRow) flush(false);   // 폭이 다 차거나 최대 장수 도달 → 줄 확정
+    });
+    flush(true);
+    wrap.style.height = Math.max(0, y - GAP) + "px";
+  }
+
+  // ---- 크게 보기 오버레이 + 핀치/휠 줌(상하좌우 10% 마진까지만 이동) ----
+  let zScale=1, zx=0, zy=0, baseW=0, baseH=0;
   const pointers = new Map(); let pinchDist=0, panStart=null;
-  function applyZoom(){ const svg=currentSvg(); if(svg) svg.style.transform = `translate(${zx}px,${zy}px) scale(${zScale})`; }
-  function resetZoom(){ zScale=1; zx=0; zy=0; applyZoom(); }
-  function clampZoom(){ zScale=Math.max(1, Math.min(6, zScale)); if(zScale===1){ zx=0; zy=0; } }
+  const MARGIN = 0;   // 여백 오버스크롤 없음: 최소(맞춤) 배율에선 고정, 확대 시 가장자리까지만
+  function applyZoom(){ const svg=boardSvg(); if(svg) svg.style.transform = `translate(${zx}px,${zy}px) scale(${zScale})`; }
+  function clampScale(){ zScale=Math.max(1, Math.min(6, zScale)); }
+  function clampPan(){
+    const vp=getViewport(); if(!vp) return;
+    const W=vp.clientWidth, H=vp.clientHeight, iw=baseW*zScale, ih=baseH*zScale;
+    const mx=MARGIN*W, my=MARGIN*H;
+    let maxX=mx, minX=W-mx-iw; if(minX>maxX){ const c=(W-iw)/2; minX=maxX=c; }
+    let maxY=my, minY=H-my-ih; if(minY>maxY){ const c=(H-ih)/2; minY=maxY=c; }
+    zx=Math.min(maxX, Math.max(minX, zx));
+    zy=Math.min(maxY, Math.max(minY, zy));
+  }
+  // 보드를 뷰포트에 꽉 맞게(contain) 놓고 가운데 정렬 + 줌 초기화
+  function fitBoard(){
+    const vp=getViewport(), svg=boardSvg(); if(!vp||!svg) return;
+    const W=vp.clientWidth, H=vp.clientHeight, ratio=VB_H/VB_W;   // 세로형
+    if(W*ratio <= H){ baseW=W; baseH=W*ratio; } else { baseH=H; baseW=H/ratio; }
+    svg.style.width=baseW+"px"; svg.style.height=baseH+"px"; svg.style.transformOrigin="0 0";
+    zScale=1; zx=(W-baseW)/2; zy=(H-baseH)/2; clampPan(); applyZoom();
+  }
+  function openFinaleOverlay(){
+    const ov=document.getElementById("finaleOverlay"); if(!ov) return;
+    ov.style.display="flex";
+    requestAnimationFrame(fitBoard);   // 표시 후 뷰포트 크기 확정된 뒤 맞춤
+  }
+  function closeFinaleOverlay(){ const ov=document.getElementById("finaleOverlay"); if(ov) ov.style.display="none"; }
   function wireZoom(){
-    const c=getPreview(); if(!c) return;
+    const c=getViewport(); if(!c) return;
     c.style.touchAction="none"; c.style.overflow="hidden";
     c.addEventListener("wheel", e=>{
       e.preventDefault();
       const r=c.getBoundingClientRect(), ox=e.clientX-r.left, oy=e.clientY-r.top;
       const f=e.deltaY<0?1.12:0.89, ns=Math.max(1,Math.min(6,zScale*f));
-      const k=ns/zScale; zx=ox-(ox-zx)*k; zy=oy-(oy-zy)*k; zScale=ns; clampZoom(); applyZoom();
+      const k=ns/zScale; zx=ox-(ox-zx)*k; zy=oy-(oy-zy)*k; zScale=ns; clampScale(); clampPan(); applyZoom();
     }, {passive:false});
     c.addEventListener("pointerdown", e=>{ c.setPointerCapture(e.pointerId); pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
       if(pointers.size===1) panStart={x:e.clientX-zx,y:e.clientY-zy};
@@ -447,9 +556,9 @@
           const mx=(pts[0].x+pts[1].x)/2-r.left, my=(pts[0].y+pts[1].y)/2-r.top;
           const ns=Math.max(1,Math.min(6,zScale*(d/pinchDist))), k=ns/zScale;
           zx=mx-(mx-zx)*k; zy=my-(my-zy)*k; zScale=ns; }
-        pinchDist=d; clampZoom(); applyZoom();
-      } else if(pts.length===1 && panStart && zScale>1){
-        zx=e.clientX-panStart.x; zy=e.clientY-panStart.y; applyZoom();
+        pinchDist=d; clampScale(); clampPan(); applyZoom();
+      } else if(pts.length===1 && panStart){
+        zx=e.clientX-panStart.x; zy=e.clientY-panStart.y; clampPan(); applyZoom();
       }
     });
     const up=e=>{ pointers.delete(e.pointerId); if(pointers.size<2) pinchDist=0; if(pointers.size===0) panStart=null;
@@ -477,11 +586,45 @@
     }catch(e){}
     photoDataCache.set(url, durl); return durl;
   }
-  async function inlinePhotos(root){
+  // 사진을 슬롯 비율로 미리 잘라 data URI로 반환(cover, preserveAspectRatio 정렬 반영).
+  // svg2pdf가 preserveAspectRatio="slice"를 무시하고 늘려 그리므로, PDF에서는 이렇게
+  // 이미 잘린 이미지를 넣어 찌그러짐을 없앤다(브라우저 미리보기는 slice로 자동 크롭).
+  function croppedPhotoDataUrl(el, href){
+    return new Promise(res=>{
+      const boxW=parseFloat(el.getAttribute("width"))||1, boxH=parseFloat(el.getAttribute("height"))||1;
+      const boxAspect=boxW/boxH;
+      const par=el.getAttribute("preserveAspectRatio")||"xMidYMin";
+      const xMid=/xMid/i.test(par), yMid=/YMid/i.test(par);   // 정렬: 기본 xMid/ YMin(상단)
+      const img=new Image();
+      img.onload=()=>{
+        try{
+          const iw=img.naturalWidth, ih=img.naturalHeight, srcAspect=iw/ih;
+          let sx,sy,sw,sh;
+          if(srcAspect>boxAspect){ sh=ih; sw=ih*boxAspect; sy=0; sx=xMid?(iw-sw)/2:0; }   // 좌우 크롭
+          else { sw=iw; sh=iw/boxAspect; sx=0; sy=yMid?(ih-sh)/2:0; }                        // 상/하 크롭(YMin=상단)
+          const H=Math.max(1, Math.min(600, Math.round(sh))), W=Math.max(1, Math.round(H*boxAspect));
+          const cv=document.createElement("canvas"); cv.width=W; cv.height=H;
+          cv.getContext("2d").drawImage(img, sx,sy,sw,sh, 0,0,W,H);
+          res(cv.toDataURL("image/jpeg",0.92));
+        }catch(e){ res(null); }
+      };
+      img.onerror=()=>res(null);
+      img.src=href;
+    });
+  }
+  async function inlinePhotos(root, crop){
     const imgs = [...root.querySelectorAll("image")];
     await Promise.all(imgs.map(async el=>{
       const href = el.getAttribute("href") || el.getAttributeNS(XLINK, "href");
-      if(!href || href.indexOf("data:") === 0) return;
+      if(!href || href.indexOf("data:") === 0) return;   // placeholder(svg) 등 이미 인라인
+      if(crop){
+        const cropped = await croppedPhotoDataUrl(el, href);
+        if(cropped){
+          el.setAttribute("href", cropped); el.setAttributeNS(XLINK, "href", cropped);
+          el.setAttribute("preserveAspectRatio", "none");   // 이미 슬롯 비율 → 채워도 안 찌그러짐
+          return;
+        }
+      }
       const durl = await toDataUrl(href);
       if(durl){ el.setAttribute("href", durl); el.setAttributeNS(XLINK, "href", durl); }
     }));
@@ -571,7 +714,7 @@
       bakeStyles(svgForPdf);            // CSS 클래스 색·획을 속성으로 굽기 + 폰트 지정
       document.body.removeChild(svgForPdf);
       svgForPdf.querySelectorAll("style").forEach(s=>s.remove());   // @font-face 제거
-      await inlinePhotos(svgForPdf);                                 // 사진 임베드(벡터 PDF에도 필요)
+      await inlinePhotos(svgForPdf, true);                           // 사진 임베드+슬롯 비율 크롭
       if(typeof doc.svg==="function") await doc.svg(svgForPdf,{x:0,y:0,width:VB_W,height:VB_H});
       else await window.svg2pdf(svgForPdf,doc,{x:0,y:0,width:VB_W,height:VB_H});
       doc.save(`makollim-finale-${stamp()}.pdf`);
@@ -594,9 +737,20 @@
     const sel=document.getElementById("finaleModeSelect");
     if(sel){ sel.value=finaleMode; sel.addEventListener("change", ()=>{ finaleMode=sel.value; renderFinale(); }); }
     const wire=(id,fn)=>{ const b=document.getElementById(id); if(b) b.addEventListener("click",()=>fn(b)); };
+    wire("finaleOverlayClose", ()=>closeFinaleOverlay());
     wire("finalePngBtn", ()=>exportRaster("image/png","png"));
     wire("finaleJpgBtn", ()=>exportRaster("image/jpeg","jpg",0.95));
     wire("finalePdfBtn", (b)=>exportPDF(b));
+    // 오버레이 열려 있을 때 창 크기 바뀌면 다시 맞춤
+    window.addEventListener("resize", ()=>{ const ov=document.getElementById("finaleOverlay"); if(ov && ov.style.display!=="none") fitBoard(); });
+    // 썸네일 저스티파이드 레이아웃: 폭이 바뀔 때(탭 표시·리사이즈)만 다시 계산
+    const wrap=document.getElementById("finaleThumbs");
+    if(wrap && window.ResizeObserver){
+      new ResizeObserver(entries=>{ const w=entries[0].contentRect.width; if(Math.abs(w-lastLayoutW)>=1) layoutThumbs(); }).observe(wrap);
+    }
+    // 배경(뷰포트 밖) 클릭 시 닫기
+    const ov=document.getElementById("finaleOverlay");
+    if(ov) ov.addEventListener("click", e=>{ if(e.target===ov) closeFinaleOverlay(); });
   }
 
   window.renderFinale = function(){ renderFinale(); };
