@@ -1,8 +1,8 @@
 /* 피날레 '관극 인증 이미지' 미리보기 썸네일 생성기 (GitHub Action용)
- * - 앱을 정적 서버로 띄우고 ?finalePreview=1 로 보드를 렌더(관극수·좌석수 랜덤, 사진 없으면 플레이스홀더)
+ * - 앱을 정적 서버로 띄우고 ?randomData=<시드> 로 보드를 렌더(관극수·좌석수 랜덤, 사진 없으면 플레이스홀더)
  * - 렌더된 보드 SVG를 PNG로 캡처해 images/finale-preview.png 에 저장
  * 로컬 실행:  PW_CHROMIUM=/path/to/chrome node scripts/gen-finale-preview.js
- * CI 실행:    npx playwright install --with-deps chromium && node scripts/gen-finale-preview.js
+ * CI 실행:    npx playwright install chromium && node scripts/gen-finale-preview.js
  */
 const fs = require("fs"), http = require("http"), path = require("path");
 const ROOT = path.resolve(__dirname, "..");
@@ -27,7 +27,8 @@ const srv = http.createServer((q, r) => {
 
 srv.listen(0, "127.0.0.1", async () => {
   const port = srv.address().port;
-  const launchOpts = process.env.PW_CHROMIUM ? { executablePath: process.env.PW_CHROMIUM } : {};
+  // 시스템 크롬(PW_CHROMIUM 지정)은 CI(루트/샌드박스 제약)에서 --no-sandbox 필요
+  const launchOpts = process.env.PW_CHROMIUM ? { executablePath: process.env.PW_CHROMIUM, args: ["--no-sandbox"] } : {};
   const browser = await chromium.launch(launchOpts);
   const page = await browser.newPage({ viewport: { width: 900, height: 1400 }, deviceScaleFactor: 2 });
   const errs = []; page.on("pageerror", e => errs.push(e.message));

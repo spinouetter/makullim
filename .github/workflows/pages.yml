@@ -48,11 +48,26 @@ jobs:
           node-version: 20
       - name: Generate finale preview thumbnail
         run: |
-          npm i --no-save playwright@1.44
-          npx playwright install --with-deps chromium
-          node scripts/gen-finale-preview.js
-          rm -rf node_modules package.json package-lock.json
+          set -e
+          # 러너에 이미 깔린 Google Chrome을 재사용 → 크로미엄(~150MB) 다운로드 생략(배포 속도 ↑).
+          npm i --no-save playwright-core@1.44
+          CHROME="$(command -v google-chrome || command -v google-chrome-stable || command -v chromium-browser || true)"
+          if [ -n "$CHROME" ]; then
+            echo "시스템 Chrome 사용: $CHROME"
+            PW_CHROMIUM="$CHROME" node scripts/gen-finale-preview.js
+          else
+            echo "시스템 Chrome 없음 → playwright 크로미엄 설치로 폴백"
+            npm i --no-save playwright@1.44
+            npx playwright install chromium
+            node scripts/gen-finale-preview.js
+          fi
+          ls -l images/finale-preview.png   # 산출물 확인(없으면 여기서 실패로 표시)
         continue-on-error: true   # 미리보기 생성 실패해도 배포는 계속(앱이 라이브 보드로 폴백)
+
+      # 성공/실패와 무관하게 임시 설치물 정리(안 하면 node_modules가 배포물에 포함됨)
+      - name: Clean up preview build deps
+        if: always()
+        run: rm -rf node_modules package.json package-lock.json
 
       - name: Ensure .nojekyll
         run: touch .nojekyll

@@ -483,6 +483,8 @@
   async function renderFinale(){
     if(!dataReady()) return;
     buildThumbs();
+    // 프리뷰가 없으면 폴백(라이브 보드)이 필요하므로, 무거운 보드 렌더를 미리 시작해 첫 표시를 앞당김.
+    previewExists().then(ok=>{ if(!ok) ensureBoardRendered(); });
     const ov = document.getElementById("finaleOverlay");
     if(ov && ov.style.display !== "none"){ await ensureBoardRendered(); fitBoard(); }
   }
@@ -505,6 +507,29 @@
       [designOrder[i],designOrder[j]] = [designOrder[j],designOrder[i]];
     }
   }
+  // CI가 만든 정적 미리보기(images/finale-preview.png) 존재 여부를 1회만 화면 밖에서 확인해 캐시.
+  // <img>를 DOM에 넣어 404를 기다리면 '깨진 이미지 아이콘'이 잠깐 보이므로, 오프-DOM Image로 미리 판별.
+  let _previewOk = null, _previewProbe = null;
+  function previewExists(){
+    if(RANDOM_MODE) return Promise.resolve(false);        // 랜덤 데이터 모드는 항상 라이브 보드
+    if(_previewOk !== null) return Promise.resolve(_previewOk);
+    if(!_previewProbe){
+      _previewProbe = new Promise(res=>{
+        const im = new Image();
+        im.onload  = ()=>{ _previewOk = im.naturalWidth > 0; res(_previewOk); };
+        im.onerror = ()=>{ _previewOk = false; res(false); };
+        im.src = PREVIEW_IMG;
+      });
+    }
+    return _previewProbe;
+  }
+  // 라이브 보드를 (지연) 렌더해 카드에 클론으로 삽입(프리뷰가 없을 때의 폴백).
+  async function liveCloneInto(card){
+    const svg = await ensureBoardRendered();
+    if(!svg || !card.isConnected || card.querySelector("svg")) return;   // 카드가 교체됐거나 이미 채워졌으면 skip
+    const clone = svg.cloneNode(true); clone.removeAttribute("id"); clone.removeAttribute("style");
+    card.insertBefore(clone, card.firstChild);
+  }
   function buildThumbs(){
     ensureDesigns();
     const wrap = document.getElementById("finaleThumbs");
@@ -516,18 +541,21 @@
       card.className = "finale-thumb " + (d.real ? "real" : "placeholder");
       card.dataset.ar = d.ar;                        // 저스티파이드 레이아웃용 비율
       if(d.real){
-        // 썸네일은 CI가 만든 정적 미리보기 이미지. 없을 때만(폴백) 라이브 보드를 렌더해 클론.
-        const useLiveClone = async ()=>{ const svg = await ensureBoardRendered(); if(!svg || !card.isConnected) return;
-          const clone = svg.cloneNode(true); clone.removeAttribute("id"); clone.removeAttribute("style"); card.insertBefore(clone, card.firstChild); };
-        if(RANDOM_MODE){ useLiveClone(); }   // 랜덤 데이터 모드(썸네일 생성 시)엔 라이브 보드로
-        else {
-          // loading=lazy면 화면 밖 타일의 img가 fetch되지 않아 404 onerror(폴백)가 안 걸림 → eager로.
-          const img = document.createElement("img");
-          img.className = "finale-thumb-img"; img.alt = "관극 인증 이미지 미리보기";
-          img.addEventListener("error", ()=>{ img.remove(); useLiveClone(); }, { once:true });
-          img.src = PREVIEW_IMG;
-          card.appendChild(img);
-        }
+        // 프리뷰 존재 여부를 먼저 확정(오프-DOM). 있으면 정적 이미지, 없으면 라이브 보드 클론.
+        (async ()=>{
+          const ok = await previewExists();
+          if(!card.isConnected) return;
+          if(ok){
+            const img = document.createElement("img");
+            img.className = "finale-thumb-img"; img.alt = "관극 인증 이미지 미리보기";
+            // 만약을 대비: 확인 후에도 로드 실패하면 라이브 보드로 폴백
+            img.addEventListener("error", ()=>{ if(card.isConnected){ img.remove(); liveCloneInto(card); } }, { once:true });
+            img.src = PREVIEW_IMG;
+            card.insertBefore(img, card.firstChild);
+          } else {
+            await liveCloneInto(card);   // 프리뷰 없음(CI 미생성) → 라이브 보드
+          }
+        })();
         const badge = document.createElement("div");
         badge.className = "finale-thumb-badge"; badge.textContent = "크게 보기";
         card.appendChild(badge);
