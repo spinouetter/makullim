@@ -938,18 +938,72 @@
     #scheduleTable tbody td{ padding:4px 5px; }
   }
 /* ===== Finale(인증 이미지) 탭 ===== */
+/* 피날레: 옵션 바 고정, 썸네일만 스크롤 */
+#page-finale.active{
+  display:flex; flex-direction:column; overflow:hidden;
+}
 .finale-bar{
+  flex-shrink:0;
   display:flex; gap:10px; flex-wrap:wrap; align-items:center;
-  margin:0 0 14px; padding:0 2px;
+  padding:8px 2px 10px;
+  border-bottom:1px solid var(--line);
+  margin:0 0 12px;
+  background:var(--bg);
 }
-.finale-preview{
-  position:relative;
-  background:var(--panel2);
-  border:1px solid var(--line);
-  border-radius:12px;
-  padding:12px;
-  overflow:auto;
+.finale-scroll{
+  flex:1;
+  overflow-y:auto;
+  padding-right:2px;
 }
-.finale-preview svg{ display:block; max-width:100%; height:auto; border-radius:8px; }
 .finale-num{ cursor:pointer; }
 .finale-edit-input{ outline:none; }
+
+/* 디자인 썸네일 목록 — 다양한 비율을 채우는 메이슨리 갤러리(위치·크기는 JS가 계산) */
+.finale-thumbs{
+  position:relative;
+}
+.finale-thumb{
+  position:relative;
+  overflow:hidden;
+  box-sizing:border-box;
+  background:var(--panel2);   /* 단색 배경 사각형(테두리·둥근 모서리 없음) */
+}
+.finale-thumb.real{ cursor:pointer; transition:filter .15s; }
+.finale-thumb.real:hover{ filter:brightness(1.06); }
+.finale-thumb.real svg{ display:block; width:100%; height:100%; pointer-events:none; }
+.finale-thumb-badge{
+  position:absolute; left:0; right:0; bottom:0;
+  padding:6px 8px; font-size:11px; font-weight:700; text-align:center;
+  color:#fff; background:linear-gradient(to top, rgba(0,0,0,.62), rgba(0,0,0,0));
+  opacity:0; transition:opacity .15s; z-index:1;
+}
+.finale-thumb.real:hover .finale-thumb-badge{ opacity:1; }
+.finale-thumb.placeholder{
+  display:flex; align-items:center; justify-content:center;
+  cursor:default; color:var(--ink-dim);
+  background-image:repeating-linear-gradient(45deg, transparent 0 10px, rgba(255,255,255,.03) 10px 20px);
+  /* background-color(톤)는 타일마다 JS가 인라인 지정 */
+}
+.finale-thumb .ph-inner{ display:flex; flex-direction:column; align-items:center; gap:6px; opacity:.6; }
+.finale-thumb .ph-icon{ font-size:24px; }
+.finale-thumb .ph-label{ font-size:11px; letter-spacing:.02em; }
+
+/* 크게 보기 오버레이 */
+.finale-overlay{
+  position:fixed; inset:0; z-index:300;
+  background:rgba(0,0,0,.85);
+  display:flex; flex-direction:column;
+}
+.finale-overlay-bar{
+  flex:0 0 auto;
+  display:flex; align-items:center; justify-content:space-between; gap:10px;
+  padding:12px 16px;
+  background:var(--panel); border-bottom:1px solid var(--line);
+}
+.finale-overlay-actions{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+.finale-zoom-viewport{
+  flex:1 1 auto; position:relative; overflow:hidden;
+  touch-action:none; cursor:grab;
+}
+.finale-zoom-viewport:active{ cursor:grabbing; }
+.finale-zoom-viewport svg{ position:absolute; top:0; left:0; transform-origin:0 0; }

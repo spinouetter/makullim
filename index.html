@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>막올림</title>
-<link rel="stylesheet" href="css/styles.css?v=66">
+<link rel="stylesheet" href="css/styles.css?v=71">
 </head>
 <body>
 
@@ -255,24 +255,33 @@
   </section>
 
   <section class="page" id="page-finale">
-    <div class="toolbar">
-      <div class="show-name">공연이 끝난 뒤 트위터 등에 올릴 <b>관극 인증 이미지</b>입니다. 배역별 배우와 <b>관극 / 전체</b> 횟수, 내가 본 좌석이 한 장에 담깁니다. 아래 <b>통계 기준</b>을 바꾸면 숫자가 다시 계산됩니다. <b>이미지를 핀치/휠로 확대</b>할 수 있어요. (얼굴은 템플릿 이미지)</div>
-    </div>
     <div class="finale-bar">
-      <button id="finalePngBtn" class="primary-btn">PNG 저장</button>
-      <button id="finaleJpgBtn">JPG 저장</button>
-      <button id="finalePdfBtn">PDF 저장</button>
-      <select id="finaleModeSelect" style="margin-left:auto;">
+      <label for="finaleModeSelect" style="font-size:12px; color:var(--ink-dim);">통계 기준</label>
+      <select id="finaleModeSelect">
         <option value="first">최초 캐스트 통계</option>
         <option value="start">공연시작 캐스트 통계</option>
         <option value="all">공연 중 배역 변경 반영</option>
         <option value="weighted">공연 중 배역 변경 비중 반영</option>
       </select>
     </div>
-    <div id="finalePreview" class="finale-preview"></div>
+    <div class="finale-scroll">
+      <div id="finaleThumbs" class="finale-thumbs"></div>
+    </div>
   </section>
 
 </main>
+
+<div id="finaleOverlay" class="finale-overlay" style="display:none;">
+  <div class="finale-overlay-bar">
+    <div class="finale-overlay-actions">
+      <button id="finalePngBtn" class="primary-btn">PNG 저장</button>
+      <button id="finaleJpgBtn">JPG 저장</button>
+      <button id="finalePdfBtn">PDF 저장</button>
+    </div>
+    <button id="finaleOverlayClose">닫기</button>
+  </div>
+  <div id="finaleZoomViewport" class="finale-zoom-viewport"></div>
+</div>
 
 <div id="seatOverlay" class="seat-overlay" style="display:none;">
   <div class="seat-overlay-content">
@@ -314,6 +323,6 @@
 <script src="js/config.js?v=1"></script>
 <script src="js/app.js?v=92"></script>
 <script src="js/dropbox.js?v=4"></script>
-<script src="js/finale.js?v=21"></script>
+<script src="js/finale.js?v=31"></script>
 </body>
 </html>
