@@ -4,7 +4,7 @@
      현재 casts.json 캐스트를 채운다(슬롯>캐스트→NAME, 슬롯<캐스트→위에서부터).
    - 관극수는 통계 4모드(first/start/all/weighted)에 따라 재계산.
    - 좌석 영역은 실제 좌석 다이어그램(테두리+STAGE+히트맵)으로 교체.
-   - 미리보기 핀치/터치 줌. SVG/PNG/JPG/PDF 저장.
+   - 미리보기 핀치/터치 줌. PNG/JPG 저장(사진 임베드), PDF는 한글 벡터 텍스트.
    주의: app.js 전역(performanceData, seatmapData, isEnded, hasSeat,
         countHeatColor, kstStamp, getCastContributions) 참조(app.js 이후 로드).
    ========================================================= */
@@ -15,14 +15,19 @@
   const META_URL  = "images/finale-board.meta.json?v=3";
   const CBD_PATH  = "json/casting_by_date.json";
   // SVG에 임베드할 웹폰트(무료 OFL). 미리보기·PNG/JPG/PDF 내보내기 모두 자급자족.
+  // IBM Plex Sans KR = 배우 이름·날짜/공연장(보드 원본 st20·st24 지정). 임베드 안 하면
+  // 사용자 OS 기본 한글 글꼴로 대체돼 기기마다 달라지므로 반드시 포함.
   const FONTS = [
     { fam:"Anton",       url:"fonts/Anton-400.woff2" },       // 배역 라벨(Compacta 대체)
     { fam:"Handlee",     url:"fonts/Handlee-400.woff2" },     // 관극 수 분자(손글씨)
     { fam:"Paytone One", url:"fonts/PaytoneOne-400.woff2" },  // 관극 수 분모(둥근 산스)
+    { fam:"IBM Plex Sans KR Medm", url:"fonts/IBMPlexSansKR-Medm.woff2" },    // 배우 이름·날짜/공연장
+    { fam:"IBM Plex Sans KR",      url:"fonts/IBMPlexSansKR-Regular.woff2" }, // 보조(st9·st22)
   ];
   const JSPDF_URL   = "https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js";
   const SVG2PDF_URL = "https://cdn.jsdelivr.net/npm/svg2pdf.js@2.2.3/dist/svg2pdf.umd.min.js";
-  const KRFONT_URL  = "https://cdn.jsdelivr.net/gh/google/fonts/ofl/nanumgothic/NanumGothic-Regular.ttf";
+  const ANTON_TTF_URL  = "fonts/Anton-400.ttf";           // PDF 배역 헤딩(로컬 TTF)
+  const KRFONT_TTF_URL = "fonts/IBMPlexSansKR-Medm.ttf";  // PDF 한글 벡터(로컬 TTF, CDN 불필요)
 
   const VB_W = 760.394, VB_H = 1387.13;   // finale-board.svg viewBox
 
@@ -82,6 +87,9 @@
     }
     // 발레/앙상블: cbd 상세 기준 단순 집계
     const ballet = new Map(), ensemble = new Map();
+    const balletTown = new Map();   // 발레걸즈 배우 → {애싱턴,베들링턴} 출연수(소속 섹션 판정용)
+    const charPos = new Map();      // 발레걸즈 캐릭터(배역) → 캐스팅 보드 등장 순서
+    const balletChar = new Map();   // 배우 → 맡은 캐릭터(정렬 기준)
     function gbump(map, name, won){
       let m = map.get(name); if(!m){ m={w:0,t:0}; map.set(name,m); }
       m.t++; if(won) m.w++;
@@ -112,7 +120,14 @@
           if(role === "앙상블" && Array.isArray(val)){
             val.forEach(x=>{ const nm = Array.isArray(x)?x[0]:x; if(nm) gbump(ensemble, nm, won); });
           } else {
-            const nm = firstName(val); if(nm) gbump(ballet, nm, won);
+            // 캐스팅 보드 등장 순서 = JSON 삽입 순서(최초 등장 시점 기록)
+            if(!charPos.has(role)) charPos.set(role, charPos.size);
+            const nm = firstName(val);
+            if(nm){ gbump(ballet, nm, won);
+              if(!balletChar.has(nm)) balletChar.set(nm, role);
+              // 이 공연의 town(애싱턴/베들링턴)에 배우 출연수 누적 → 실제 소속 판정
+              if(tn==="애싱턴"||tn==="베들링턴"){ let bt=balletTown.get(nm); if(!bt){ bt={"애싱턴":0,"베들링턴":0}; balletTown.set(nm,bt); } bt[tn]++; }
+            }
           }
         }
       } else if(p.cast && p.cast["발레걸즈"]){
@@ -120,7 +135,15 @@
       }
     });
 
-    const balletPool = [...ballet.entries()].map(([name,v])=>({name,...v})).sort((a,b)=>b.t-a.t);
+    const balletPool = [...ballet.entries()].map(([name,v])=>{
+      const bt = balletTown.get(name) || {"애싱턴":0,"베들링턴":0};
+      const a = bt["애싱턴"], b = bt["베들링턴"];
+      // 양쪽 town 모두 상당수 출연 → 어른(ADULTS), 아니면 우세 town 섹션
+      const group = Math.min(a,b) >= 10 ? "ADULTS" : (a >= b ? "ASHINGTON" : "BEDLINGTON");
+      const ch = balletChar.get(name);
+      const cp = charPos.has(ch) ? charPos.get(ch) : 999;
+      return {name, ...v, group, cp};
+    }).sort((a,b)=>a.cp - b.cp);
     const ensemblePool = [...ensemble.entries()].map(([name,v])=>({name,...v})).sort((a,b)=>b.t-a.t);
     const totalRun = perfs.length;
     const totalWatched = perfs.filter(p=>isEnded(p) && hasSeat(p)).length;
@@ -191,15 +214,16 @@
       const rk = ROLE_KEY[slug];
       fillRole(svg, slug, rosterOf(rk), data.pStat[rk] || new Map());
     }
-    // 발레걸즈(애싱턴·베들링턴·어른) — 풀에서 순차 배분
-    let bi = 0;
+    // 발레걸즈 — 배우별 실제 소속(town)으로 배정: 애싱턴/베들링턴/어른(양쪽 출연)
+    const BALLET_GROUP = { BALLET_GIRLS_ASHINGTON:"ASHINGTON", BALLET_GIRLS_BEDLINGTON:"BEDLINGTON", BALLET_GIRLS_ADULTS:"ADULTS" };
+    const balletMap = new Map(data.balletPool.map(p=>[p.name,p]));
     BALLET_SLUGS.forEach(slug=>{
-      // 슬롯 수 만큼 풀에서 가져오기
+      const g = BALLET_GROUP[slug];
+      const members = data.balletPool.filter(p=>p.group===g);   // 이미 캐스팅 보드 순서(cp)
       const slots = [];
       let i=0; while(svg.querySelector(`#fn-name-${slug}-${i}`)){ slots.push(i); i++; }
-      const names = slots.map(()=> (data.balletPool[bi] ? data.balletPool[bi++].name : null));
-      const map = new Map(data.balletPool.map(p=>[p.name,p]));
-      fillRole(svg, slug, names.map(n=>n||undefined), map);
+      const names = slots.map((_,k)=> members[k] ? members[k].name : null);
+      fillRole(svg, slug, names.map(n=>n||undefined), balletMap);
     });
     // 앙상블
     ENSEMBLE_SLUGS.forEach(slug=>{
@@ -435,22 +459,46 @@
 
   // ---- 내보내기 ----
   function stamp(){ return (typeof kstStamp==="function") ? kstStamp() : "export"; }
+  // 외부 <image href="images/..."> 사진을 base64 data URI로 임베드.
+  // 미리보기 SVG를 그대로 직렬화하면 상대경로 이미지가 캔버스/PDF에서 로드되지 않아
+  // 배경(보드)만 남으므로, 내보내기 전에 사진을 인라인해 자급자족 SVG로 만든다.
+  const photoDataCache = new Map();
+  async function toDataUrl(url){
+    if(photoDataCache.has(url)) return photoDataCache.get(url);
+    let durl = null;
+    try{
+      const r = await fetch(url);
+      if(r.ok){
+        const buf = await r.arrayBuffer(), b = new Uint8Array(buf);
+        let bin = ""; for(let i=0;i<b.length;i++) bin += String.fromCharCode(b[i]);
+        const mime = r.headers.get("content-type") || "image/jpeg";
+        durl = `data:${mime};base64,` + btoa(bin);
+      }
+    }catch(e){}
+    photoDataCache.set(url, durl); return durl;
+  }
+  async function inlinePhotos(root){
+    const imgs = [...root.querySelectorAll("image")];
+    await Promise.all(imgs.map(async el=>{
+      const href = el.getAttribute("href") || el.getAttributeNS(XLINK, "href");
+      if(!href || href.indexOf("data:") === 0) return;
+      const durl = await toDataUrl(href);
+      if(durl){ el.setAttribute("href", durl); el.setAttributeNS(XLINK, "href", durl); }
+    }));
+  }
   function triggerDownload(blob, name){
     const url=URL.createObjectURL(blob), a=document.createElement("a");
     a.href=url; a.download=name; document.body.appendChild(a); a.click(); document.body.removeChild(a);
     setTimeout(()=>URL.revokeObjectURL(url),1000);
   }
-  function serializeSvg(el){
+  async function rasterize(type, quality){
+    const el=currentSvg(); if(!el) return null;
+    const scale=2;
     const clone=el.cloneNode(true);
     clone.removeAttribute("style"); clone.setAttribute("xmlns","http://www.w3.org/2000/svg");
     clone.setAttribute("width", VB_W); clone.setAttribute("height", VB_H);
-    return new XMLSerializer().serializeToString(clone);
-  }
-  function exportSVG(){ const el=currentSvg(); if(!el) return;
-    triggerDownload(new Blob(['<?xml version="1.0" encoding="UTF-8"?>\n'+serializeSvg(el)],{type:"image/svg+xml;charset=utf-8"}), `makollim-finale-${stamp()}.svg`); }
-  async function rasterize(type, quality){
-    const el=currentSvg(); if(!el) return null;
-    const scale=2, svgStr=serializeSvg(el);
+    await inlinePhotos(clone);   // 사진을 data URI로 임베드해야 캔버스에 그려짐
+    const svgStr=new XMLSerializer().serializeToString(clone);
     const url=URL.createObjectURL(new Blob([svgStr],{type:"image/svg+xml;charset=utf-8"}));
     try{
       const img=new Image();
@@ -467,15 +515,40 @@
     if(blob) triggerDownload(blob, `makollim-finale-${stamp()}.${ext}`); else alert("이미지를 만들지 못했습니다.");
   }
   function loadScript(src){ return new Promise((res,rej)=>{ const s=document.createElement("script"); s.src=src; s.onload=res; s.onerror=()=>rej(new Error("스크립트 로드 실패")); document.head.appendChild(s); }); }
-  let krFontB64=null;
-  async function loadKoreanFontB64(){ if(krFontB64) return krFontB64;
-    const r=await fetch(KRFONT_URL); if(!r.ok) throw new Error("폰트 로드 실패");
-    const buf=await r.arrayBuffer(); let bin=""; const b=new Uint8Array(buf);
-    for(let i=0;i<b.length;i++) bin+=String.fromCharCode(b[i]); krFontB64=btoa(bin); return krFontB64; }
+  const fontB64Cache=new Map();
+  async function fontB64(url){
+    if(fontB64Cache.has(url)) return fontB64Cache.get(url);
+    const r=await fetch(url); if(!r.ok) throw new Error("폰트 로드 실패: "+url);
+    const buf=await r.arrayBuffer(), b=new Uint8Array(buf);
+    let bin=""; for(let i=0;i<b.length;i++) bin+=String.fromCharCode(b[i]);
+    const s=btoa(bin); fontB64Cache.set(url,s); return s; }
   async function ensurePdfLibs(){
     if(!window.jspdf) await loadScript(JSPDF_URL);
     if(!window.svg2pdf && !(window.jspdf&&window.jspdf.jsPDF&&window.jspdf.jsPDF.API&&window.jspdf.jsPDF.API.svg)) await loadScript(SVG2PDF_URL);
   }
+  // 클론을 화면 밖에 잠깐 붙여, CSS 클래스(st0…)로 지정된 색·획을 계산된 값으로
+  // 각 요소의 presentation 속성에 '굽는다'. svg2pdf는 외부 <style> 규칙을 적용하지
+  // 못하므로, 이렇게 해야 보드 색·글자색이 PDF에 그대로 남는다.
+  // 폰트: 배역 헤딩(계산 폰트가 Anton)은 좁은 Anton 그대로(레이아웃 유지), 나머지
+  // (한글 배우명·숫자)는 미리보기와 동일한 IBM Plex Sans KR. @font-face는 굽기 후 제거.
+  const PDF_KR_FAM = "IBM Plex Sans KR Medm";
+  const BAKE_PROPS=["fill","fill-opacity","fill-rule","stroke","stroke-width","stroke-opacity",
+    "stroke-linecap","stroke-linejoin","stroke-miterlimit","stroke-dasharray","opacity",
+    "font-size","font-weight","font-style","text-anchor"];
+  function bakeStyles(root){
+    root.querySelectorAll("*").forEach(el=>{
+      const tag=el.tagName.toLowerCase();
+      if(tag==="style"||tag==="clippath"||tag==="defs") return;
+      const cs=getComputedStyle(el);
+      BAKE_PROPS.forEach(p=>{ const v=cs.getPropertyValue(p); if(v) el.setAttribute(p, v); });
+      if(tag==="text"||tag==="tspan"){
+        const anton=/Anton/i.test(cs.fontFamily||"");
+        el.setAttribute("font-family", anton ? "Anton" : PDF_KR_FAM);
+        el.removeAttribute("style");
+      }
+    });
+  }
+  // 한글을 '벡터 텍스트'로 넣는 PDF.
   async function exportPDF(btn){
     const el=currentSvg(); if(!el) return;
     const label=btn?btn.textContent:""; if(btn){ btn.disabled=true; btn.textContent="PDF 생성 중…"; }
@@ -483,21 +556,33 @@
       await ensurePdfLibs(); const { jsPDF }=window.jspdf;
       const doc=new jsPDF({ orientation: VB_W>VB_H?"l":"p", unit:"pt", format:[VB_W,VB_H] });
       let fontName=null;
-      try{ const b64=await loadKoreanFontB64(); doc.addFileToVFS("NanumGothic.ttf",b64);
-        doc.addFont("NanumGothic.ttf","NanumGothic","normal"); doc.addFont("NanumGothic.ttf","NanumGothic","bold");
-        doc.setFont("NanumGothic"); fontName="NanumGothic"; }catch(fe){}
-      const svgForPdf=el.cloneNode(true); svgForPdf.removeAttribute("style");
-      if(fontName) svgForPdf.querySelectorAll("text,tspan").forEach(t=>t.setAttribute("font-family",fontName));
+      try{ const b64=await fontB64(KRFONT_TTF_URL); doc.addFileToVFS("IBMPlexKR.ttf",b64);
+        doc.addFont("IBMPlexKR.ttf",PDF_KR_FAM,"normal"); doc.addFont("IBMPlexKR.ttf",PDF_KR_FAM,"bold");
+        doc.setFont(PDF_KR_FAM); fontName=PDF_KR_FAM; }catch(fe){}
+      if(!fontName) throw new Error("한글 폰트 로드 실패");   // 깨진 벡터 대신 래스터 폴백
+      try{ const ab=await fontB64(ANTON_TTF_URL); doc.addFileToVFS("Anton.ttf",ab);
+        doc.addFont("Anton.ttf","Anton","normal"); doc.addFont("Anton.ttf","Anton","bold"); }catch(fe){}
+      const svgForPdf=el.cloneNode(true);
+      svgForPdf.removeAttribute("style");
+      svgForPdf.style.position="absolute"; svgForPdf.style.left="-99999px"; svgForPdf.style.top="0";
+      svgForPdf.style.width=VB_W+"px"; svgForPdf.style.height=VB_H+"px";
+      document.body.appendChild(svgForPdf);
+      try{ if(document.fonts&&document.fonts.ready) await document.fonts.ready; }catch(e){}
+      bakeStyles(svgForPdf);            // CSS 클래스 색·획을 속성으로 굽기 + 폰트 지정
+      document.body.removeChild(svgForPdf);
+      svgForPdf.querySelectorAll("style").forEach(s=>s.remove());   // @font-face 제거
+      await inlinePhotos(svgForPdf);                                 // 사진 임베드(벡터 PDF에도 필요)
       if(typeof doc.svg==="function") await doc.svg(svgForPdf,{x:0,y:0,width:VB_W,height:VB_H});
       else await window.svg2pdf(svgForPdf,doc,{x:0,y:0,width:VB_W,height:VB_H});
       doc.save(`makollim-finale-${stamp()}.pdf`);
     }catch(err){
-      try{ await ensurePdfLibs(); const { jsPDF }=window.jspdf;
+      try{ // 벡터 변환 실패 시에만 고해상도 이미지 PDF로 폴백
+        const { jsPDF }=window.jspdf;
         const blob=await rasterize("image/png");
         const dataUrl=await new Promise(res=>{ const fr=new FileReader(); fr.onload=()=>res(fr.result); fr.readAsDataURL(blob); });
         const doc=new jsPDF({ orientation: VB_W>VB_H?"l":"p", unit:"pt", format:[VB_W,VB_H] });
         doc.addImage(dataUrl,"PNG",0,0,VB_W,VB_H); doc.save(`makollim-finale-${stamp()}.pdf`);
-        alert("벡터 변환에 실패하여 고해상도 이미지 PDF로 저장했습니다.");
+        alert("한글 벡터 변환에 실패하여 고해상도 이미지 PDF로 저장했습니다.");
       }catch(e2){ alert("PDF를 만들지 못했습니다: "+err.message); }
     }finally{ if(btn){ btn.disabled=false; btn.textContent=label; } }
   }
@@ -509,7 +594,6 @@
     const sel=document.getElementById("finaleModeSelect");
     if(sel){ sel.value=finaleMode; sel.addEventListener("change", ()=>{ finaleMode=sel.value; renderFinale(); }); }
     const wire=(id,fn)=>{ const b=document.getElementById(id); if(b) b.addEventListener("click",()=>fn(b)); };
-    wire("finaleSvgBtn", ()=>exportSVG());
     wire("finalePngBtn", ()=>exportRaster("image/png","png"));
     wire("finaleJpgBtn", ()=>exportRaster("image/jpeg","jpg",0.95));
     wire("finalePdfBtn", (b)=>exportPDF(b));

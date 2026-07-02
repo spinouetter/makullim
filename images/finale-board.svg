@@ -6427,13 +6427,6 @@
 					<rect x="0" y="1384.3" width="216.85" height="2.83465" class="st18"/>
 				</g>
 			</g>
-			<g id="shape6691-2971" v:mID="6691" v:groupContext="shape" transform="translate(201.6850,-29.0551)">
-				<title>시트.6691</title>
-				<desc>커버</desc>
-				<v:textBlock v:margins="rect(0,0,0,0)" v:tabSpace="42.5197" v:verticalAlign="2"/>
-				<v:textRect cx="6.16539" cy="1383.59" width="12.34" height="7.08661"/>
-				<rect x="0" y="1380.05" width="12.3308" height="7.08661" class="st4"/>
-				<text x="1.63" y="1385.33" class="st22" v:langID="1042"><v:paragraph v:horizAlign="2"/><v:tabList/>커버</text>			</g>
 		</g>
 		<g id="group6693-2974" transform="translate(75.4724,-586.772)" v:mID="6693" v:groupContext="group">
 			<title>시트.6693</title>
