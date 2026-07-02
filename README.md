@@ -81,6 +81,7 @@ tracker/
 [
   {
     "role": "팬텀",
+    "id": "phantom",
     "actors": [
       { "name": "조승우", "role": "cast" },
       { "name": "김주택", "role": "cast" }
@@ -88,6 +89,7 @@ tracker/
   },
   {
     "role": "크리스틴",
+    "id": "christine",
     "actors": [
       { "name": "손지수", "role": "cast" },
       { "name": "송은혜", "role": "alternative" }
@@ -97,6 +99,7 @@ tracker/
 ```
 
 - `role`(배역명) — 스케줄/통계에서 컬럼·항목 이름으로 쓰이며, `schedule.json`의 캐스팅 키와 **반드시 일치**해야 합니다.
+- `id` — (선택) **소문자·언더스코어(lowercase_snake)** 영문 식별자(예: `팬텀`→`"phantom"`, `Mrs. 윌킨슨`→`"mrs_wilkinson"`). Finale 정산판이 이 id로 배경 SVG 슬롯을 찾습니다(한글 `role`과 별개인 안정적 키). Finale 보드를 쓰지 않으면 없어도 됩니다.
 - 배우의 `role`(역할 종류)에 따라 표에서 색/스타일이 달라집니다:
   `cast`(주연·기본), `alternative`, `swing`, `cover`, `standby`.
   `cast`가 아닌 배우는 실제 출연 기록이 있는 회차가 있을 때만 필터 목록에 노출됩니다.
@@ -108,7 +111,7 @@ tracker/
 발레 앙상블·합창 앙상블처럼 **여러 사람이 한 덩어리로 묶이는 역할**은 `group: true`로 표시하고 구성원을 `members`에 적습니다.
 
 - `group: true` — 이 역할의 `actors`가 개별 배우가 아니라 **팀/조**임을(또는 참조 전용 묶음임을) 나타냅니다.
-- `actors[]` — 캐스팅에서 **고르는 단위**. 팀이 있으면 팀 목록(예: `A조`/`B조`), 팀이 없으면 생략합니다. **`actors`가 없는(비어 있는) 역할은 참조 전용**이라 스케줄 컬럼·통계·좌석맵에 표시되지 않습니다.
+- `actors[]` — 캐스팅에서 **고르는 단위**. 팀이 있으면 팀 목록(예: `A조`/`B조`), 팀이 없으면 생략합니다. **`actors`가 없는(비어 있는) 역할은 참조 전용**이라 스케줄 컬럼·통계·좌석맵에 표시되지 않습니다. (Finale 보드에서 팀별 섹션을 쓰면 팀 `actors`에도 `id`(lowercase_snake)를 답니다.)
 - `members[]` — 그룹 내부 개인 구성원. 항목 형태는 그룹 성격에 따라 둘 중 하나:
   - **포지션형** — `role`(세부 포지션) + (선택)`fullName` + 배우: 팀 무관 고정이면 `name`, 팀별로 다르면 `byTeam`(`{ "A조": "김지연", "B조": "이서영" }`)
   - **기능태그형** — `name`(사람) + `roles`(기능 태그 배열, 예: `["앙상블"]`·`["스윙"]`, 겸직 시 `["스윙","댄스캡틴"]`)
@@ -116,10 +119,11 @@ tracker/
 ```json
 {
   "role": "발레 앙상블",
+  "id": "ballet_ensemble",
   "group": true,
   "actors": [
-    { "name": "A조", "role": "cast" },
-    { "name": "B조", "role": "cast" }
+    { "name": "A조", "id": "team_a", "role": "cast" },
+    { "name": "B조", "id": "team_b", "role": "cast" }
   ],
   "members": [
     { "role": "메그", "fullName": "메그 지리", "name": "홍수민" },
