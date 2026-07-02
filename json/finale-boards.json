@@ -1,0 +1,7 @@
+{
+  "version": 1,
+  "default": "billy-casting-board",
+  "boards": [
+    { "id": "billy-casting-board", "name": "빌리 캐스팅 보드", "def": "finale-boards/billy-casting-board.json" }
+  ]
+}

@@ -11,43 +11,71 @@
 (function(){
   "use strict";
 
-  const BOARD_URL = "images/finale-board.svg?v=22";
-  const META_URL  = "images/finale-board.meta.json?v=3";
-  const CBD_PATH  = "json/casting_by_date.json";
-  // SVG에 임베드할 웹폰트(무료 OFL). 미리보기·PNG/JPG/PDF 내보내기 모두 자급자족.
-  // IBM Plex Sans KR = 배우 이름·날짜/공연장(보드 원본 st20·st24 지정). 임베드 안 하면
-  // 사용자 OS 기본 한글 글꼴로 대체돼 기기마다 달라지므로 반드시 포함.
-  const FONTS = [
-    { fam:"Anton",       url:"fonts/Anton-400.woff2" },       // 배역 라벨(Compacta 대체)
-    { fam:"Handlee",     url:"fonts/Handlee-400.woff2" },     // 관극 수 분자(손글씨)
-    { fam:"Paytone One", url:"fonts/PaytoneOne-400.woff2" },  // 관극 수 분모(둥근 산스)
-    { fam:"IBM Plex Sans KR Medm", url:"fonts/IBMPlexSansKR-Medm.woff2" },    // 배우 이름·날짜/공연장
-    { fam:"IBM Plex Sans KR",      url:"fonts/IBMPlexSansKR-Regular.woff2" }, // 보조(st9·st22)
-  ];
+  // 관극 기록판 정의는 스크립트 밖(JSON)으로 분리:
+  //   json/finale/boards.json          = 레지스트리(보드 목록 + 기본 보드)
+  //   json/finale/boards/<id>.json     = 보드 1종 정의(배경·폰트·스타일·슬롯·바인딩)
+  // 코드는 '값 계산(provider)'만 갖고, "무슨 값을 배경 어디에" 매핑은 전부 JSON이 규정한다.
+  const BOARDS_URL = "json/finale-boards.json?v=1";
   const JSPDF_URL   = "https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js";
   const SVG2PDF_URL = "https://cdn.jsdelivr.net/npm/svg2pdf.js@2.2.3/dist/svg2pdf.umd.min.js";
-  const ANTON_TTF_URL  = "fonts/Anton-400.ttf";           // PDF 배역 헤딩(로컬 TTF)
-  const KRFONT_TTF_URL = "fonts/IBMPlexSansKR-Medm.ttf";  // PDF 한글 벡터(로컬 TTF, CDN 불필요)
 
-  // viewBox를 흰 패널(st1)에 딱 맞게 크롭 → 바깥 투명 여백 제거(원본 760.394×1387.13에서 11.3386씩 잘라냄)
-  const VB_X = 11.3386, VB_Y = 11.3386, VB_W = 737.717, VB_H = 1364.46;
-
-  // 보드 영문 SLUG → casts.json 한글 배역 키
-  const ROLE_KEY = {
-    BILLY:"빌리", MICHAEL:"마이클", DEBBIE:"데비", TALL_BOY:"톨보이", SMALL_BOY:"스몰보이",
-    DAD:"아빠", MRS_WILKINSON:"Mrs. 윌킨슨", TONY:"토니", GRANDMA:"할머니", GEORGE:"조지",
-    MR_BRAITHWAITE:"브레이스웨이트", DEAD_MUM:"데드맘", OLD_BILLY:"성인빌리"
-  };
-  // 발레걸즈/앙상블 보드 슬롯(개별 로스터는 casting_by_date 집계로 채움)
-  const BALLET_SLUGS = ["BALLET_GIRLS_ASHINGTON","BALLET_GIRLS_BEDLINGTON","BALLET_GIRLS_ADULTS"];
-  const ENSEMBLE_SLUGS = ["ENSEMBLE"];
+  // viewBox: 보드 정의(background.viewBox)에서 채움. 매니페스트 로드 전 기본값(빌리 보드)로 시작.
+  let VB_X = 11.3386, VB_Y = 11.3386, VB_W = 737.717, VB_H = 1364.46;
 
   const ROLE_ALIAS = {};  // casts.json·casting_by_date 배역 키가 통일되어 별칭 불필요(있으면 여기에)
   function normRole(r){ return ROLE_ALIAS[r] || r; }
   function firstName(v){ return Array.isArray(v) ? String(v[0]||"").trim() : String(v||"").trim(); }
   function fmt(v){ return Number.isInteger(v) ? String(v) : v.toFixed(1); }
 
-  let cbdCache = null, seatBox = [400.7,692.1,670,913.6];
+  // ---- 보드 매니페스트(레지스트리 → 활성 보드 정의) ----
+  //  - 레지스트리(json/finale-boards.json) = 카탈로그: id·name·hidden·default·def(경로). 갤러리 목록의 권위.
+  //  - def(finale-boards/<id>.json) = 순수 렌더 스펙(id·name 없음). 실행 시 레지스트리의 id·name을 얹는다.
+  const REG_BASE = BOARDS_URL.split("?")[0].replace(/[^/]+$/, "");   // "json/"
+  const _boardParam = new URLSearchParams(location.search).get("board") || "";
+  let _registry = null, _registryPromise = null;
+  function loadRegistry(){
+    if(_registry) return Promise.resolve(_registry);
+    if(!_registryPromise) _registryPromise = fetch(BOARDS_URL).then(r=>r.json()).then(reg=>{ _registry=reg; return reg; });
+    return _registryPromise;
+  }
+  // 갤러리에 노출할 보드(숨김 제외). ?board= 없을 땐 default(숨김이면 보이는 첫 보드로 폴백)를 활성으로.
+  function visibleBoards(reg){ return (reg.boards||[]).filter(b=>!b.hidden); }
+  function resolveEntry(reg){
+    const boards = reg.boards || [];
+    let entry = boards.find(b => b.id === (_boardParam || reg.default));
+    if(entry && !_boardParam && entry.hidden) entry = null;   // 기본 보드가 숨김이면 폴백
+    if(!entry) entry = boards.find(b => !b.hidden) || boards[0];   // ?board=만 숨김 보드 직접 오픈 허용
+    return entry;
+  }
+  let _manifest = null, _manifestPromise = null;
+  function loadManifest(){
+    if(_manifest) return Promise.resolve(_manifest);
+    if(!_manifestPromise){
+      _manifestPromise = (async ()=>{
+        const reg = await loadRegistry();
+        const entry = resolveEntry(reg);
+        const def = await (await fetch(REG_BASE + entry.def)).json();
+        _manifest = Object.assign({ id: entry.id, name: entry.name, hidden: !!entry.hidden }, def);
+        return _manifest;
+      })();
+    }
+    return _manifestPromise;
+  }
+  // 매니페스트 background.viewBox → VB_*(fitBoard·내보내기 크기 등에서 사용).
+  // 있으면 그 창으로 크롭, 없으면 false 반환(→ SVG 자체 좌표 사용 = 크롭 안 함).
+  function applyViewBox(mani){
+    const vb = mani && mani.background && mani.background.viewBox;
+    if(Array.isArray(vb) && vb.length===4){ VB_X=vb[0]; VB_Y=vb[1]; VB_W=vb[2]; VB_H=vb[3]; return true; }
+    return false;
+  }
+  // 매니페스트에 viewBox가 없을 때: SVG 자체 viewBox(없으면 width/height)를 VB_*로 채택(크롭 없음).
+  function adoptSvgViewBox(svg){
+    const own = svg.getAttribute("viewBox");
+    if(own){ const p = own.split(/[\s,]+/).map(Number); if(p.length===4 && p.every(n=>!isNaN(n))){ VB_X=p[0]; VB_Y=p[1]; VB_W=p[2]; VB_H=p[3]; return; } }
+    const w = parseFloat(svg.getAttribute("width")), h = parseFloat(svg.getAttribute("height"));
+    if(w && h){ VB_X=0; VB_Y=0; VB_W=w; VB_H=h; svg.setAttribute("viewBox", `0 0 ${w} ${h}`); }
+  }
+
   let finaleMode = (typeof castStatsMode === "string") ? castStatsMode : "all";
   let booted = false;
 
@@ -96,16 +124,6 @@
     });
   }
 
-  async function loadCbd(){
-    if(cbdCache) return cbdCache;
-    try{ const r = await fetch(CBD_PATH); cbdCache = r.ok ? await r.json() : {}; }
-    catch(e){ cbdCache = {}; }
-    return cbdCache;
-  }
-  async function loadMeta(){
-    try{ const r = await fetch(META_URL); if(r.ok){ const m = await r.json(); if(Array.isArray(m.seatBox)) seatBox = m.seatBox; } }catch(e){}
-  }
-
   function periodStr(){
     const s = performanceData.startDate, e = performanceData.endDate;
     const f = d => (d||"").replace(/-/g, ".");
@@ -119,206 +137,251 @@
     return c ? c.actors.map(a=>a.name) : [];
   }
 
-  // ---- 통계 집계(모드 반영) ----
-  function computeData(mode, cbd){
-    const perfs = performanceData.performances || [];
-    const casts = performanceData.casts || [];
-    const principalSet = new Set(casts.filter(c=>!c.group).map(c=>normRole(c.role)));  // group(발레걸즈·앙상블)은 cbd로 집계
-
-    const pStat = {};   // 주연: role -> Map(name->{w,t})
-    function pbump(role, name, amount, won){
-      if(!pStat[role]) pStat[role] = new Map();
-      let m = pStat[role].get(name); if(!m){ m={w:0,t:0}; pStat[role].set(name,m); }
-      m.t += amount; if(won) m.w += amount;
-    }
-    // 발레/앙상블: cbd 상세 기준 단순 집계
-    const ballet = new Map(), ensemble = new Map();
-    const balletTown = new Map();   // 발레걸즈 배우 → {애싱턴,베들링턴} 출연수(소속 섹션 판정용)
-    const charPos = new Map();      // 발레걸즈 캐릭터(배역) → 캐스팅 보드 등장 순서
-    const balletChar = new Map();   // 배우 → 맡은 캐릭터(정렬 기준)
-    function gbump(map, name, won){
-      let m = map.get(name); if(!m){ m={w:0,t:0}; map.set(name,m); }
-      m.t++; if(won) m.w++;
-    }
-    // 발레걸즈 타운(애싱턴/베들링턴)별 공연 수·관극 수
-    const town = { "애싱턴":{w:0,t:0}, "베들링턴":{w:0,t:0} };
-
-    perfs.forEach(p=>{
-      const ended = isEnded(p), seated = hasSeat(p), won = ended && seated;
-      const tn = firstName((p.cast && p.cast["발레걸즈"]) || "");
-      if(town[tn]){ town[tn].t++; if(won) town[tn].w++; }
-      // 주연 — 모드별 기여
-      if(p.cast) for(const role in p.cast){
-        const rk = normRole(role);
-        if(!principalSet.has(rk)) continue;
-        const contribs = (typeof getCastContributions === "function")
-          ? getCastContributions(p.cast[role], mode)
-          : [{name:firstName(p.cast[role]), amount:1}];
-        contribs.forEach(c=>{ if(c.name) pbump(rk, c.name, c.amount, won); });
-      }
-      // 발레/앙상블 — casting_by_date 상세
-      const entry = cbd[`${p.date} ${p.time}`];
-      if(entry){
-        for(const role in entry){
-          const rk = normRole(role);
-          if(principalSet.has(rk)) continue;
-          const val = entry[role];
-          if(role === "앙상블" && Array.isArray(val)){
-            val.forEach(x=>{ const nm = Array.isArray(x)?x[0]:x; if(nm) gbump(ensemble, nm, won); });
-          } else {
-            // 캐스팅 보드 등장 순서 = JSON 삽입 순서(최초 등장 시점 기록)
-            if(!charPos.has(role)) charPos.set(role, charPos.size);
-            const nm = firstName(val);
-            if(nm){ gbump(ballet, nm, won);
-              if(!balletChar.has(nm)) balletChar.set(nm, role);
-              // 이 공연의 town(애싱턴/베들링턴)에 배우 출연수 누적 → 실제 소속 판정
-              if(tn==="애싱턴"||tn==="베들링턴"){ let bt=balletTown.get(nm); if(!bt){ bt={"애싱턴":0,"베들링턴":0}; balletTown.set(nm,bt); } bt[tn]++; }
-            }
-          }
-        }
-      } else if(p.cast && p.cast["발레걸즈"]){
-        const nm = firstName(p.cast["발레걸즈"]); if(nm) gbump(ballet, nm, won);
-      }
-    });
-
-    const balletPool = [...ballet.entries()].map(([name,v])=>{
-      const bt = balletTown.get(name) || {"애싱턴":0,"베들링턴":0};
-      const a = bt["애싱턴"], b = bt["베들링턴"];
-      // 양쪽 town 모두 상당수 출연 → 어른(ADULTS), 아니면 우세 town 섹션
-      const group = Math.min(a,b) >= 10 ? "ADULTS" : (a >= b ? "ASHINGTON" : "BEDLINGTON");
-      const ch = balletChar.get(name);
-      const cp = charPos.has(ch) ? charPos.get(ch) : 999;
-      return {name, ...v, group, cp};
-    }).sort((a,b)=>a.cp - b.cp);
-    const ensemblePool = [...ensemble.entries()].map(([name,v])=>({name,...v})).sort((a,b)=>b.t-a.t);
-    const totalRun = perfs.length;
-    const totalWatched = perfs.filter(p=>isEnded(p) && hasSeat(p)).length;
-    return { pStat, balletPool, ensemblePool, totalRun, totalWatched,
-             ballet: { ashington: town["애싱턴"], bedlington: town["베들링턴"] } };
-  }
-
   // ---- 보드 채우기 ----
   function setText(svg, id, txt){ const el = svg.getElementById ? svg.getElementById(id) : document.getElementById(id); if(el) el.textContent = txt; return el; }
 
   const SVGNS = "http://www.w3.org/2000/svg";
-  // 관극 수: 분자(관극)=Handlee(손글씨·금색, 획 stroke로 두껍게), 분모(/전체)=Paytone One(흰색). 같은 text/baseline·우측정렬.
-  function numTspan(txt){
-    const a = document.createElementNS(SVGNS, "tspan");
-    a.setAttribute("font-family", "Handlee"); a.setAttribute("fill", "#ffd24a");
-    a.setAttribute("stroke", "#ffd24a"); a.setAttribute("stroke-width", "0.42"); a.setAttribute("paint-order", "stroke");
-    a.textContent = txt; return a;
+  // 스타일 leaf 키(camelCase) → SVG presentation 속성명(kebab). fill/stroke 등 동일한 건 그대로 통과.
+  const STYLE_ATTR = { fontFamily:"font-family", strokeWidth:"stroke-width", textAnchor:"text-anchor",
+    fontSize:"font-size", fontWeight:"font-weight", letterSpacing:"letter-spacing",
+    fillOpacity:"fill-opacity", strokeOpacity:"stroke-opacity" };
+  function styleAttr(k){ return STYLE_ATTR[k] || k; }
+  // 스타일 파트의 속성을 요소에 뿌린다. 인라인 style로 넣어 SVG class(.st24 등)보다 우선하게 함.
+  // prefix/postfix/label/dy는 속성이 아니므로 제외(각각 문자열·오프셋 용도).
+  const NON_ATTR = { prefix:1, postfix:1, label:1, dy:1 };
+  function applyStyleAttrs(el, part){
+    if(!part) return;
+    for(const k in part){ if(NON_ATTR[k]) continue; el.style.setProperty(styleAttr(k), String(part[k])); }
+    if(part.stroke && part.strokeWidth != null) el.style.setProperty("paint-order", "stroke");   // 획을 채움 아래로(faux-bold)
   }
-  function setCount(cntEl, w, t){
-    if(!cntEl) return;
-    // 오른쪽 정렬: 카운트 영역 박스(rect.st4)의 우변에 맞춤(사진 박스 우측과 정렬).
+  // 값을 스타일 파트로 감싼 tspan(prefix + 값 + postfix)
+  function styledTspan(text, part){
+    const t = document.createElementNS(SVGNS, "tspan");
+    applyStyleAttrs(t, part);
+    t.textContent = ((part && part.prefix) || "") + text + ((part && part.postfix) || "");
+    return t;
+  }
+  function resolveStyle(mani, name){ return (mani.styles && name && mani.styles[name]) || {}; }
+
+  // 관극수 분수를 그린다. 스타일(numerator/denominator/textAnchor)은 opts.style로 주입(코드 하드코딩 X).
+  // opts: { style, label, labelFont, dy }  — label/dy는 TOTAL 등 단발 카운트용.
+  function setCount(cntEl, w, t, opts){
+    if(!cntEl) return; opts = opts || {};
+    const style = opts.style || {}, num = style.numerator, den = style.denominator;
+    // 우측 정렬: 카운트 박스(rect.st4)의 우변에 맞춤 + 스타일의 textAnchor 적용.
     const box = cntEl.parentNode && cntEl.parentNode.querySelector ? cntEl.parentNode.querySelector("rect.st4") : null;
-    if(box){ cntEl.setAttribute("text-anchor", "end"); cntEl.setAttribute("x", (box.x.baseVal.value + box.width.baseVal.value).toFixed(2)); }
+    if(box){ if(style.textAnchor) cntEl.setAttribute("text-anchor", style.textAnchor);
+      cntEl.setAttribute("x", (box.x.baseVal.value + box.width.baseVal.value).toFixed(2)); }
+    if(opts.dy){ const y0 = parseFloat(cntEl.getAttribute("y")) || 0; cntEl.setAttribute("y", (y0 + opts.dy).toFixed(2)); }
     while(cntEl.firstChild) cntEl.removeChild(cntEl.firstChild);
-    const b = document.createElementNS(SVGNS, "tspan");
-    b.setAttribute("font-family", "Paytone One"); b.textContent = " / " + fmt(t);
-    cntEl.appendChild(numTspan(fmt(w))); cntEl.appendChild(b);
+    if(opts.label){                                   // 선행 라벨(예: 'TOTAL ')
+      const lab = document.createElementNS(SVGNS, "tspan");
+      if(opts.labelFont) lab.setAttribute("font-family", opts.labelFont);
+      lab.textContent = opts.label; cntEl.appendChild(lab);
+    }
+    cntEl.appendChild(styledTspan((opts.label ? " " : "") + fmt(w), num));   // 분자
+    cntEl.appendChild(styledTspan(fmt(t), den));                            // 분모(prefix " / ")
   }
 
-  // 사진: images/<배우이름>.jpeg (없으면 플레이스홀더.jpeg). 슬롯을 가득 채우고(cover) 넘치는 부분은 크롭 — SVG preserveAspectRatio="xMidYMid slice".
+  // 사진 경로는 매니페스트 photos({pattern, placeholder})가 규정. 없으면 기본값 사용.
+  //   pattern: 배우 이름을 {name}에 넣어 URL 생성(예: "images/{name}.jpeg")
+  //   placeholder: 사진 없을 때 대체 이미지
   const XLINK = "http://www.w3.org/1999/xlink";
-  const PHOTO_PLACEHOLDER = "images/" + encodeURIComponent("플레이스홀더") + ".jpeg";
-  function photoUrl(name){ return "images/" + encodeURIComponent(name) + ".jpeg"; }
+  const DEF_PHOTOS = { pattern: "images/{name}.jpeg", placeholder: "images/" + encodeURIComponent("플레이스홀더") + ".jpeg" };
+  function photoUrlFrom(photos, name){ return ((photos && photos.pattern) || DEF_PHOTOS.pattern).replace("{name}", encodeURIComponent(name)); }
+  function placeholderUrl(photos){ return (photos && photos.placeholder) || DEF_PHOTOS.placeholder; }
   // 실제 사진은 위쪽 정렬(YMin: 얼굴 상단), 플레이스홀더는 세로 중앙(YMid)
-  function setPhoto(svg, id, name){
-    const el = svg.querySelector("#" + id); if(!el) return;
-    const url = name ? photoUrl(name) : PHOTO_PLACEHOLDER;
+  function setPhoto(el, name, photos){
+    if(!el) return;
+    const ph = placeholderUrl(photos), url = name ? photoUrlFrom(photos, name) : ph;
     if(!name) el.setAttribute("preserveAspectRatio", "xMidYMid slice");   // 이름 없는 슬롯 → 중앙
     el.addEventListener("error", function onerr(){    // 사진 없으면 플레이스홀더로(세로 중앙)
       el.removeEventListener("error", onerr);
       el.setAttribute("preserveAspectRatio", "xMidYMid slice");
-      el.setAttributeNS(XLINK, "href", PHOTO_PLACEHOLDER); el.setAttribute("href", PHOTO_PLACEHOLDER);
+      el.setAttributeNS(XLINK, "href", ph); el.setAttribute("href", ph);
     }, { once: true });
     el.setAttributeNS(XLINK, "href", url); el.setAttribute("href", url);
   }
 
-  function fillRole(svg, slug, names, statMap){
-    let i = 0;
-    while(true){
-      const nameEl = svg.querySelector(`#fn-name-${slug}-${i}`);
-      if(!nameEl) break;
-      const cntEl = svg.querySelector(`#fn-cnt-${slug}-${i}`);
-      const nm = names[i];
-      if(nm){
-        nameEl.textContent = nm;
-        const m = statMap && statMap.get ? statMap.get(nm) : (statMap ? statMap[nm] : null);
-        setCount(cntEl, m ? m.w : 0, m ? m.t : 0);
+  // ---- 매니페스트 렌더 엔진 ----
+  // 값 계산(암묵) — 싱글톤·구조적 요소가 쓰는 값. 모두 데이터/공용 스탯에서 직접 계산.
+  function actorStatVal(role, actor){   // 배역의 특정 actor 통계(예: 발레걸즈 타운) → {w,t}
+    const s = (typeof computeRoleActorStats === "function") ? computeRoleActorStats(role, finaleMode)[actor] : null;
+    return s ? { w:s.watched, t:s.total } : { w:0, t:0 };
+  }
+  function grandTotalVal(){              // 전체 합계(전 공연/관극)
+    const ps = performanceData.performances || [];
+    return { w: ps.filter(p=>isEnded(p) && hasSeat(p)).length, t: ps.length };
+  }
+  function periodVenueVal(sep){          // 공연 기간 + 장소
+    return [periodStr(), (seatmapData && seatmapData.theater) || ""].filter(Boolean).join(sep || "  ");
+  }
+  // count 스타일 + (선택)라벨 스타일 → setCount opts
+  function countOpts(mani, styleName, labelStyleName){
+    const opts = { style: resolveStyle(mani, styleName) };
+    const ls = labelStyleName ? resolveStyle(mani, labelStyleName) : null;   // TOTAL 등: 라벨 문자열·글꼴·dy
+    if(ls){ if(ls.label != null) opts.label = ls.label; if(ls.fontFamily) opts.labelFont = ls.fontFamily; if(ls.dy) opts.dy = ls.dy; }
+    return opts;
+  }
+  // 주연 배우 통계는 app.js의 공용 함수(computeRoleActorStats) 재사용 → {w:관극, t:전체}.
+  //  그룹(발레·앙상블) 멤버는 개별 통계 없음(슬롯에 관극수 요소 자체가 없음; 그룹 값=전 공연 == total).
+  // casts.json → 슬롯 그룹 파생(선언 없이 자동).
+  //  주연(!group): slot=id, 멤버=actors(+통계).
+  //  그룹+actors(발레): actor마다 slot={id}_{actor.id}(byTeam) + 베이스 slot=id(byTeam 없는 members=어른). 통계 없음.
+  //  그룹 no actors(앙상블): slot=id, 멤버=members. 통계 없음.
+  function castSlotGroups(casts){
+    const out = [];
+    casts.forEach(c => {
+      if(!c.id) return;
+      if(!c.group){
+        const rs = (typeof computeRoleActorStats === "function") ? computeRoleActorStats(c.role, finaleMode) : {};
+        out.push({ slot: c.id, roleId: c.id, members: (c.actors||[]).map(a => ({
+          name:a.name, role:a.role, stat: rs[a.name] ? { w:rs[a.name].watched, t:rs[a.name].total } : { w:0, t:0 } })) });
+      } else if(c.actors && c.actors.length){
+        const members = c.members || [];
+        c.actors.forEach(a => {
+          const ms = members.filter(m => m.byTeam && m.byTeam[a.name]).map(m => ({ name:m.byTeam[a.name] }));
+          out.push({ slot: `${c.id}_${a.id}`, roleId: c.id, members: ms });
+        });
+        out.push({ slot: c.id, roleId: c.id, members: members.filter(m => !m.byTeam && m.name).map(m => ({ name:m.name })) });
       } else {
-        nameEl.textContent = "NAME";
-        if(cntEl) cntEl.textContent = "";
+        out.push({ slot: c.id, roleId: c.id, members: (c.members||[]).map(m => m.name).filter(Boolean).map(name => ({ name })) });
       }
-      setPhoto(svg, `fn-photo-${slug}-${i}`, nm);   // 슬롯 사진
+    });
+    return out;
+  }
+  // exclude: [{type:"role", id|name}, {type:"cover", name}, {type:"actor", slot|id, name}]
+  function parseExclude(list){
+    const roleIds=new Set(), roleNames=new Set(), covers=new Set(), actors=new Set();
+    (list||[]).forEach(e=>{
+      if(!e || !e.type) return;
+      if(e.type==="role"){ if(e.id) roleIds.add(e.id); if(e.name) roleNames.add(e.name); }
+      else if(e.type==="cover"){ if(e.name) covers.add(e.name); }
+      else if(e.type==="actor"){ if(e.name) actors.add((e.slot||e.id||"*")+" "+e.name); }
+    });
+    return { roleIds, roleNames, covers, actors };
+  }
+  // "$item" / "$item.name" / "$item.stat" 등 슬롯 바인딩 참조 해석
+  function itemRef(ref, item){
+    if(typeof ref !== "string" || ref[0] !== "$") return ref;
+    if(ref === "$item") return item;
+    const path = ref.replace(/^\$item\.?/, "");
+    return path ? path.split(".").reduce((o,k)=> (o==null?o:o[k]), item) : item;
+  }
+  // 한 필드(text/count/photo)를 슬롯 요소에 렌더. item(배우) 없으면 그 필드를 숨김(흰색).
+  function renderField(svg, mani, field, el, item, photos){
+    if(!el) return;
+    const has = item && item.name != null;
+    if(!has){ el.style.display = "none"; return; }   // 빈 슬롯 → 숨김(흰색)
+    el.style.display = "";
+    const style = resolveStyle(mani, field.style);
+    if(field.type === "photo"){ setPhoto(el, itemRef(field.bind, item), photos); return; }
+    if(field.type === "count"){ const st = itemRef(field.bind, item) || { w:0, t:0 }; setCount(el, st.w || 0, st.t || 0, { style }); return; }
+    // text(기본)
+    applyStyleAttrs(el, style);
+    el.textContent = itemRef(field.bind, item);
+  }
+  // 슬롯 그룹 채우기 — slotTemplate.fields(list) × 슬롯 index(배경에 존재하는 만큼). 첫 필드를 슬롯 존재 판정에 사용.
+  //  slot = 슬롯 토큰(id 규칙 {slot} 치환). 주연은 casts.json id, 그룹은 매니페스트 slot.
+  function renderSlotGroup(svg, mani, tmpl, slot, items, photos){
+    const fields = tmpl.fields || [];
+    if(!fields.length) return 0;
+    const idOf = (tpl, i) => tpl.replace(/\{slot\}/g, slot).replace(/\{i\}/g, i);
+    let i = 0;
+    while(svg.querySelector("#" + idOf(fields[0].id, i))){   // 첫 필드 요소가 있으면 그 슬롯 존재
+      const item = items[i];
+      fields.forEach(f => renderField(svg, mani, f, svg.querySelector("#" + idOf(f.id, i)), item, photos));
       i++;
     }
-    return i; // 슬롯 수
+    return i;   // 배경에 존재하는 슬롯 개수(칠할 자리 수)
   }
-
-  function fillBoard(svg, data){
-    // 주연
-    for(const slug in ROLE_KEY){
-      const rk = ROLE_KEY[slug];
-      fillRole(svg, slug, rosterOf(rk), data.pStat[rk] || new Map());
+  // 슬롯 전체 숨김(역할/그룹 통째 exclude 시)
+  function hideSlot(svg, tmpl, slot){
+    const fields = tmpl.fields || [];
+    if(!fields.length) return;
+    const idOf = (tpl, i) => tpl.replace(/\{slot\}/g, slot).replace(/\{i\}/g, i);
+    let i = 0;
+    while(svg.querySelector("#" + idOf(fields[0].id, i))){
+      fields.forEach(f => { const el = svg.querySelector("#" + idOf(f.id, i)); if(el) el.style.display = "none"; });
+      i++;
     }
-    // 발레걸즈 — 배우별 실제 소속(town)으로 배정: 애싱턴/베들링턴/어른(양쪽 출연)
-    const BALLET_GROUP = { BALLET_GIRLS_ASHINGTON:"ASHINGTON", BALLET_GIRLS_BEDLINGTON:"BEDLINGTON", BALLET_GIRLS_ADULTS:"ADULTS" };
-    const balletMap = new Map(data.balletPool.map(p=>[p.name,p]));
-    BALLET_SLUGS.forEach(slug=>{
-      const g = BALLET_GROUP[slug];
-      const members = data.balletPool.filter(p=>p.group===g);   // 이미 캐스팅 보드 순서(cp)
-      const slots = [];
-      let i=0; while(svg.querySelector(`#fn-name-${slug}-${i}`)){ slots.push(i); i++; }
-      const names = slots.map((_,k)=> members[k] ? members[k].name : null);
-      fillRole(svg, slug, names.map(n=>n||undefined), balletMap);
-    });
-    // 앙상블
-    ENSEMBLE_SLUGS.forEach(slug=>{
-      const slots=[]; let i=0; while(svg.querySelector(`#fn-name-${slug}-${i}`)){ slots.push(i); i++; }
-      const names = slots.map((_,k)=> data.ensemblePool[k] ? data.ensemblePool[k].name : null);
-      const map = new Map(data.ensemblePool.map(p=>[p.name,p]));
-      fillRole(svg, slug, names.map(n=>n||undefined), map);
-    });
-    // 발레걸즈 그룹 합계(애싱턴/베들링턴): id 없는 st5 '/NN' 텍스트 2개(문서 순서=애싱턴,베들링턴)
-    const grpTotals = [...svg.querySelectorAll("text.st5:not([id])")].filter(t => /^\/\d+$/.test((t.textContent||"").trim()));
-    const townStats = [data.ballet && data.ballet.ashington, data.ballet && data.ballet.bedlington];
-    grpTotals.slice(0,2).forEach((el, i) => { const g = townStats[i]; if(g) setCount(el, g.w, g.t); });
+  }
+  // 매니페스트를 svg에 적용: casts 파생 슬롯 + 구조적 그룹총계 + 명시적 싱글톤(bindings 없음).
+  function renderManifest(svg, mani){
+    const tmpl = mani.slotTemplate || {};
+    const casts = (typeof performanceData !== "undefined" && performanceData && performanceData.casts) || [];
+    const ex = parseExclude(mani.exclude);
+    const roleExcluded = c => ex.roleIds.has(c.id) || ex.roleNames.has(c.role);
 
-    // Total / 기간·장소
-    svg.querySelectorAll("text").forEach(t=>{
-      const s = (t.textContent||"").trim();
-      if(/^Total/.test(s)){
-        while(t.firstChild) t.removeChild(t.firstChild);
-        // 우측 정렬(윗 블록과 동일) + 조금 아래로(TOTAL_DY, viewBox 단위)
-        const TOTAL_DY = 10;
-        const box = t.parentNode && t.parentNode.querySelector ? t.parentNode.querySelector("rect.st4") : null;
-        if(box){ t.setAttribute("text-anchor", "end"); t.setAttribute("x", (box.x.baseVal.value + box.width.baseVal.value).toFixed(2)); }
-        const y0 = parseFloat(t.getAttribute("y")) || 0; t.setAttribute("y", (y0 + TOTAL_DY).toFixed(2));
-        const lab = document.createElementNS(SVGNS, "tspan");   // 'TOTAL'만 Anton
-        lab.setAttribute("font-family", "Anton"); lab.textContent = "TOTAL ";
-        const b = document.createElementNS(SVGNS, "tspan");     // 숫자는 위 카드와 동일(Handlee/Paytone)
-        b.setAttribute("font-family", "Paytone One"); b.textContent = " / " + data.totalRun;
-        t.appendChild(lab); t.appendChild(numTspan(" " + data.totalWatched)); t.appendChild(b);
-      } else if(/\d{4}\.\s*\d/.test(s)){ // 로고 날짜·장소
-        const sub = [periodStr(), (seatmapData && seatmapData.theater) || ""].filter(Boolean).join("  ");
-        if(sub) t.textContent = sub;
+    // ── 슬롯: casts 자동 파생 + exclude. 배치 못한 항목은 onUnplaced 정책 ──
+    const roleNameOf = id => { const c = casts.find(x => x.id === id); return c ? c.role : null; };
+    const unplaced = [];
+    castSlotGroups(casts).forEach(g => {
+      const rName = roleNameOf(g.roleId);
+      if(ex.roleIds.has(g.roleId) || (rName && ex.roleNames.has(rName))){   // 역할/그룹 통째 제외 → 슬롯 숨김
+        hideSlot(svg, tmpl, g.slot); return;
+      }
+      const items = g.members.filter(m => {
+        if(ex.actors.has(g.slot + " " + m.name) || ex.actors.has("* " + m.name)) return false;   // 특정 슬롯의 특정 배우
+        if(ex.covers.has(m.name) && (m.role === "cover" || m.role === "standby")) return false;   // 커버/스탠바이만
+        return true;
+      });
+      const slots = renderSlotGroup(svg, mani, tmpl, g.slot, items, mani.photos);
+      if(items.length > slots){   // 배우가 슬롯보다 많음 → 배치 못함
+        unplaced.push(g.slot + "(" + items.slice(slots).map(x => x.name).join(",") + ")");
       }
     });
+    if(mani.onUnplaced === "warn" && unplaced.length){
+      const msg = "정산판에 배치하지 못한 배우가 있습니다 — " + unplaced.join(" / ");
+      console.warn("[finale] " + msg); try{ alert(msg); }catch(e){}
+    }
+
+    // ── 구조적: 그룹 actor 총계(fn-group-{actor} = 그 팀의 actorStat). 값 암묵 ──
+    const gc = tmpl.groupCount;
+    if(gc && gc.id){
+      const gcOpts = countOpts(mani, gc.style, gc.labelStyle);
+      casts.forEach(c => {
+        if(!c.group || !c.actors) return;
+        const excl = roleExcluded(c);
+        c.actors.forEach(a => {
+          if(!a.id) return;
+          const el = svg.querySelector("#" + gc.id.replace(/\{actor\}/g, a.id)); if(!el) return;
+          if(excl){ el.style.display = "none"; return; }           // 그룹 제외 시 총계도 숨김
+          const v = actorStatVal(c.role, a.name);
+          setCount(el, v.w, v.t, gcOpts);
+        });
+      });
+    }
+
+    // ── 명시적 싱글톤(값 암묵) ──
+    if(mani.headings && mani.headings.selector){                    // 배역 헤딩 스타일(st21/st23 → Anton)
+      const st = resolveStyle(mani, mani.headings.style);
+      svg.querySelectorAll(mani.headings.selector).forEach(el => applyStyleAttrs(el, st));
+    }
+    if(mani.totalCount && mani.totalCount.svgId){                   // 전체 총계
+      const el = svg.querySelector("#" + mani.totalCount.svgId);
+      if(el){ const v = grandTotalVal(); setCount(el, v.w, v.t, countOpts(mani, mani.totalCount.style, mani.totalCount.labelStyle)); }
+    }
+    if(mani.subtitle && mani.subtitle.svgId){                       // 공연 기간·장소
+      const el = svg.querySelector("#" + mani.subtitle.svgId);
+      if(el){ applyStyleAttrs(el, resolveStyle(mani, mani.subtitle.style));
+        const v = periodVenueVal(mani.subtitle.sep); if(v) el.textContent = v; }
+    }
+    if(mani.seatmap) injectSeatmap(svg, mani.seatmap);              // 좌석 히트맵
   }
 
-  // ---- 좌석 다이어그램 교체 ----
-  const HEAT = ['#4aa3ff','#2fd0c8','#46c84e','#c2d92a','#ffd21f','#ff9a1f','#ff6322','#ef3b2f','#d81e4a','#b3126e'];
-  function heatColor(c){ return HEAT[Math.max(1,Math.min(10,c))-1]; }
+  // ---- 좌석 다이어그램 교체 (모든 렌더 파라미터는 seatmap 바인딩 cfg에서) ----
   function hx(c){ return [parseInt(c.slice(1,3),16),parseInt(c.slice(3,5),16),parseInt(c.slice(5,7),16)]; }
   function mix(a,b,t){ const A=hx(a),B=hx(b); return '#'+[0,1,2].map(i=>Math.round(A[i]+(B[i]-A[i])*t).toString(16).padStart(2,'0')).join(''); }
-  // 미관극 좌석 등급색: 백→흑 그라데이션 위치(낮을수록 흰색). VIP 0% · R 10% · S 20% · A 30%
-  const GRADE_RAMP = { VIP:0, R:0.1, S:0.2, A:0.3 };
-  function gradeBase(grade){ const f = GRADE_RAMP[grade]!=null ? GRADE_RAMP[grade] : 0.35; return mix("#ffffff", "#000000", f); }
 
-  function injectSeatmap(svg){
+  function injectSeatmap(svg, cfg){
+    cfg = cfg || {};
     const sm = seatmapData; if(!sm || !sm.seats) return;
+    const HEAT = cfg.heat || ['#4aa3ff','#2fd0c8','#46c84e','#c2d92a','#ffd21f','#ff9a1f','#ff6322','#ef3b2f','#d81e4a','#b3126e'];
+    const heatColor = c => HEAT[Math.max(1, Math.min(HEAT.length, c)) - 1];
+    // 미관극 좌석 등급색: 백→흑 그라데이션 위치(낮을수록 흰색). cfg.gradeRamp로 등급별 위치 지정.
+    const ramp = cfg.gradeRamp || { VIP:0, R:0.1, S:0.2, A:0.3, default:0.35 };
+    const gradeBase = grade => mix("#ffffff", "#000000", (ramp[grade] != null ? ramp[grade] : (ramp.default != null ? ramp.default : 0.35)));
     const grades = performanceData.grades || [];
     const gradeOf = id => { for(const g of grades){ if(g.seatIds && g.seatIds.includes(id)) return g.name; } return null; };
 
@@ -326,13 +389,16 @@
     const grid = svg.querySelector("#fn-seatgrid"); if(grid) grid.remove();
     // 원본 템플릿 좌석 배경 패널(rect.st6)이 새로 그리는 패널보다 살짝 커서 테두리가 겹쳐 보임 → 제거
     const oldPanel = svg.querySelector("rect.st6"); if(oldPanel){ (oldPanel.closest("g") || oldPanel).remove(); }
+    const stageLabel = (cfg.stage && cfg.stage.label) || "STAGE";
     svg.querySelectorAll("text").forEach(t=>{ const s=(t.textContent||"").trim();
-      if(["STAGE","1F","2F","3F","1회","2회","3회","4회 이상"].includes(s)) t.remove(); });
+      if([stageLabel,"1F","2F","3F","1회","2회","3회","4회 이상"].includes(s)) t.remove(); });
 
-    const cover = { x:396, y:664, w:278, h:284 };           // 좌석 패널 영역
+    const r = (cfg.target && cfg.target.rect) || { x:396, y:664, w:278, h:284 };
+    const cover = { x:r.x, y:r.y, w:r.w, h:r.h };           // 좌석 패널 영역
     const floors = [...new Set(sm.seats.map(s=>s.floor))].sort((a,b)=>a-b);
-    // 층 사이 간격: 2층↔3층만 -3, 나머지 -2 (음수=겹침)
-    const gapBefore = f => (f===3 ? -2.5 : -2);
+    // 층 사이 간격(음수=겹침): cfg.floorGap { default, "<층>": n }
+    const fg = cfg.floorGap || { default:-2, "3":-2.5 };
+    const gapBefore = f => (fg[String(f)] != null ? fg[String(f)] : (fg.default != null ? fg.default : -2));
     let cursor=0, minX=1e9, maxX=-1e9; const placed=[];
     floors.forEach((f,idx)=>{
       const fs = sm.seats.filter(s=>s.floor===f); if(!fs.length) return;
@@ -347,13 +413,18 @@
     });
     const worldW=(maxX-minX)||1, worldH=cursor||1;
     // 좌석도: 크롭(cover) 영역에 세로 가운데 배치 + 확대(여백 축소, 하단만 범례 영역 확보)
-    const PADX=10, PADT=10, LEGEND_ZONE=26;
+    const pad = cfg.padding || { x:10, top:10, legendZone:26 };
+    const PADX=pad.x!=null?pad.x:10, PADT=pad.top!=null?pad.top:10, LEGEND_ZONE=pad.legendZone!=null?pad.legendZone:26;
     const areaW=cover.w-2*PADX, areaTop=cover.y+PADT, areaH=cover.h-PADT-LEGEND_ZONE;
     const scale=Math.min(areaW/worldW, areaH/worldH);
     const offX=cover.x+(cover.w-worldW*scale)/2, offY=areaTop+(areaH-worldH*scale)/2;
     const X=x=>offX+(x-minX)*scale;
 
-    let mk = `<rect x="${cover.x}" y="${cover.y}" width="${cover.w}" height="${cover.h}" rx="10" fill="#de6363"/>`;
+    const panelFill = (cfg.panel && cfg.panel.fill) || "#de6363";
+    const panelRx = (cfg.panel && cfg.panel.rx != null) ? cfg.panel.rx : 10;
+    const stageFill = (cfg.stage && cfg.stage.fill) || "#f2e8d5";
+    const stageText = (cfg.stage && cfg.stage.textFill) || "#9c1a1a";
+    let mk = `<rect x="${cover.x}" y="${cover.y}" width="${cover.w}" height="${cover.h}" rx="${panelRx}" fill="${panelFill}"/>`;
     placed.forEach(b=>{
       const Y=y=>offY+(b.top+(y-b.fMinY))*scale;
       (b.fm.outline||[]).forEach(poly=>{
@@ -367,13 +438,14 @@
       });
       if(b.fm.stage){ const st=b.fm.stage;
         const sx=X(st.cx-st.w/2), sy=Y(st.cy-st.h/2), sw=st.w*scale, sh=Math.max(5, st.h*scale);
-        mk += `<rect x="${sx.toFixed(1)}" y="${sy.toFixed(1)}" width="${sw.toFixed(1)}" height="${sh.toFixed(1)}" rx="1.5" fill="#f2e8d5"/>`;
-        mk += `<text x="${X(st.cx).toFixed(1)}" y="${(sy+sh*0.72).toFixed(1)}" text-anchor="middle" font-family="sans-serif" font-size="${(sh*0.62).toFixed(1)}" fill="#9c1a1a" font-weight="700" letter-spacing="1.5">STAGE</text>`;
+        mk += `<rect x="${sx.toFixed(1)}" y="${sy.toFixed(1)}" width="${sw.toFixed(1)}" height="${sh.toFixed(1)}" rx="1.5" fill="${stageFill}"/>`;
+        mk += `<text x="${X(st.cx).toFixed(1)}" y="${(sy+sh*0.72).toFixed(1)}" text-anchor="middle" font-family="sans-serif" font-size="${(sh*0.62).toFixed(1)}" fill="${stageText}" font-weight="700" letter-spacing="1.5">${stageLabel}</text>`;
       }
     });
-    // 하단 범례: 관극 횟수 1~10 — 정사각형 배지 안에 숫자('관극 횟수' 라벨 없음)
-    const sw=7.15, gap=3, total=10*sw+9*gap, lx=(cover.x+cover.w/2)-total/2, ly=cover.y+cover.h-20;
-    for(let i=0;i<10;i++){
+    // 하단 범례: 관극 횟수 1~N — 정사각형 배지 안에 숫자
+    const legendN = Math.min((cfg.legend && cfg.legend.count) || 10, HEAT.length);
+    const sw=7.15, gap=3, total=legendN*sw+(legendN-1)*gap, lx=(cover.x+cover.w/2)-total/2, ly=cover.y+cover.h-20;
+    for(let i=0;i<legendN;i++){
       const x=lx+i*(sw+gap);
       mk += `<rect x="${x.toFixed(1)}" y="${ly}" width="${sw}" height="${sw}" rx="1.3" fill="${HEAT[i]}"/>`;
       mk += `<text x="${(x+sw/2).toFixed(1)}" y="${(ly+sw/2+1.8).toFixed(1)}" text-anchor="middle" font-family="sans-serif" font-size="5" font-weight="700" fill="#fff">${i+1}</text>`;
@@ -430,19 +502,29 @@
   function currentSvg(){ return boardSvg(); }
   function dataReady(){ return typeof performanceData!=="undefined" && performanceData && performanceData.performances && typeof seatmapData!=="undefined" && seatmapData; }
 
-  let boardText = null;
-  async function loadBoard(){ if(boardText==null){ const r=await fetch(BOARD_URL); boardText = await r.text(); } return boardText; }
-  let fontCss = null;   // @font-face(base64) 모음 — SVG에 임베드
-  async function loadFontCss(){
+  let boardText = null, boardTextSrc = null;
+  async function loadBoard(mani){
+    const src = mani.background.src;
+    if(boardText==null || boardTextSrc!==src){ const r=await fetch(src); boardText = await r.text(); boardTextSrc = src; }
+    return boardText;
+  }
+  let fontCss = null;   // @font-face(base64) 모음 — SVG에 임베드(매니페스트 fonts 기준)
+  async function loadFontCss(mani){
     if(fontCss==null){
-      const parts = await Promise.all(FONTS.map(async f=>{
-        try{ const r=await fetch(f.url); const b=new Uint8Array(await r.arrayBuffer()); let s=""; for(let i=0;i<b.length;i++) s+=String.fromCharCode(b[i]);
-          return `@font-face{font-family:'${f.fam}';src:url(data:font/woff2;base64,${btoa(s)}) format('woff2');}`; }
+      const fonts = (mani && mani.fonts) || [];
+      const parts = await Promise.all(fonts.map(async f=>{
+        try{ const r=await fetch(f.woff2); const b=new Uint8Array(await r.arrayBuffer()); let s=""; for(let i=0;i<b.length;i++) s+=String.fromCharCode(b[i]);
+          return `@font-face{font-family:'${f.family}';src:url(data:font/woff2;base64,${btoa(s)}) format('woff2');}`; }
         catch(e){ return ""; }
       }));
       fontCss = parts.join("");
     }
     return fontCss;
+  }
+  // 매니페스트 fonts에서 family로 PDF용 TTF 경로 조회(없으면 null)
+  function ttfUrlFor(mani, family){
+    const f = ((mani && mani.fonts) || []).find(x=>x.family===family);
+    return (f && f.ttf) || null;
   }
 
   // 라이브 보드는 '무겁게' 렌더하므로 지연 생성: 오버레이를 열 때(또는 썸네일 이미지가 없어 폴백할 때)만.
@@ -454,24 +536,25 @@
     _boardRendering = (async ()=>{
       const vp = getViewport();
       if(!vp || !dataReady()){ _boardRendering = null; return null; }
-      const [txt, cbd, , css] = await Promise.all([loadBoard(), loadCbd(), loadMeta(), loadFontCss()]);
+      const mani = await loadManifest();
+      const hasVB = applyViewBox(mani);
+      const [txt, css] = await Promise.all([loadBoard(mani), loadFontCss(mani)]);
       vp.innerHTML = txt;
       const svg = vp.querySelector("svg");
       if(!svg){ _boardRendering = null; return null; }
       svg.id = "finaleBoardSvg";
-      // 웹폰트 임베드 + 배역 라벨(st21·st23)을 Anton으로 교체(내보내기 자급자족)
+      // 웹폰트 임베드(@font-face). 배역 헤딩(st21/st23) Anton 지정은 매니페스트 style 바인딩이 담당.
       if(css){
         const fst = document.createElementNS("http://www.w3.org/2000/svg","style");
-        fst.textContent = css + `text.st21,text.st23{font-family:'Anton';}`;
+        fst.textContent = css;
         svg.insertBefore(fst, svg.firstChild);
       }
       svg.removeAttribute("width"); svg.removeAttribute("height");
-      svg.setAttribute("viewBox", `${VB_X} ${VB_Y} ${VB_W} ${VB_H}`);
+      if(hasVB) svg.setAttribute("viewBox", `${VB_X} ${VB_Y} ${VB_W} ${VB_H}`);   // 크롭
+      else adoptSvgViewBox(svg);                                                  // 크롭 없음(SVG 자체 좌표)
       svg.dataset.w = VB_W; svg.dataset.h = VB_H;
       if(randomModeActive()) applyRandomViewings();   // 랜덤 데이터 모드: 관극 기록(좌석) 무작위 생성
-      const data = computeData(finaleMode, cbd);       // 관극수·총합은 그 기록에서 정상 계산
-      fillBoard(svg, data);
-      injectSeatmap(svg);
+      renderManifest(svg, mani);                       // casts 파생 슬롯 + bindings(좌석 포함) — 스탯은 app 공용 함수
       if(css){ try{ if(document.fonts && document.fonts.load) await document.fonts.load('20px "Anton"'); }catch(e){} fitRoleLabels(svg); }
       _boardRendered = true;
       return svg;
@@ -812,14 +895,16 @@
     const label=btn?btn.textContent:""; if(btn){ btn.disabled=true; btn.textContent="PDF 생성 중…"; }
     try{
       await ensurePdfLibs(); const { jsPDF }=window.jspdf;
+      const mani=await loadManifest();
+      const krTtf=ttfUrlFor(mani, PDF_KR_FAM), antonTtf=ttfUrlFor(mani, "Anton");
       const doc=new jsPDF({ orientation: VB_W>VB_H?"l":"p", unit:"pt", format:[VB_W,VB_H] });
       let fontName=null;
-      try{ const b64=await fontB64(KRFONT_TTF_URL); doc.addFileToVFS("IBMPlexKR.ttf",b64);
+      try{ if(!krTtf) throw new Error("no ttf"); const b64=await fontB64(krTtf); doc.addFileToVFS("IBMPlexKR.ttf",b64);
         doc.addFont("IBMPlexKR.ttf",PDF_KR_FAM,"normal"); doc.addFont("IBMPlexKR.ttf",PDF_KR_FAM,"bold");
         doc.setFont(PDF_KR_FAM); fontName=PDF_KR_FAM; }catch(fe){}
       if(!fontName) throw new Error("한글 폰트 로드 실패");   // 깨진 벡터 대신 래스터 폴백
-      try{ const ab=await fontB64(ANTON_TTF_URL); doc.addFileToVFS("Anton.ttf",ab);
-        doc.addFont("Anton.ttf","Anton","normal"); doc.addFont("Anton.ttf","Anton","bold"); }catch(fe){}
+      try{ if(antonTtf){ const ab=await fontB64(antonTtf); doc.addFileToVFS("Anton.ttf",ab);
+        doc.addFont("Anton.ttf","Anton","normal"); doc.addFont("Anton.ttf","Anton","bold"); } }catch(fe){}
       const svgForPdf=el.cloneNode(true);
       svgForPdf.removeAttribute("style");
       svgForPdf.style.position="absolute"; svgForPdf.style.left="-99999px"; svgForPdf.style.top="0";
