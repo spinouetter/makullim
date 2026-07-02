@@ -51,6 +51,51 @@
   let finaleMode = (typeof castStatsMode === "string") ? castStatsMode : "all";
   let booted = false;
 
+  // 랜덤 데이터 모드: ?randomData 또는 ?randomData=<시드> → 관극수·좌석수를 (시드 기반) 랜덤으로 채움.
+  //  - 시드 없으면 랜덤, 텍스트 시드 허용(썸네일 생성 시엔 '마지막 공연 id'를 시드로 사용).
+  //  - 실제 관극(좌석) 데이터가 있으면 적용하지 않고 경고(랜덤이 실제 데이터를 덮지 않도록).
+  const _rp = new URLSearchParams(location.search);
+  const RANDOM_MODE = _rp.has("randomData");
+  const RANDOM_SEED = (_rp.get("randomData") || "").trim() || ("rnd-" + Math.floor(Math.random()*1e9));
+  const PREVIEW_IMG = "images/finale-preview.png";   // CI가 생성하는 썸네일(없으면 라이브 보드로 폴백)
+  // 문자열 시드 → 32bit 해시(FNV-1a) → mulberry32 PRNG (같은 시드 = 같은 결과)
+  function makeRng(seedStr){
+    let h = 2166136261 >>> 0; const s = String(seedStr);
+    for(let i=0;i<s.length;i++){ h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); }
+    let a = h >>> 0;
+    return function(){ a |= 0; a = (a + 0x6D2B79F5) | 0; let t = Math.imul(a ^ a>>>15, 1 | a); t = (t + Math.imul(t ^ t>>>7, 61 | t)) ^ t; return ((t ^ t>>>14) >>> 0) / 4294967296; };
+  }
+  let _rng = Math.random;                 // 랜덤 데이터 모드가 실제 적용될 때만 시드 RNG로 교체
+  function hasRealViewData(){             // 실제 관극(좌석) 기록이 있는지
+    const ps = (typeof performanceData!=="undefined" && performanceData && performanceData.performances) || [];
+    return ps.some(p => (typeof hasSeat==="function") ? hasSeat(p) : !!(p && p.seat));
+  }
+  let _randomApplied = null;              // 랜덤 데이터 모드 적용 여부(경고 포함, 1회 판정)
+  function randomModeActive(){
+    if(_randomApplied !== null) return _randomApplied;
+    if(!RANDOM_MODE){ _randomApplied = false; return false; }
+    if(hasRealViewData()){
+      const msg = "랜덤 데이터 모드는 관극 데이터가 없을 때만 사용할 수 있습니다. 실제 관극 데이터가 있어 무시합니다.";
+      console.warn("[finale] " + msg); try{ alert(msg); }catch(e){}
+      _randomApplied = false; return false;
+    }
+    _rng = makeRng(RANDOM_SEED);
+    _randomApplied = true; return true;
+  }
+  // 랜덤 데이터 모드: 끝난 공연 일부에 무작위 좌석을 배정해 '관극 기록'을 생성한다.
+  // 이렇게 하면 배역 관극수·총합·좌석 히트맵이 모두 이 기록에서 일관되게 계산됨(숫자 개별 조작 X).
+  function applyRandomViewings(){
+    const perfs = (typeof performanceData!=="undefined" && performanceData && performanceData.performances) || [];
+    const seatIds = ((typeof seatmapData!=="undefined" && seatmapData && seatmapData.seats) || []).map(s=>s.id).filter(Boolean);
+    if(!perfs.length || !seatIds.length) return;
+    perfs.forEach(p=>{
+      p.seat = "";
+      if((typeof isEnded!=="function" || isEnded(p)) && _rng() < 0.4){   // 끝난 공연의 약 40%를 '관극'으로
+        p.seat = seatIds[Math.floor(_rng()*seatIds.length)];
+      }
+    });
+  }
+
   async function loadCbd(){
     if(cbdCache) return cbdCache;
     try{ const r = await fetch(CBD_PATH); cbdCache = r.ok ? await r.json() : {}; }
@@ -178,11 +223,14 @@
   const XLINK = "http://www.w3.org/1999/xlink";
   const PHOTO_PLACEHOLDER = "images/" + encodeURIComponent("플레이스홀더") + ".jpeg";
   function photoUrl(name){ return "images/" + encodeURIComponent(name) + ".jpeg"; }
+  // 실제 사진은 위쪽 정렬(YMin: 얼굴 상단), 플레이스홀더는 세로 중앙(YMid)
   function setPhoto(svg, id, name){
     const el = svg.querySelector("#" + id); if(!el) return;
     const url = name ? photoUrl(name) : PHOTO_PLACEHOLDER;
-    el.addEventListener("error", function onerr(){    // 사진 없으면 플레이스홀더로
+    if(!name) el.setAttribute("preserveAspectRatio", "xMidYMid slice");   // 이름 없는 슬롯 → 중앙
+    el.addEventListener("error", function onerr(){    // 사진 없으면 플레이스홀더로(세로 중앙)
       el.removeEventListener("error", onerr);
+      el.setAttribute("preserveAspectRatio", "xMidYMid slice");
       el.setAttributeNS(XLINK, "href", PHOTO_PLACEHOLDER); el.setAttribute("href", PHOTO_PLACEHOLDER);
     }, { once: true });
     el.setAttributeNS(XLINK, "href", url); el.setAttribute("href", url);
@@ -313,7 +361,7 @@
       });
       const sz=Math.max(1.4, 0.82*scale);
       b.fs.forEach(s=>{
-        const cnt=seatWatchCount(s.id);
+        const cnt = seatWatchCount(s.id);   // 랜덤 모드에선 위에서 배정한 무작위 좌석이 반영됨
         const color = cnt>0 ? heatColor(cnt) : gradeBase(gradeOf(s.id));
         mk += `<rect x="${(X(s.svgX)-sz/2).toFixed(1)}" y="${(Y(s.svgY)-sz/2).toFixed(1)}" width="${sz.toFixed(1)}" height="${sz.toFixed(1)}" rx="${(sz*0.22).toFixed(1)}" fill="${color}"/>`;
       });
@@ -397,28 +445,48 @@
     return fontCss;
   }
 
+  // 라이브 보드는 '무겁게' 렌더하므로 지연 생성: 오버레이를 열 때(또는 썸네일 이미지가 없어 폴백할 때)만.
+  let _boardRendered = false, _boardRendering = null;
+  function invalidateBoard(){ _boardRendered = false; _boardRendering = null; }
+  function ensureBoardRendered(){
+    if(_boardRendered) return Promise.resolve(boardSvg());
+    if(_boardRendering) return _boardRendering;
+    _boardRendering = (async ()=>{
+      const vp = getViewport();
+      if(!vp || !dataReady()){ _boardRendering = null; return null; }
+      const [txt, cbd, , css] = await Promise.all([loadBoard(), loadCbd(), loadMeta(), loadFontCss()]);
+      vp.innerHTML = txt;
+      const svg = vp.querySelector("svg");
+      if(!svg){ _boardRendering = null; return null; }
+      svg.id = "finaleBoardSvg";
+      // 웹폰트 임베드 + 배역 라벨(st21·st23)을 Anton으로 교체(내보내기 자급자족)
+      if(css){
+        const fst = document.createElementNS("http://www.w3.org/2000/svg","style");
+        fst.textContent = css + `text.st21,text.st23{font-family:'Anton';}`;
+        svg.insertBefore(fst, svg.firstChild);
+      }
+      svg.removeAttribute("width"); svg.removeAttribute("height");
+      svg.setAttribute("viewBox", `${VB_X} ${VB_Y} ${VB_W} ${VB_H}`);
+      svg.dataset.w = VB_W; svg.dataset.h = VB_H;
+      if(randomModeActive()) applyRandomViewings();   // 랜덤 데이터 모드: 관극 기록(좌석) 무작위 생성
+      const data = computeData(finaleMode, cbd);       // 관극수·총합은 그 기록에서 정상 계산
+      fillBoard(svg, data);
+      injectSeatmap(svg);
+      if(css){ try{ if(document.fonts && document.fonts.load) await document.fonts.load('20px "Anton"'); }catch(e){} fitRoleLabels(svg); }
+      _boardRendered = true;
+      return svg;
+    })();
+    return _boardRendering;
+  }
+
+  // 탭 진입/모드 변경 시: 썸네일만 구성(동적 보드 렌더 X). 오버레이가 열려 있으면 보드 갱신.
   async function renderFinale(){
-    const vp = getViewport();
-    if(!vp || !dataReady()) return;
-    const [txt, cbd, , css] = await Promise.all([loadBoard(), loadCbd(), loadMeta(), loadFontCss()]);
-    vp.innerHTML = txt;
-    const svg = vp.querySelector("svg");
-    if(!svg) return;
-    svg.id = "finaleBoardSvg";
-    // 웹폰트 임베드 + 배역 라벨(st21·st23)을 Anton으로 교체(미리보기·내보내기 자급자족)
-    if(css){
-      const fst = document.createElementNS("http://www.w3.org/2000/svg","style");
-      fst.textContent = css + `text.st21,text.st23{font-family:'Anton';}`;
-      svg.insertBefore(fst, svg.firstChild);
-    }
-    svg.removeAttribute("width"); svg.removeAttribute("height");
-    svg.setAttribute("viewBox", `${VB_X} ${VB_Y} ${VB_W} ${VB_H}`);
-    svg.dataset.w = VB_W; svg.dataset.h = VB_H;
-    fillBoard(svg, computeData(finaleMode, cbd));
-    injectSeatmap(svg);
-    if(css){ try{ if(document.fonts && document.fonts.load) await document.fonts.load('20px "Anton"'); }catch(e){} fitRoleLabels(svg); }
-    buildThumbs(svg);
-    if(document.getElementById("finaleOverlay").style.display !== "none") fitBoard();
+    if(!dataReady()) return;
+    buildThumbs();
+    // 프리뷰가 없으면 폴백(라이브 보드)이 필요하므로, 무거운 보드 렌더를 미리 시작해 첫 표시를 앞당김.
+    previewExists().then(ok=>{ if(!ok) ensureBoardRendered(); });
+    const ov = document.getElementById("finaleOverlay");
+    if(ov && ov.style.display !== "none"){ await ensureBoardRendered(); fitBoard(); }
   }
 
   // ---- 디자인 썸네일(현재 캐스트보드 1종 + placeholder 여러 개) ----
@@ -439,7 +507,30 @@
       [designOrder[i],designOrder[j]] = [designOrder[j],designOrder[i]];
     }
   }
-  function buildThumbs(svg){
+  // CI가 만든 정적 미리보기(images/finale-preview.png) 존재 여부를 1회만 화면 밖에서 확인해 캐시.
+  // <img>를 DOM에 넣어 404를 기다리면 '깨진 이미지 아이콘'이 잠깐 보이므로, 오프-DOM Image로 미리 판별.
+  let _previewOk = null, _previewProbe = null;
+  function previewExists(){
+    if(RANDOM_MODE) return Promise.resolve(false);        // 랜덤 데이터 모드는 항상 라이브 보드
+    if(_previewOk !== null) return Promise.resolve(_previewOk);
+    if(!_previewProbe){
+      _previewProbe = new Promise(res=>{
+        const im = new Image();
+        im.onload  = ()=>{ _previewOk = im.naturalWidth > 0; res(_previewOk); };
+        im.onerror = ()=>{ _previewOk = false; res(false); };
+        im.src = PREVIEW_IMG;
+      });
+    }
+    return _previewProbe;
+  }
+  // 라이브 보드를 (지연) 렌더해 카드에 클론으로 삽입(프리뷰가 없을 때의 폴백).
+  async function liveCloneInto(card){
+    const svg = await ensureBoardRendered();
+    if(!svg || !card.isConnected || card.querySelector("svg")) return;   // 카드가 교체됐거나 이미 채워졌으면 skip
+    const clone = svg.cloneNode(true); clone.removeAttribute("id"); clone.removeAttribute("style");
+    card.insertBefore(clone, card.firstChild);
+  }
+  function buildThumbs(){
     ensureDesigns();
     const wrap = document.getElementById("finaleThumbs");
     if(!wrap) return;
@@ -450,9 +541,21 @@
       card.className = "finale-thumb " + (d.real ? "real" : "placeholder");
       card.dataset.ar = d.ar;                        // 저스티파이드 레이아웃용 비율
       if(d.real){
-        const clone = svg.cloneNode(true);
-        clone.removeAttribute("id"); clone.removeAttribute("style");
-        card.appendChild(clone);
+        // 프리뷰 존재 여부를 먼저 확정(오프-DOM). 있으면 정적 이미지, 없으면 라이브 보드 클론.
+        (async ()=>{
+          const ok = await previewExists();
+          if(!card.isConnected) return;
+          if(ok){
+            const img = document.createElement("img");
+            img.className = "finale-thumb-img"; img.alt = "관극 인증 이미지 미리보기";
+            // 만약을 대비: 확인 후에도 로드 실패하면 라이브 보드로 폴백
+            img.addEventListener("error", ()=>{ if(card.isConnected){ img.remove(); liveCloneInto(card); } }, { once:true });
+            img.src = PREVIEW_IMG;
+            card.insertBefore(img, card.firstChild);
+          } else {
+            await liveCloneInto(card);   // 프리뷰 없음(CI 미생성) → 라이브 보드
+          }
+        })();
         const badge = document.createElement("div");
         badge.className = "finale-thumb-badge"; badge.textContent = "크게 보기";
         card.appendChild(badge);
@@ -527,12 +630,24 @@
     svg.style.width=baseW+"px"; svg.style.height=baseH+"px"; svg.style.transformOrigin="0 0";
     zScale=1; zx=(W-baseW)/2; zy=(H-baseH)/2; clampPan(); applyZoom();
   }
-  function openFinaleOverlay(){
+  // 오버레이 = 실제 이미지 렌더 시점: 여기서 라이브 보드를 (지연) 렌더한다.
+  let _overlayHistoryPushed = false;
+  async function openFinaleOverlay(){
     const ov=document.getElementById("finaleOverlay"); if(!ov) return;
     ov.style.display="flex";
+    // 스마트폰 뒤로가기로 닫을 수 있도록 히스토리 항목 추가
+    if(!_overlayHistoryPushed){ try{ history.pushState({ finaleOverlay:true }, ""); _overlayHistoryPushed=true; }catch(e){} }
+    await ensureBoardRendered();
     requestAnimationFrame(fitBoard);   // 표시 후 뷰포트 크기 확정된 뒤 맞춤
   }
-  function closeFinaleOverlay(){ const ov=document.getElementById("finaleOverlay"); if(ov) ov.style.display="none"; }
+  function hideOverlay(){ const ov=document.getElementById("finaleOverlay"); if(ov) ov.style.display="none"; }
+  // 닫기 버튼·배경 클릭 → 우리가 push한 히스토리 항목을 되돌려(뒤로가기) popstate에서 실제로 닫음
+  function closeFinaleOverlay(){
+    const ov=document.getElementById("finaleOverlay");
+    if(!ov || ov.style.display==="none") return;
+    if(_overlayHistoryPushed){ _overlayHistoryPushed=false; history.back(); }
+    else hideOverlay();
+  }
   function wireZoom(){
     const c=getViewport(); if(!c) return;
     c.style.touchAction="none"; c.style.overflow="hidden";
@@ -735,7 +850,12 @@
     if(booted) return; booted=true;
     wireZoom();
     const sel=document.getElementById("finaleModeSelect");
-    if(sel){ sel.value=finaleMode; sel.addEventListener("change", ()=>{ finaleMode=sel.value; renderFinale(); }); }
+    if(sel){ sel.value=finaleMode; sel.addEventListener("change", ()=>{ finaleMode=sel.value; invalidateBoard(); renderFinale(); }); }
+    // 스마트폰 뒤로가기: 오버레이가 열려 있으면 페이지 이동 대신 오버레이만 닫기
+    window.addEventListener("popstate", ()=>{
+      const ov=document.getElementById("finaleOverlay");
+      if(ov && ov.style.display!=="none"){ _overlayHistoryPushed=false; hideOverlay(); }
+    });
     const wire=(id,fn)=>{ const b=document.getElementById(id); if(b) b.addEventListener("click",()=>fn(b)); };
     wire("finaleOverlayClose", ()=>closeFinaleOverlay());
     wire("finalePngBtn", ()=>exportRaster("image/png","png"));
@@ -754,6 +874,7 @@
   }
 
   window.renderFinale = function(){ renderFinale(); };
+  window.renderFinaleBoard = function(){ return ensureBoardRendered(); };   // CI 썸네일 생성용(라이브 보드 렌더)
   if(document.readyState==="loading") document.addEventListener("DOMContentLoaded", init);
   else init();
 })();
