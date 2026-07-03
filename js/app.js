@@ -2940,11 +2940,16 @@ function updateSeatColorPreview(){
   document.getElementById("scPreviewRandom")?.classList.toggle("active", scPreviewMode==="random");
 }
 
+function updateSeatColorPanelVis(){   // 토글 OFF면 설정 패널 숨김(값은 유지)
+  const panel = document.getElementById("seatColorPanel");
+  if(panel) panel.style.display = seatColorEnabled ? "" : "none";
+}
 function setupSeatColorUI(){
   const toggle = document.getElementById("optSeatColor");
   if(!toggle) return;
   seedSeatGradeWork();
   toggle.checked = seatColorEnabled;
+  updateSeatColorPanelVis();
   scReloadUI("grade"); scReloadUI("heat");
   const hm = document.getElementById("heatMaxSelect");
   if(hm){
@@ -2954,6 +2959,7 @@ function setupSeatColorUI(){
 
   toggle.addEventListener("change", ()=>{
     seatColorEnabled = toggle.checked;
+    updateSeatColorPanelVis();
     applySeatColors(); renderSeatMap(true); saveState();
   });
   document.getElementById("gradePresetSelect")?.addEventListener("change", e=>{
