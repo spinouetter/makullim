@@ -10,7 +10,10 @@ desktop.ini
 temp/
 
 # 피날레 미리보기 썸네일 — Pages 배포 시 GitHub Action이 생성(커밋하지 않음)
-images/finale-preview.png
+shows/*/images/finale-preview.png
+
+# 공연 캐스팅 보드 사진 원본(로컬 전용 — 보드 인제스트 작업용)
+billy-/
 
 # CI에서 임시로 설치되는 노드 모듈
 node_modules/
