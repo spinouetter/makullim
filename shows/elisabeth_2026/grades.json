@@ -1,0 +1,48 @@
+[
+  {
+    "name": "VIP",
+    "seatIds": [],
+    "prices": [
+      { "name": "정가", "price": 180000, "discount": 0 },
+      { "name": "프리뷰", "price": 144000, "discount": 20, "sids": ["s1", "s2", "s3"] },
+      { "name": "조기예매", "price": 162000, "discount": 10 },
+      { "name": "장애인", "price": 126000, "discount": 30 },
+      { "name": "국가유공자", "price": 126000, "discount": 30 }
+    ]
+  },
+  {
+    "name": "R",
+    "seatIds": [],
+    "prices": [
+      { "name": "정가", "price": 150000, "discount": 0 },
+      { "name": "프리뷰", "price": 120000, "discount": 20, "sids": ["s1", "s2", "s3"] },
+      { "name": "조기예매", "price": 135000, "discount": 10 },
+      { "name": "장애인", "price": 105000, "discount": 30 },
+      { "name": "국가유공자", "price": 105000, "discount": 30 }
+    ]
+  },
+  {
+    "name": "S",
+    "seatIds": [],
+    "prices": [
+      { "name": "정가", "price": 120000, "discount": 0 },
+      { "name": "프리뷰", "price": 96000, "discount": 20, "sids": ["s1", "s2", "s3"] },
+      { "name": "조기예매", "price": 96000, "discount": 20 },
+      { "name": "초중고생", "price": 96000, "discount": 20 },
+      { "name": "장애인", "price": 84000, "discount": 30 },
+      { "name": "국가유공자", "price": 84000, "discount": 30 }
+    ]
+  },
+  {
+    "name": "A",
+    "seatIds": [],
+    "prices": [
+      { "name": "정가", "price": 90000, "discount": 0 },
+      { "name": "프리뷰", "price": 72000, "discount": 20, "sids": ["s1", "s2", "s3"] },
+      { "name": "조기예매", "price": 72000, "discount": 20 },
+      { "name": "초중고생", "price": 72000, "discount": 20 },
+      { "name": "장애인", "price": 63000, "discount": 30 },
+      { "name": "국가유공자", "price": 63000, "discount": 30 }
+    ]
+  }
+]
