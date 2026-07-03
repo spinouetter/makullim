@@ -29,6 +29,25 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # 공연별 slug 주소(/<slug>/) 스텁 생성 — 저장소에 커밋하지 않고 배포물에만 포함.
+      # index.html을 복사하며 <!-- __SHOW__ --> 마커에 공연 id를 주입해, /<slug>/ 접속 시
+      # 앱이 그 공연(shows/<id>/)을 바로 로드하게 한다. 루트(/)는 앱이 default 공연 slug로 리다이렉트.
+      - name: Generate show slug stubs
+        run: |
+          set -e
+          for id in $(jq -r '.shows[]' shows/index.json); do
+            slug=$(jq -r '.slug // empty' "shows/$id.json")
+            if [ -z "$slug" ]; then echo "slug 없음: $id — 스텁 생략"; continue; fi
+            # 앱 자원 폴더와 충돌하는 slug는 배포 사고 방지를 위해 실패 처리
+            case "$slug" in
+              css|js|data|fonts|shows|theatres|scripts|requests|images|json)
+                echo "::error::slug '$slug'($id)는 예약된 폴더명과 충돌합니다."; exit 1;;
+            esac
+            mkdir -p "$slug"
+            sed "s|<!-- __SHOW__ -->|<script>window.MAKOLLIM_SHOW_ID=\"$id\";</script>|" index.html > "$slug/index.html"
+            echo "스텁 생성: /$slug/ ← $id"
+          done
+
       - name: Inject Dropbox App key
         env:
           DROPBOX_APP_KEY: ${{ secrets.DROPBOX_APP_KEY }}
@@ -61,7 +80,7 @@ jobs:
             npx playwright install chromium
             node scripts/gen-finale-preview.js
           fi
-          ls -l images/finale-preview.png   # 산출물 확인(없으면 여기서 실패로 표시)
+          ls -l shows/*/images/finale-preview.png   # 산출물 확인(없으면 여기서 실패로 표시)
         continue-on-error: true   # 미리보기 생성 실패해도 배포는 계속(앱이 라이브 보드로 폴백)
 
       # 성공/실패와 무관하게 임시 설치물 정리(안 하면 node_modules가 배포물에 포함됨)
