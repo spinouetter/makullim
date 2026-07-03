@@ -90,7 +90,13 @@ srv.listen(0, "127.0.0.1", async () => {
   const page = await browser.newPage({ viewport: { width: 900, height: 1400 }, deviceScaleFactor: 2 });
   const ids = JSON.parse(fs.readFileSync(path.join(ROOT, "shows", "index.json"), "utf8")).shows || [];
   let fail = 0;
-  for (const id of ids) { if (!(await capture(page, port, id))) fail++; }
+  for (const id of ids) {
+    // Finale 보드가 없는 공연은 썸네일 대상이 아님 — 건너뜀
+    let boards = [];
+    try { boards = (JSON.parse(fs.readFileSync(path.join(ROOT, "shows", id, "finale-boards.json"), "utf8")).boards || []).filter(b => !b.hidden); } catch {}
+    if (!boards.length) { console.log(`[${id}] 보드 없음 — 건너뜀`); continue; }
+    if (!(await capture(page, port, id))) fail++;
+  }
   await browser.close(); srv.close();
   console.log(`공연 ${ids.length}개 중 ${ids.length - fail}개 썸네일 생성`);
   process.exit(fail ? 1 : 0);

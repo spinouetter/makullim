@@ -1,0 +1,121 @@
+[
+  {
+    "role": "엘리자벳",
+    "id": "elisabeth",
+    "actors": [
+      { "name": "린아", "role": "cast" },
+      { "name": "이지혜", "role": "cast" },
+      { "name": "이지수", "role": "cast" }
+    ]
+  },
+  {
+    "role": "토드",
+    "id": "tod",
+    "actors": [
+      { "name": "카이", "role": "cast" },
+      { "name": "서경수", "role": "cast" },
+      { "name": "고은성", "role": "cast" }
+    ]
+  },
+  {
+    "role": "루케니",
+    "id": "lucheni",
+    "actors": [
+      { "name": "강홍석", "role": "cast" },
+      { "name": "박은태", "role": "cast" },
+      { "name": "노윤", "role": "cast" }
+    ]
+  },
+  {
+    "role": "요제프",
+    "id": "franz_joseph",
+    "fullName": "프란츠 요제프",
+    "actors": [
+      { "name": "박민성", "role": "cast" },
+      { "name": "민영기", "role": "cast" }
+    ]
+  },
+  {
+    "role": "소피",
+    "id": "sophie",
+    "actors": [
+      { "name": "주아", "role": "cast" },
+      { "name": "서지영", "role": "cast" }
+    ]
+  },
+  {
+    "role": "루돌프",
+    "id": "rudolf",
+    "actors": [
+      { "name": "김우성", "role": "cast" },
+      { "name": "장윤석", "role": "cast" }
+    ]
+  },
+  {
+    "role": "막스공작",
+    "id": "max",
+    "actors": [
+      { "name": "김대호", "role": "cast" }
+    ]
+  },
+  {
+    "role": "루도비카",
+    "id": "ludovika",
+    "actors": [
+      { "name": "장예원", "role": "cast" }
+    ]
+  },
+  {
+    "role": "어린 루돌프",
+    "id": "young_rudolf",
+    "actors": [
+      { "name": "박지호", "role": "cast" },
+      { "name": "한라온", "role": "cast" },
+      { "name": "박태온", "role": "cast" }
+    ]
+  },
+  {
+    "role": "죽음의 천사",
+    "id": "death_angels",
+    "group": true,
+    "members": [
+      { "name": "박상봉", "roles": ["죽음의 천사"] },
+      { "name": "함승훈", "roles": ["죽음의 천사"] },
+      { "name": "박세형", "roles": ["죽음의 천사"] },
+      { "name": "정규진", "roles": ["죽음의 천사"] },
+      { "name": "조승민", "roles": ["죽음의 천사"] },
+      { "name": "김규범", "roles": ["죽음의 천사"] },
+      { "name": "배형빈", "roles": ["죽음의 천사"] }
+    ]
+  },
+  {
+    "role": "앙상블",
+    "id": "ensemble",
+    "group": true,
+    "members": [
+      { "name": "이도경", "roles": ["앙상블"] },
+      { "name": "유철호", "roles": ["앙상블"] },
+      { "name": "박선정", "roles": ["앙상블"] },
+      { "name": "전선진", "roles": ["앙상블"] },
+      { "name": "김경택", "roles": ["앙상블"] },
+      { "name": "채성욱", "roles": ["앙상블"] },
+      { "name": "장여진", "roles": ["앙상블"] },
+      { "name": "김요한", "roles": ["앙상블"] },
+      { "name": "송주영", "roles": ["앙상블"] },
+      { "name": "김락현", "roles": ["앙상블"] },
+      { "name": "서예림", "roles": ["앙상블"] },
+      { "name": "안준혁", "roles": ["앙상블"] },
+      { "name": "오태희", "roles": ["앙상블"] },
+      { "name": "오민석", "roles": ["앙상블"] },
+      { "name": "이슬아", "roles": ["앙상블"] },
+      { "name": "전주일", "roles": ["앙상블"] },
+      { "name": "곽동기", "roles": ["앙상블"] },
+      { "name": "이동윤", "roles": ["앙상블"] },
+      { "name": "한수인", "roles": ["앙상블"] },
+      { "name": "홍유진", "roles": ["앙상블"] },
+      { "name": "김동훈", "roles": ["앙상블"] },
+      { "name": "정인서", "roles": ["앙상블"] },
+      { "name": "박찬희", "roles": ["앙상블"] }
+    ]
+  }
+]
