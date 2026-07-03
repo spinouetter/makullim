@@ -1,6 +1,6 @@
 /* =========================================================
    finale.js — 트위터 공유용 '인증 이미지'(Finale) 탭
-   - images/finale-board.svg(빌리 캐스트보드 템플릿)을 불러와 슬롯 id에
+   - 보드 배경 SVG(예: shows/<id>/images/finale-board.svg)를 불러와 슬롯 id에
      현재 casts.json 캐스트를 채운다(슬롯>캐스트→NAME, 슬롯<캐스트→위에서부터).
    - 관극수는 통계 4모드(first/start/all/weighted)에 따라 재계산.
    - 좌석 영역은 실제 좌석 다이어그램(테두리+STAGE+히트맵)으로 교체.
@@ -12,10 +12,12 @@
   "use strict";
 
   // 관극 기록판 정의는 스크립트 밖(JSON)으로 분리:
-  //   json/finale/boards.json          = 레지스트리(보드 목록 + 기본 보드)
-  //   json/finale/boards/<id>.json     = 보드 1종 정의(배경·폰트·스타일·슬롯·바인딩)
+  //   shows/<id>/finale-boards.json          = 레지스트리(보드 목록 + 기본 보드)
+  //   shows/<id>/finale-boards/<board>.json  = 보드 1종 정의(배경·폰트·스타일·슬롯·바인딩)
   // 코드는 '값 계산(provider)'만 갖고, "무슨 값을 배경 어디에" 매핑은 전부 JSON이 규정한다.
-  const BOARDS_URL = "json/finale-boards.json?v=1";
+  // 공연 파일 안의 경로는 공연 폴더 기준 상대경로 → window.showUrl(app.js)로 해석("/" 시작은 사이트 루트).
+  //   주의: showUrl은 loadData()가 SHOW_BASE를 채운 뒤에만 유효 — 아래 fetch들은 전부 데이터 로드 후 실행됨.
+  const BOARDS_URL = "finale-boards.json?v=1";
   const JSPDF_URL   = "https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js";
   const SVG2PDF_URL = "https://cdn.jsdelivr.net/npm/svg2pdf.js@2.2.3/dist/svg2pdf.umd.min.js";
 
@@ -28,14 +30,13 @@
   function fmt(v){ return Number.isInteger(v) ? String(v) : v.toFixed(1); }
 
   // ---- 보드 매니페스트(레지스트리 → 활성 보드 정의) ----
-  //  - 레지스트리(json/finale-boards.json) = 카탈로그: id·name·hidden·default·def(경로). 갤러리 목록의 권위.
+  //  - 레지스트리(finale-boards.json) = 카탈로그: id·name·hidden·default·def(경로). 갤러리 목록의 권위.
   //  - def(finale-boards/<id>.json) = 순수 렌더 스펙(id·name 없음). 실행 시 레지스트리의 id·name을 얹는다.
-  const REG_BASE = BOARDS_URL.split("?")[0].replace(/[^/]+$/, "");   // "json/"
   const _boardParam = new URLSearchParams(location.search).get("board") || "";
   let _registry = null, _registryPromise = null;
   function loadRegistry(){
     if(_registry) return Promise.resolve(_registry);
-    if(!_registryPromise) _registryPromise = fetch(BOARDS_URL).then(r=>r.json()).then(reg=>{ _registry=reg; return reg; });
+    if(!_registryPromise) _registryPromise = fetch(window.showUrl(BOARDS_URL)).then(r=>r.json()).then(reg=>{ _registry=reg; return reg; });
     return _registryPromise;
   }
   // 갤러리에 노출할 보드(숨김 제외). ?board= 없을 땐 default(숨김이면 보이는 첫 보드로 폴백)를 활성으로.
@@ -54,7 +55,7 @@
       _manifestPromise = (async ()=>{
         const reg = await loadRegistry();
         const entry = resolveEntry(reg);
-        const def = await (await fetch(REG_BASE + entry.def)).json();
+        const def = await (await fetch(window.showUrl(entry.def))).json();
         _manifest = Object.assign({ id: entry.id, name: entry.name, hidden: !!entry.hidden }, def);
         return _manifest;
       })();
@@ -85,7 +86,7 @@
   const _rp = new URLSearchParams(location.search);
   const RANDOM_MODE = _rp.has("randomData");
   const RANDOM_SEED = (_rp.get("randomData") || "").trim() || ("rnd-" + Math.floor(Math.random()*1e9));
-  const PREVIEW_IMG = "images/finale-preview.png";   // CI가 생성하는 썸네일(없으면 라이브 보드로 폴백)
+  const previewImg = () => window.showUrl("images/finale-preview.png");   // CI가 생성하는 썸네일(없으면 라이브 보드로 폴백)
   // 문자열 시드 → 32bit 해시(FNV-1a) → mulberry32 PRNG (같은 시드 = 같은 결과)
   function makeRng(seedStr){
     let h = 2166136261 >>> 0; const s = String(seedStr);
@@ -188,8 +189,8 @@
   //   placeholder: 사진 없을 때 대체 이미지
   const XLINK = "http://www.w3.org/1999/xlink";
   const DEF_PHOTOS = { pattern: "images/{name}.jpeg", placeholder: "images/" + encodeURIComponent("플레이스홀더") + ".jpeg" };
-  function photoUrlFrom(photos, name){ return ((photos && photos.pattern) || DEF_PHOTOS.pattern).replace("{name}", encodeURIComponent(name)); }
-  function placeholderUrl(photos){ return (photos && photos.placeholder) || DEF_PHOTOS.placeholder; }
+  function photoUrlFrom(photos, name){ return window.showUrl(((photos && photos.pattern) || DEF_PHOTOS.pattern).replace("{name}", encodeURIComponent(name))); }
+  function placeholderUrl(photos){ return window.showUrl((photos && photos.placeholder) || DEF_PHOTOS.placeholder); }
   // 실제 사진은 위쪽 정렬(YMin: 얼굴 상단), 플레이스홀더는 세로 중앙(YMid)
   function setPhoto(el, name, photos){
     if(!el) return;
@@ -507,7 +508,7 @@
 
   let boardText = null, boardTextSrc = null;
   async function loadBoard(mani){
-    const src = mani.background.src;
+    const src = window.showUrl(mani.background.src);
     if(boardText==null || boardTextSrc!==src){ const r=await fetch(src); boardText = await r.text(); boardTextSrc = src; }
     return boardText;
   }
@@ -604,7 +605,7 @@
         const im = new Image();
         im.onload  = ()=>{ _previewOk = im.naturalWidth > 0; res(_previewOk); };
         im.onerror = ()=>{ _previewOk = false; res(false); };
-        im.src = PREVIEW_IMG;
+        im.src = previewImg();
       });
     }
     return _previewProbe;
@@ -636,7 +637,7 @@
             img.className = "finale-thumb-img"; img.alt = "관극 인증 이미지 미리보기";
             // 만약을 대비: 확인 후에도 로드 실패하면 라이브 보드로 폴백
             img.addEventListener("error", ()=>{ if(card.isConnected){ img.remove(); liveCloneInto(card); } }, { once:true });
-            img.src = PREVIEW_IMG;
+            img.src = previewImg();
             card.insertBefore(img, card.firstChild);
           } else {
             await liveCloneInto(card);   // 프리뷰 없음(CI 미생성) → 라이브 보드
