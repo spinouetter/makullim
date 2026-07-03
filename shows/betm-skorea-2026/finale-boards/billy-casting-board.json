@@ -6,11 +6,11 @@
   },
 
   "fonts": [
-    { "family": "Anton",                 "woff2": "fonts/Anton-400.woff2",          "ttf": "fonts/Anton-400.ttf" },
-    { "family": "Handlee",               "woff2": "fonts/Handlee-400.woff2" },
-    { "family": "Paytone One",           "woff2": "fonts/PaytoneOne-400.woff2" },
-    { "family": "IBM Plex Sans KR Medm", "woff2": "fonts/IBMPlexSansKR-Medm.woff2", "ttf": "fonts/IBMPlexSansKR-Medm.ttf" },
-    { "family": "IBM Plex Sans KR",      "woff2": "fonts/IBMPlexSansKR-Regular.woff2" }
+    { "family": "Anton",                 "woff2": "/fonts/Anton-400.woff2",          "ttf": "/fonts/Anton-400.ttf" },
+    { "family": "Handlee",               "woff2": "/fonts/Handlee-400.woff2" },
+    { "family": "Paytone One",           "woff2": "/fonts/PaytoneOne-400.woff2" },
+    { "family": "IBM Plex Sans KR Medm", "woff2": "/fonts/IBMPlexSansKR-Medm.woff2", "ttf": "/fonts/IBMPlexSansKR-Medm.ttf" },
+    { "family": "IBM Plex Sans KR",      "woff2": "/fonts/IBMPlexSansKR-Regular.woff2" }
   ],
 
   "styles": {

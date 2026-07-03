@@ -18,9 +18,46 @@ function computeSeatBBox(){
   return { x:minX, y:minY, w:maxX-minX, h:maxY-minY };
 }
 
-/* 분리된 데이터 파일(json/)을 불러와 seatmapData / performanceData 를 구성한다.
-   극장 좌석 배치는 meta.theatre가 가리키는 파일에서 불러오므로, 한 레포에서
-   여러 공연장을 두고 공연마다 다른 극장을 연결할 수 있다.
+/* ---- 공연(쇼) 해석 — 한 서버(도메인)에서 여러 공연 지원 ----
+   데이터는 shows/<id>/ 폴더 단위로 분리되고, 공연 정의는 shows/<id>.json(slug 포함),
+   레지스트리는 shows/index.json({ default, shows:[id…] })이다.
+   접속 경로:
+   - /<slug>/ : 배포 시 GitHub Action이 만든 스텁이 window.MAKOLLIM_SHOW_ID를 주입 → 그 공연 로드
+   - /        : default 공연 — 배포 도메인이면 그 공연의 /<slug>/ 로 리다이렉트,
+                로컬 개발(localhost 등, 스텁 없음)이면 리다이렉트 없이 그대로 렌더
+   - ?show=<id|slug> : 로컬 개발에서 다른 공연 선택용
+   공연 파일 안의 상대경로는 공연 폴더(/shows/<id>/) 기준, "/"로 시작하면 사이트 루트 기준. */
+let SHOW_BASE = "";   // "/shows/<id>/" — resolveShowMeta()가 채운다
+function showUrl(p){ return /^(\/|https?:)/.test(p) ? p : SHOW_BASE + p; }
+window.showUrl = showUrl;   // finale.js 등에서 사용
+
+const LOCAL_HOSTS = new Set(["localhost", "127.0.0.1", "[::1]", ""]);
+async function resolveShowMeta(j){
+  if(window.MAKOLLIM_SHOW_ID) return j("/shows/" + window.MAKOLLIM_SHOW_ID + ".json");
+  const idx = await j("/shows/index.json");
+  const ids = Array.isArray(idx.shows) ? idx.shows : [];
+  const param = new URLSearchParams(location.search).get("show");
+  let meta = null;
+  if(param){
+    if(ids.includes(param)) meta = await j("/shows/" + param + ".json");
+    else{ // id가 아니면 slug로 탐색
+      const all = await Promise.all(ids.map(id => j("/shows/" + id + ".json").catch(()=>null)));
+      meta = all.find(d => d && d.slug === param) || null;
+    }
+    if(!meta) console.warn("?show=" + param + " 공연을 찾지 못해 기본 공연으로 대체합니다.");
+  }
+  if(!meta) meta = await j("/shows/" + (idx.default || ids[0]) + ".json");
+  // 배포 도메인 루트 접속 → 공연 고정 주소(/<slug>/)로. 로컬(스텁 없음)은 그대로 렌더.
+  if(!param && !LOCAL_HOSTS.has(location.hostname) && meta.slug){
+    location.replace("/" + meta.slug + "/");
+    return new Promise(()=>{});   // 내비게이션 중 — 이후 로드 중단
+  }
+  return meta;
+}
+
+/* 분리된 데이터 파일(shows/<id>/)을 불러와 seatmapData / performanceData 를 구성한다.
+   극장 좌석 배치는 공연 정의의 theatre가 가리키는 파일(공용 theatres/)에서 불러오므로,
+   한 레포에서 여러 공연장을 두고 공연마다 다른 극장을 연결할 수 있다.
    분리 이전의 단일 객체 구조를 그대로 재구성하므로 이후의 렌더링 로직은 수정 불필요. */
 async function loadData(){
   const j = async (path)=>{
@@ -29,15 +66,16 @@ async function loadData(){
     if(!res.ok) throw new Error(path + " 로드 실패 (" + res.status + ")");
     return res.json();
   };
-  // meta를 먼저 읽어 어떤 극장 파일을 쓸지 결정한다.
-  const meta = await j("json/meta.json");
+  // 공연 정의를 먼저 읽어 데이터 폴더와 극장 파일을 결정한다.
+  const meta = await resolveShowMeta(j);
+  SHOW_BASE = "/shows/" + meta.id + "/";
   setupStorageNamespace(meta.id); // 막올림별 localStorage 네임스페이스 설정
-  const theatrePath = meta.theatre || "theatres/default.json";
+  const theatrePath = meta.theatre || "/theatres/default.json";
   const [seatmap, grades, casts, schedule] = await Promise.all([
-    j(theatrePath),
-    j("json/grades.json"),
-    j("json/casts.json"),
-    j("json/schedule.json")
+    j(showUrl(theatrePath)),
+    j(showUrl("grades.json")),
+    j(showUrl("casts.json")),
+    j(showUrl("schedule.json"))
   ]);
   seatmapData = seatmap;
   performanceData = {
@@ -47,11 +85,11 @@ async function loadData(){
     runningtime: (typeof meta.runningtime === "number" && meta.runningtime > 0) ? meta.runningtime : 180, // 분
     grades: grades, casts: casts, performances: schedule
   };
-  // 공휴일(있으면): 날짜 -> 이름. 없어도 동작하도록 비-치명적으로 로드.
-  try{ holidays = await j("json/holidays.json"); } catch(e){ console.warn("holidays.json 로드 실패:", e.message); holidays = {}; }
+  // 공휴일(있으면): 날짜 -> 이름. 공연과 무관한 공용 데이터(data/). 없어도 동작하도록 비-치명적으로 로드.
+  try{ holidays = await j("/data/holidays.json"); } catch(e){ console.warn("holidays.json 로드 실패:", e.message); holidays = {}; }
   holidaySet = new Set(Object.keys(holidays || {}));
   // 대결(match) 정의(있으면). 없어도 동작하도록 비-치명적으로 로드. 승패 결과는 공연 데이터(schedule)에 들어옴.
-  try{ performanceData.matches = await j("json/matches.json"); } catch(e){ console.warn("matches.json 로드 실패:", e.message); performanceData.matches = []; }
+  try{ performanceData.matches = await j(showUrl("matches.json")); } catch(e){ console.warn("matches.json 로드 실패:", e.message); performanceData.matches = []; }
   if(!Array.isArray(performanceData.matches)) performanceData.matches = [];
   SEAT_BBOX = computeSeatBBox();
   performanceData.performances.forEach((p,i)=>{
