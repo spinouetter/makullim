@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>막올림</title>
-<link rel="stylesheet" href="css/styles.css?v=72">
+<link rel="stylesheet" href="css/styles.css?v=74">
 </head>
 <body>
 
@@ -171,6 +171,35 @@
       </div>
     </div>
     <div class="stat-section">
+      <h2>시트맵 색상</h2>
+      <label class="opt-row"><input type="checkbox" id="optSeatColor"><span><b>시트맵 색 직접 지정</b> — 끄면 현재 테마의 색을 사용합니다 (설정값은 유지)</span></label>
+      <div id="seatColorPanel">
+        <div class="sc-block">
+          <div class="sc-head">
+            <span class="sc-title">등급 색</span>
+            <select id="gradePresetSelect" class="sc-preset"></select>
+            <button id="gradePresetSave" class="sc-btn">저장</button>
+            <button id="gradePresetSaveAs" class="sc-btn">새 이름으로 저장</button>
+          </div>
+          <div class="sc-swatches" id="gradeSwatches"></div>
+        </div>
+        <div class="sc-block">
+          <div class="sc-head">
+            <span class="sc-title">관극 횟수 히트맵</span>
+            <select id="heatPresetSelect" class="sc-preset"></select>
+            <button id="heatPresetSave" class="sc-btn">저장</button>
+            <button id="heatPresetSaveAs" class="sc-btn">새 이름으로 저장</button>
+          </div>
+          <label class="sc-maxrow">최대 단계 <select id="heatMaxSelect"></select> <span class="sc-hint">넘는 자리는 최대 단계 색으로 칠해집니다</span></label>
+          <div class="sc-swatches" id="heatSwatches"></div>
+        </div>
+        <div class="sc-actions">
+          <button id="seatColorRandomBtn" class="sc-btn">랜덤 색상</button>
+          <button id="seatColorPreviewBtn" class="sc-btn sc-preview-btn">프리뷰 열기</button>
+        </div>
+      </div>
+    </div>
+    <div class="stat-section">
       <h2>스케줄 보기 옵션</h2>
       <p style="color:var(--ink-dim); font-size:13px; margin:-2px 0 12px;">스케줄을 가로로 스크롤할 때 어떤 회차인지 쉽게 알 수 있도록 돕는 옵션입니다.</p>
       <label class="opt-row"><input type="checkbox" id="optFloatDate"><span>가로 스크롤 시 <b>날짜·시간 요약을 왼쪽에 오버레이로</b> 표시</span></label>
@@ -294,6 +323,22 @@
   </div>
 </div>
 
+<div id="seatColorPreviewOverlay" class="seat-overlay" style="display:none;">
+  <div class="seat-overlay-content" style="width:760px; max-width:94vw;">
+    <div class="sc-preview-bar">
+      <div style="font-size:13px; color:var(--gold); font-weight:700;">시트맵 색상 프리뷰</div>
+      <div class="sc-preview-actions">
+        <button id="scPreviewMine" class="primary-btn active">내자리</button>
+        <button id="scPreviewRandom">랜덤 생성</button>
+        <button id="scPreviewClose">닫기</button>
+      </div>
+    </div>
+    <div class="stage">STAGE</div>
+    <div id="scPreviewViewport" class="sc-preview-viewport"></div>
+    <div class="legend" id="scPreviewLegend"></div>
+  </div>
+</div>
+
 <div id="ticketManagerOverlay" class="seat-overlay" style="display:none;">
   <div class="seat-overlay-content" style="width:560px; max-width:94vw;">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
@@ -321,7 +366,7 @@
 </div>
 
 <script src="js/config.js?v=1"></script>
-<script src="js/app.js?v=93"></script>
+<script src="js/app.js?v=97"></script>
 <script src="js/dropbox.js?v=4"></script>
 <script src="js/finale.js?v=42"></script>
 </body>

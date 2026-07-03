@@ -1654,11 +1654,20 @@ function seatVisualStyle(count){
 // 관극 횟수(1~10) → 이산 히트맵 색. 저관극에서 색차가 크도록(파랑→청록→초록…) 설계해
 // 1↔2 구분이 9↔10 구분보다 더 뚜렷하다(고관극 빨강→자홍은 단계 차가 작음).
 const COUNT_HEAT = ['#4aa3ff','#2fd0c8','#46c84e','#c2d92a','#ffd21f','#ff9a1f','#ff6322','#ef3b2f','#d81e4a','#b3126e'];
+// 히트맵 설정: 커스텀(토글 ON 또는 프리뷰 강제) 시 작업 세트, 아니면 표준 상수.
+function heatConfig(){
+  return (seatColorEnabled || seatColorPreviewForce)
+    ? { heat: seatHeatWork.heat, heatMax: seatHeatWork.heatMax }
+    : { heat: COUNT_HEAT, heatMax: HEAT_STEPS };
+}
 function countHeatColor(count){
-  return COUNT_HEAT[Math.max(1, Math.min(10, count)) - 1];
+  const cfg = heatConfig();
+  const max = Math.max(1, Math.min(HEAT_STEPS, cfg.heatMax || HEAT_STEPS));
+  const idx = Math.max(1, Math.min(max, count)) - 1;   // max 초과 관극 → max 색(클램프)
+  return (cfg.heat && cfg.heat[idx]) || COUNT_HEAT[Math.max(0, Math.min(9, idx))];
 }
 
-function buildSeatSvgInner(highlight){
+function buildSeatSvgInner(highlight, countFn){
   const SEAT_SIZE = 0.78;
   const HALF = SEAT_SIZE/2;
   // highlight: 문자열(단일) 또는 {top, all:[...]}
@@ -1668,7 +1677,7 @@ function buildSeatSvgInner(highlight){
 
   function seatMarkup(s){
     const g = gradeOf(s.id);
-    const count = seatMapCount(s.id);
+    const count = countFn ? countFn(s.id) : seatMapCount(s.id);
     const isHighlighted = hiSet.has(s.id);
     // 이중 테두리(맨 위 강조)는 하이라이트 좌석이 둘 이상(다중 티켓)일 때만. 단일이면 단일 테두리.
     const isTop = s.id===topId && hiSet.size > 1;
@@ -2047,7 +2056,7 @@ function renderSeatMap(preserveZoom){
     + `<span><i style="background:var(--g-none); opacity:0.30;"></i>본 적 없음</span>`
     + `<span class="legend-break"></span>`
     + `<span style="color:var(--ink-dim);">관극 횟수</span>`
-    + `<span class="cnt-scale">` + [1,2,3,4,5,6,7,8,9,10].map(n=>`<span class="cnt-dot" style="background:${countHeatColor(n)};">${n}</span>`).join("") + `</span>`;
+    + `<span class="cnt-scale">` + heatScaleNums().map(n=>`<span class="cnt-dot" style="background:${countHeatColor(n)};">${n}</span>`).join("") + `</span>`;
 
   setupSeatMapInteractions();
   setupFloorToggle();
@@ -2721,6 +2730,306 @@ function applyColorTheme(){
   document.querySelectorAll(".theme-btn").forEach(b=>b.classList.toggle("active", b.dataset.theme===colorTheme));
 }
 
+/* =========================================================
+   시트맵 색상 커스터마이즈 (등급색 + 관극 히트맵)
+   - 마스터 토글 하나로 켜고 끔(끄면 테마색). 토글 OFF여도 값은 보존.
+   - 등급/히트맵은 각각 이름 붙인 프리셋 목록을 독립 관리.
+   - 색은 CSS 변수(--g-*) 인라인 주입 + countHeatColor(heatConfig)로 수렴.
+   ========================================================= */
+const GRADE_KEYS = ["vip","r","s","a","none"];
+const GRADE_LABELS = { vip:"VIP", r:"R", s:"S", a:"A", none:"미등록" };
+const HEAT_STEPS = 10;
+let seatColorEnabled = false;
+let seatColorPreviewForce = false;   // 프리뷰 팝업이 열린 동안 작업색 강제 적용
+let seatGradeWork = { baseId:null, dirty:false, grades:null };      // grades:{vip,r,s,a,none}
+let seatGradePresets = [];                                          // [{id,name,grades}]
+let seatHeatWork = { baseId:null, dirty:false, heat:COUNT_HEAT.slice(), heatMax:HEAT_STEPS }; // heat:[…10]
+let seatHeatPresets = [];                                           // [{id,name,heat,heatMax}]
+
+function heatScaleNums(){
+  const max = Math.max(1, Math.min(HEAT_STEPS, heatConfig().heatMax || HEAT_STEPS));
+  return Array.from({length:max}, (_,i)=>i+1);
+}
+function themeGradeColor(key){
+  const v = getComputedStyle(document.documentElement).getPropertyValue("--g-" + key).trim();
+  return normalizeHex(v) || "#888888";
+}
+function normalizeHex(c){
+  if(typeof c !== "string") return null;
+  const s = c.trim();
+  return /^#[0-9a-fA-F]{6}$/.test(s) ? s.toLowerCase() : null;
+}
+function seedSeatGradeWork(){
+  if(seatGradeWork.grades) return;               // 복원됐으면 유지(테마 바꿔도 커스텀 유지)
+  const g = {}; GRADE_KEYS.forEach(k=>{ g[k] = themeGradeColor(k); });
+  seatGradeWork.grades = g;
+}
+// 커스텀 색을 documentElement에 인라인 주입(테마 위에 우선). OFF/미설정이면 제거.
+function applySeatColors(){
+  const root = document.documentElement;
+  const active = (seatColorEnabled || seatColorPreviewForce) && seatGradeWork.grades;
+  GRADE_KEYS.forEach(k=>{
+    const c = active ? normalizeHex(seatGradeWork.grades[k]) : null;
+    if(c) root.style.setProperty("--g-" + k, c);
+    else root.style.removeProperty("--g-" + k);
+  });
+}
+
+function scWork(kind){ return kind === "grade" ? seatGradeWork : seatHeatWork; }
+function scPresets(kind){ return kind === "grade" ? seatGradePresets : seatHeatPresets; }
+function scDefaultName(kind){
+  const base = kind === "grade" ? "등급 색" : "히트맵";
+  return base + " " + (scPresets(kind).length + 1);
+}
+function scNewId(){ return "sc" + Date.now().toString(36) + Math.floor(Math.random()*1000).toString(36); }
+
+// 색을 실제로 반영(인라인 변수 + 필요 시 좌석맵 재렌더 + 프리뷰 갱신)
+function scApplyLive(){
+  applySeatColors();
+  if(seatColorEnabled) renderSeatMap(true);
+  updateSeatColorPreview();
+}
+// 편집(색/맥스 변경): dirty 표시 + 셀렉트 라벨만 갱신(스와치 재생성 X → 편집 중 입력 유지)
+function scOnEdit(kind){
+  scWork(kind).dirty = true;
+  scRenderPresetSelect(kind);
+  scApplyLive();
+}
+function scReloadUI(kind){
+  scRenderPresetSelect(kind); scRenderSwatches(kind);
+  if(kind === "heat"){ const hm = document.getElementById("heatMaxSelect"); if(hm) hm.value = String(seatHeatWork.heatMax); }
+}
+
+function scLoadPreset(kind, id){
+  const p = scPresets(kind).find(x=>x.id===id); if(!p) return;
+  const w = scWork(kind);
+  w.baseId = p.id; w.dirty = false;
+  if(kind === "grade"){ w.grades = { ...p.grades }; }
+  else { w.heat = p.heat.slice(); w.heatMax = p.heatMax; }
+  scReloadUI(kind); scApplyLive(); saveState();
+}
+function scSave(kind){
+  const w = scWork(kind), presets = scPresets(kind);
+  const p = w.baseId ? presets.find(x=>x.id===w.baseId) : null;
+  if(!p) return scSaveAs(kind);                  // 베이스 없으면 새 이름으로
+  if(kind === "grade") p.grades = { ...w.grades };
+  else { p.heat = w.heat.slice(); p.heatMax = w.heatMax; }
+  w.dirty = false; scRenderPresetSelect(kind); saveState();
+}
+function scSaveAs(kind){
+  const name = (prompt("프리셋 이름을 입력하세요", scDefaultName(kind)) || "").trim();
+  if(!name) return;
+  const w = scWork(kind), presets = scPresets(kind);
+  const p = { id: scNewId(), name };
+  if(kind === "grade") p.grades = { ...w.grades };
+  else { p.heat = w.heat.slice(); p.heatMax = w.heatMax; }
+  presets.push(p);
+  w.baseId = p.id; w.dirty = false;
+  scRenderPresetSelect(kind); saveState();
+}
+
+function scRenderPresetSelect(kind){
+  const sel = document.getElementById(kind === "grade" ? "gradePresetSelect" : "heatPresetSelect");
+  if(!sel) return;
+  const w = scWork(kind), presets = scPresets(kind);
+  const base = presets.find(x=>x.id===w.baseId) || null;
+  const curLabel = !base ? "(사용자 지정)" : (w.dirty ? base.name + " (수정됨)" : base.name);
+  let html = `<option value="__cur__">${escHtml(curLabel)}</option>`;
+  presets.forEach(p=>{
+    if(base && p.id===base.id && !w.dirty) return;   // 현재=베이스(미수정)면 중복 생략
+    html += `<option value="${p.id}">${escHtml(p.name)}</option>`;
+  });
+  sel.innerHTML = html;
+  sel.value = "__cur__";
+  // 저장 버튼: dirty거나 베이스 없을 때만 의미. 항상 활성(간단).
+}
+function scRenderSwatches(kind){
+  if(kind === "grade"){
+    const box = document.getElementById("gradeSwatches"); if(!box) return;
+    box.innerHTML = GRADE_KEYS.map(k=>
+      `<label class="sc-swatch"><span>${GRADE_LABELS[k]}</span><input type="color" data-gk="${k}" value="${normalizeHex(seatGradeWork.grades[k])||"#888888"}"></label>`
+    ).join("");
+    box.querySelectorAll("input[data-gk]").forEach(inp=>{
+      inp.addEventListener("input", ()=>{ seatGradeWork.grades[inp.dataset.gk] = inp.value; scOnEdit("grade"); });
+      inp.addEventListener("change", saveState);
+    });
+  } else {
+    const box = document.getElementById("heatSwatches"); if(!box) return;
+    const max = seatHeatWork.heatMax;
+    box.innerHTML = seatHeatWork.heat.map((c,i)=>{
+      const n = i+1, hide = n>max ? ' style="display:none;"' : "";
+      return `<label class="sc-swatch"${hide}><span>${n}</span><input type="color" data-hi="${i}" value="${normalizeHex(c)||"#888888"}"></label>`;
+    }).join("");
+    box.querySelectorAll("input[data-hi]").forEach(inp=>{
+      inp.addEventListener("input", ()=>{ seatHeatWork.heat[+inp.dataset.hi] = inp.value; scOnEdit("heat"); });
+      inp.addEventListener("change", saveState);
+    });
+  }
+}
+
+// HSL(h:0-360, s·l:0-100) → #rrggbb
+function hslToHex(h, s, l){
+  s/=100; l/=100;
+  const k = n => (n + h/30) % 12;
+  const a = s * Math.min(l, 1-l);
+  const f = n => Math.round(255 * (l - a * Math.max(-1, Math.min(k(n)-3, 9-k(n), 1))));
+  const to = x => x.toString(16).padStart(2, "0");
+  return "#" + to(f(0)) + to(f(8)) + to(f(4));
+}
+// 랜덤 색상: 등급=색상환에 고르게 분산된 랜덤색, 히트맵=두 색 사이 그라디언트 램프.
+function scRandomizeColors(){
+  const rint = n => Math.floor(Math.random()*n);
+  const baseHue = rint(360);
+  GRADE_KEYS.forEach((k,i)=>{
+    const hue = (baseHue + i*67) % 360;
+    seatGradeWork.grades[k] = hslToHex(hue, 42 + rint(34), 40 + rint(18));
+  });
+  const h1 = rint(360), h2 = h1 + 120 + rint(160);   // 램프 방향(색상환 한 바퀴 안 넘게 선형 보간)
+  for(let i=0;i<HEAT_STEPS;i++){
+    const t = i/(HEAT_STEPS-1);
+    seatHeatWork.heat[i] = hslToHex(((h1 + (h2-h1)*t) % 360 + 360) % 360, 62 + rint(22), 46 + Math.round(t*10));
+  }
+  seatGradeWork.dirty = true; seatHeatWork.dirty = true;
+  scReloadUI("grade"); scReloadUI("heat");
+  // 색을 새로 뽑았으니 프리뷰는 '랜덤 섞기'로 — 서로 다른 숫자가 인접했을 때 구분되는지 확인.
+  scPreviewMode = "random";
+  scPreviewSeed = (scPreviewSeed*7 + Math.floor(Math.random()*99991) + 1) >>> 0;
+  scApplyLive(); saveState();
+}
+
+/* ── 프리뷰 팝업 ── */
+let scPreviewMode = "mine";   // "mine" | "random"
+let scPreviewSeed = 1;
+// 시드+좌석id 해시 → 관극수. 미관극은 소수만, 나머지는 1..max+1 균등 → 숫자가 골고루 섞여 보인다.
+function scRandomCountFn(seed){
+  return (id)=>{
+    let h = (seed ^ 0x9e3779b9) >>> 0;
+    for(let i=0;i<id.length;i++){ h = Math.imul(h ^ id.charCodeAt(i), 0x01000193) >>> 0; }
+    h ^= h >>> 15;                                          // 비트 확산(인접 좌석도 잘 섞이게)
+    const max = Math.max(1, Math.min(HEAT_STEPS, heatConfig().heatMax || HEAT_STEPS));
+    if((h & 0xff) >= 38) return 0;                          // 전체의 ~15%만 채움(나머지 미관극)
+    return 1 + ((h >>> 8) % (max + 1));                     // 1..max+1 균등(max 초과=클램프 확인)
+  };
+}
+function openSeatColorPreview(){
+  const ov = document.getElementById("seatColorPreviewOverlay"); if(!ov) return;
+  seatColorPreviewForce = true; applySeatColors();
+  // scPreviewMode 유지(랜덤 색상 직후엔 'random'으로 섞여 보임). 최초 기본은 '내자리'.
+  ov.style.display = "flex";
+  updateSeatColorPreview();
+}
+function closeSeatColorPreview(){
+  const ov = document.getElementById("seatColorPreviewOverlay"); if(!ov) return;
+  ov.style.display = "none";
+  seatColorPreviewForce = false; applySeatColors(); renderSeatMap(true);
+}
+function updateSeatColorPreview(){
+  const ov = document.getElementById("seatColorPreviewOverlay");
+  if(!ov || ov.style.display === "none") return;
+  const countFn = scPreviewMode === "random" ? scRandomCountFn(scPreviewSeed) : null;
+  const { markup, bbox } = buildSeatSvgInner(null, countFn);
+  const vp = document.getElementById("scPreviewViewport");
+  if(vp) vp.innerHTML = `<svg viewBox="${vbString(bbox)}" preserveAspectRatio="xMidYMid meet" style="width:100%; height:auto; max-height:68vh;">${markup}</svg>`;
+  const lg = document.getElementById("scPreviewLegend");
+  if(lg) lg.innerHTML =
+    performanceData.grades.map(g=>`<span><i style="background:${gradeFillVar(g.name)};"></i>${g.name}</span>`).join("")
+    + `<span><i style="background:var(--g-none); opacity:0.30;"></i>본 적 없음</span>`
+    + `<span class="legend-break"></span><span style="color:var(--ink-dim);">관극 횟수</span>`
+    + `<span class="cnt-scale">` + heatScaleNums().map(n=>`<span class="cnt-dot" style="background:${countHeatColor(n)};">${n}</span>`).join("") + `</span>`;
+  document.getElementById("scPreviewMine")?.classList.toggle("active", scPreviewMode==="mine");
+  document.getElementById("scPreviewRandom")?.classList.toggle("active", scPreviewMode==="random");
+}
+
+function setupSeatColorUI(){
+  const toggle = document.getElementById("optSeatColor");
+  if(!toggle) return;
+  seedSeatGradeWork();
+  toggle.checked = seatColorEnabled;
+  scReloadUI("grade"); scReloadUI("heat");
+  const hm = document.getElementById("heatMaxSelect");
+  if(hm){
+    hm.innerHTML = Array.from({length:HEAT_STEPS}, (_,i)=>`<option value="${i+1}">${i+1}</option>`).join("");
+    hm.value = String(seatHeatWork.heatMax);
+  }
+
+  toggle.addEventListener("change", ()=>{
+    seatColorEnabled = toggle.checked;
+    applySeatColors(); renderSeatMap(true); saveState();
+  });
+  document.getElementById("gradePresetSelect")?.addEventListener("change", e=>{
+    if(e.target.value !== "__cur__") scLoadPreset("grade", e.target.value); else e.target.value="__cur__";
+  });
+  document.getElementById("heatPresetSelect")?.addEventListener("change", e=>{
+    if(e.target.value !== "__cur__") scLoadPreset("heat", e.target.value); else e.target.value="__cur__";
+  });
+  document.getElementById("gradePresetSave")?.addEventListener("click", ()=>scSave("grade"));
+  document.getElementById("gradePresetSaveAs")?.addEventListener("click", ()=>scSaveAs("grade"));
+  document.getElementById("heatPresetSave")?.addEventListener("click", ()=>scSave("heat"));
+  document.getElementById("heatPresetSaveAs")?.addEventListener("click", ()=>scSaveAs("heat"));
+  hm?.addEventListener("change", ()=>{
+    seatHeatWork.heatMax = Math.max(1, Math.min(HEAT_STEPS, parseInt(hm.value,10)||HEAT_STEPS));
+    seatHeatWork.dirty = true;
+    scRenderPresetSelect("heat"); scRenderSwatches("heat"); scApplyLive(); saveState();
+  });
+  document.getElementById("seatColorRandomBtn")?.addEventListener("click", scRandomizeColors);
+  document.getElementById("seatColorPreviewBtn")?.addEventListener("click", openSeatColorPreview);
+  document.getElementById("scPreviewClose")?.addEventListener("click", closeSeatColorPreview);
+  document.getElementById("scPreviewMine")?.addEventListener("click", ()=>{ scPreviewMode="mine"; updateSeatColorPreview(); });
+  document.getElementById("scPreviewRandom")?.addEventListener("click", ()=>{
+    scPreviewMode="random"; scPreviewSeed = (scPreviewSeed*7 + Math.floor(Math.random()*99991) + 1) >>> 0; updateSeatColorPreview();
+  });
+  document.getElementById("seatColorPreviewOverlay")?.addEventListener("click", e=>{
+    if(e.target.id === "seatColorPreviewOverlay") closeSeatColorPreview();  // 바깥 클릭 닫기
+  });
+}
+
+// 저장/복원 헬퍼
+function snapshotSeatColor(){
+  return {
+    seatColorEnabled,
+    seatGradeWork: { baseId:seatGradeWork.baseId, dirty:seatGradeWork.dirty, grades:seatGradeWork.grades ? { ...seatGradeWork.grades } : null },
+    seatGradePresets: seatGradePresets.map(p=>({ id:p.id, name:p.name, grades:{ ...p.grades } })),
+    seatHeatWork: { baseId:seatHeatWork.baseId, dirty:seatHeatWork.dirty, heat:seatHeatWork.heat.slice(), heatMax:seatHeatWork.heatMax },
+    seatHeatPresets: seatHeatPresets.map(p=>({ id:p.id, name:p.name, heat:p.heat.slice(), heatMax:p.heatMax }))
+  };
+}
+function restoreSeatColor(state){
+  if(typeof state.seatColorEnabled === "boolean") seatColorEnabled = state.seatColorEnabled;
+  const gw = state.seatGradeWork;
+  if(gw && typeof gw === "object"){
+    seatGradeWork.baseId = (typeof gw.baseId === "string") ? gw.baseId : null;
+    seatGradeWork.dirty = !!gw.dirty;
+    if(gw.grades && typeof gw.grades === "object"){
+      const g = {}; GRADE_KEYS.forEach(k=>{ g[k] = normalizeHex(gw.grades[k]) || themeGradeColor(k); });
+      seatGradeWork.grades = g;
+    }
+  }
+  if(Array.isArray(state.seatGradePresets)){
+    seatGradePresets = state.seatGradePresets.filter(p=>p && p.id && p.grades).map(p=>{
+      const g = {}; GRADE_KEYS.forEach(k=>{ g[k] = normalizeHex(p.grades[k]) || "#888888"; });
+      return { id:String(p.id), name:String(p.name||"프리셋"), grades:g };
+    });
+  }
+  const hw = state.seatHeatWork;
+  if(hw && typeof hw === "object"){
+    seatHeatWork.baseId = (typeof hw.baseId === "string") ? hw.baseId : null;
+    seatHeatWork.dirty = !!hw.dirty;
+    if(Array.isArray(hw.heat)) seatHeatWork.heat = normalizeHeatArr(hw.heat);
+    if(Number.isFinite(hw.heatMax)) seatHeatWork.heatMax = Math.max(1, Math.min(HEAT_STEPS, hw.heatMax));
+  }
+  if(Array.isArray(state.seatHeatPresets)){
+    seatHeatPresets = state.seatHeatPresets.filter(p=>p && p.id && Array.isArray(p.heat)).map(p=>({
+      id:String(p.id), name:String(p.name||"프리셋"), heat:normalizeHeatArr(p.heat),
+      heatMax:Math.max(1, Math.min(HEAT_STEPS, Number.isFinite(p.heatMax)?p.heatMax:HEAT_STEPS))
+    }));
+  }
+}
+function normalizeHeatArr(arr){
+  const out = COUNT_HEAT.slice();
+  for(let i=0;i<HEAT_STEPS;i++){ const h = normalizeHex(arr[i]); if(h) out[i] = h; }
+  return out;
+}
+
 function buildStateSnapshot(){
   return {
     performances: performanceData.performances.map(p=>({seat:p.seat, note:p.note, ticketType:p.ticketType||"", ticketFee:!!p.ticketFee, ticketDiscount:(p.ticketDiscount!=null?p.ticketDiscount:null), ticketExtra:(p.ticketExtra||0), ticketTransferred:!!p.ticketTransferred, extraTickets:(Array.isArray(p.extraTickets)?p.extraTickets:[])})),
@@ -2755,6 +3064,8 @@ function buildStateSnapshot(){
     seatMapFilterActive: seatMapFilterActive,
     seatMapFilter: Object.fromEntries(Object.entries(seatMapFilter).map(([k,v])=>[k,[...v]])),
     colorTheme: colorTheme,
+    // 시트맵 색상 커스터마이즈(등급색·히트맵 + 프리셋)
+    ...snapshotSeatColor(),
     // 스케줄 가로 스크롤 날짜 식별 옵션
     floatDateOn: floatDateOn,
     rowHighlightOn: rowHighlightOn,
@@ -2853,6 +3164,7 @@ function applyState(state){
     Object.entries(state.seatMapFilter).forEach(([k,v])=>{ seatMapFilter[k] = new Set(v); });
   }
   if(typeof state.colorTheme === "string" && COLOR_THEMES.includes(state.colorTheme)) colorTheme = state.colorTheme;
+  restoreSeatColor(state);   // 시트맵 색상 커스터마이즈 복원
 
   if(typeof state.floatDateOn === "boolean") floatDateOn = state.floatDateOn;
   if(typeof state.rowHighlightOn === "boolean") rowHighlightOn = state.rowHighlightOn;
@@ -3550,7 +3862,9 @@ document.getElementById("importSettingsFile").addEventListener("change", e=>{
 document.getElementById("resetSettingsBtn").addEventListener("click", ()=>{
   if(!confirm("화면 설정·필터·테마·통계 구성 등을 초기화할까요?\n입력한 좌석·티켓·메모는 그대로 유지됩니다.")) return;
   const snap = buildStateSnapshot();
-  localStorage.setItem(STORAGE_KEY, JSON.stringify({ performances: snap.performances }));
+  // 시트맵 색상 프리셋은 사용자 데이터라 초기화에서도 보존(토글만 끔)
+  const keep = snapshotSeatColor(); keep.seatColorEnabled = false;
+  localStorage.setItem(STORAGE_KEY, JSON.stringify({ performances: snap.performances, ...keep }));
   location.reload();
 });
 
@@ -3743,6 +4057,9 @@ async function init(){
 
   loadStateFromStorage();
   applyColorTheme(); // 저장된 컬러 테마 적용
+  seedSeatGradeWork();      // 등급 작업색이 없으면 현재 테마색으로 시드
+  applySeatColors();        // 커스텀 등급색 인라인 주입(토글 ON일 때)
+  setupSeatColorUI();       // 시트맵 색상 설정 UI 연결
   setupScheduleOptions();   // 스케줄 보기 옵션 체크박스 연결(저장값 반영)
   applyFinaleVisibility();  // Finale 탭 표시/숨김(기본 OFF)
   setupScheduleScrollLock(); // 방법3: 가로 드래그 중 세로 스크롤 잠금
