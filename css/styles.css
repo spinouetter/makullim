@@ -844,6 +844,15 @@
   .sc-preview-actions button.active{ border-color:var(--gold); background:color-mix(in srgb, var(--gold) 16%, transparent); }
   .sc-preview-viewport{ background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:10px; }
   .sc-preview-viewport svg{ display:block; }
+  /* 모바일: 스와치를 줄여 히트맵 10개가 한눈에 들어오게 */
+  @media (max-width: 520px){
+    .sc-block{ padding:10px; }
+    .sc-head{ gap:6px; }
+    .sc-preset{ min-width:96px; }
+    .sc-swatches{ gap:6px; }
+    .sc-swatch{ font-size:10px; gap:2px; }
+    .sc-swatch input[type="color"]{ width:26px; height:24px; }
+  }
 
   .seatmap-right-group{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
   #seatFilterBtn{ position:relative; }
