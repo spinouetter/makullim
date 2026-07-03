@@ -821,6 +821,30 @@
   .theme-btn i{ width:13px; height:13px; border-radius:50%; display:inline-block; }
   .theme-btn.active{ border-color:var(--gold); color:var(--ink); background:color-mix(in srgb, var(--gold) 14%, transparent); }
 
+  /* 시트맵 색상 커스터마이즈 */
+  #seatColorPanel{ margin-top:10px; }
+  .sc-block{ background:var(--panel2); border:1px solid var(--line); border-radius:10px; padding:12px 14px; margin-bottom:12px; }
+  .sc-head{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:10px; }
+  .sc-title{ font-size:13px; font-weight:700; color:var(--ink); margin-right:2px; }
+  .sc-preset{ font:inherit; font-size:12px; background:var(--panel); color:var(--ink); border:1px solid var(--line); border-radius:6px; padding:3px 6px; min-width:120px; max-width:60vw; }
+  .sc-btn{ font:inherit; font-size:12px; background:var(--panel); color:var(--ink); border:1px solid var(--line); border-radius:6px; padding:4px 10px; cursor:pointer; }
+  .sc-btn:hover{ border-color:var(--gold); }
+  .sc-actions{ display:flex; gap:8px; flex-wrap:wrap; }
+  .sc-preview-btn{ margin-top:0; }
+  .sc-maxrow{ display:flex; align-items:center; gap:6px; font-size:12px; color:var(--ink); margin-bottom:10px; }
+  .sc-maxrow select{ font:inherit; background:var(--panel); color:var(--ink); border:1px solid var(--line); border-radius:6px; padding:2px 6px; }
+  .sc-hint{ color:var(--ink-dim); font-size:11px; }
+  .sc-swatches{ display:flex; flex-wrap:wrap; gap:10px; }
+  .sc-swatch{ display:inline-flex; flex-direction:column; align-items:center; gap:3px; font-size:11px; color:var(--ink-dim); cursor:pointer; }
+  .sc-swatch input[type="color"]{ width:38px; height:28px; padding:0; border:1px solid var(--line); border-radius:6px; background:none; cursor:pointer; }
+  /* 프리뷰 팝업 */
+  .sc-preview-bar{ display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px; flex-wrap:wrap; }
+  .sc-preview-actions{ display:flex; gap:6px; }
+  .sc-preview-actions button{ font:inherit; font-size:12px; background:var(--panel2); color:var(--ink); border:1px solid var(--line); border-radius:6px; padding:5px 12px; cursor:pointer; }
+  .sc-preview-actions button.active{ border-color:var(--gold); background:color-mix(in srgb, var(--gold) 16%, transparent); }
+  .sc-preview-viewport{ background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:10px; }
+  .sc-preview-viewport svg{ display:block; }
+
   .seatmap-right-group{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
   #seatFilterBtn{ position:relative; }
   .filter-count{
