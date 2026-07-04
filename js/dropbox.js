@@ -248,8 +248,10 @@
   }
 
   async function boot(){
-    await handleRedirect();   // OAuth 복귀면 토큰 교환
+    const returned = await handleRedirect();   // OAuth 복귀면 토큰 교환
     render();
+    // Dropbox 인증에서 돌아온 경우, 홈(스케줄) 대신 설정 페이지로 이동
+    if(returned && typeof window.activateTab === "function") window.activateTab("settings", true);
   }
   if(document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);
   else boot();
