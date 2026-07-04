@@ -28,6 +28,7 @@ function computeSeatBBox(){
    - ?show=<id|slug> : 로컬 개발에서 다른 공연 선택용
    공연 파일 안의 상대경로는 공연 폴더(/shows/<id>/) 기준, "/"로 시작하면 사이트 루트 기준. */
 let SHOW_BASE = "";   // "/shows/<id>/" — resolveShowMeta()가 채운다
+let currentShowId = "";   // 현재 공연 id(=meta.id) — 공연 전환 드롭다운에서 사용
 function showUrl(p){ return /^(\/|https?:)/.test(p) ? p : SHOW_BASE + p; }
 window.showUrl = showUrl;   // finale.js 등에서 사용
 
@@ -69,6 +70,7 @@ async function loadData(){
   // 공연 정의를 먼저 읽어 데이터 폴더와 극장 파일을 결정한다.
   const meta = await resolveShowMeta(j);
   SHOW_BASE = "/shows/" + meta.id + "/";
+  currentShowId = meta.id;
   setupStorageNamespace(meta.id); // 막올림별 localStorage 네임스페이스 설정
   const theatrePath = meta.theatre || "/theatres/default.json";
   const [seatmap, grades, casts, schedule] = await Promise.all([
@@ -3996,6 +3998,35 @@ document.getElementById("applySeatJsonTextBtn").addEventListener("click", ()=>{
   }
 });
 
+// 다른 공연 전환 드롭다운(설정 맨 아래). shows 레지스트리에서 목록을 읽어 채운다.
+//  선택 시: 배포 도메인이면 그 공연 고정 주소 /<slug>/, 로컬이면 ?show=<id> 로 이동.
+async function setupShowSwitcher(){
+  const sel = document.getElementById("showSelect");
+  const section = document.getElementById("showSwitchSection");
+  if(!sel || !section) return;
+  const j = async (path)=>{ const r = await fetch(path, { cache:"no-store" }); if(!r.ok) throw new Error(path); return r.json(); };
+  let shows = [];
+  try{
+    const idx = await j("/shows/index.json");
+    const ids = Array.isArray(idx.shows) ? idx.shows : [];
+    shows = (await Promise.all(ids.map(id => j("/shows/" + id + ".json").catch(()=>null)))).filter(Boolean);
+  }catch(e){ console.warn("공연 목록 로드 실패:", e.message); return; }
+  if(shows.length < 2) return;   // 전환할 다른 공연이 없으면 섹션 숨김 유지
+
+  sel.innerHTML = shows.map(s =>
+    `<option value="${escHtml(s.id)}" data-slug="${escHtml(s.slug || "")}"${s.id === currentShowId ? " selected" : ""}>${escHtml(s.title || s.id)}</option>`
+  ).join("");
+  section.style.display = "";
+
+  sel.addEventListener("change", ()=>{
+    const opt = sel.options[sel.selectedIndex];
+    const id = opt.value, slug = opt.dataset.slug || id;
+    if(id === currentShowId) return;
+    if(LOCAL_HOSTS.has(location.hostname)) location.assign(location.pathname + "?show=" + encodeURIComponent(id));
+    else location.assign("/" + slug + "/");
+  });
+}
+
 /* =========================================================
    스케줄 보기 옵션 (방법1 플로팅 / 방법2 하이라이트 / 방법3 세로 잠금)
    ========================================================= */
@@ -4154,6 +4185,7 @@ async function init(){
   seedSeatGradeWork();      // 등급 작업색이 없으면 현재 테마색으로 시드
   applySeatColors();        // 커스텀 등급색 인라인 주입(토글 ON일 때)
   setupSeatColorUI();       // 시트맵 색상 설정 UI 연결
+  setupShowSwitcher();      // 다른 공연 전환 드롭다운(설정 맨 아래)
   setupScheduleOptions();   // 스케줄 보기 옵션 체크박스 연결(저장값 반영)
   applyFinaleVisibility();  // Finale 탭 표시/숨김(기본 OFF)
   setupScheduleScrollLock(); // 방법3: 가로 드래그 중 세로 스크롤 잠금
