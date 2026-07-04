@@ -6,6 +6,7 @@
 - 화면: **Schedule / Statistics / Seat map / Finale / Settings** 탭.
 
 ## 작업 방식 (중요)
+- **작업을 시작하기 전에 반드시 `git pull`(권장: `git pull --rebase origin main`)로 최신 origin/main을 받는다.** 다른 협업자/에이전트가 동시에 작업 중이라 원격이 앞서 있을 수 있다. 커밋·push 전에도 `git fetch`로 원격 변경을 다시 확인하고, 분기됐으면 rebase 후 진행한다.
 - 작업은 기본적으로 **`requests/NNNN.md`** 요청한다. 다만 대화도 가능하다.
   - `TEMPLATE.md` 복사 → "## 요청 (작성: Spinouetter)" 칸만 사용자가 채운다.
   - Claude는 같은 파일의 **정리/할 일/결정 사항/상태** 칸과 **첫 줄 제목**(`# 요청 #NNNN — 제목`)을 채운다. 요청 칸은 건드리지 않는다. 규칙 전체는 `requests/README.md`.
