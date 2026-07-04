@@ -1,0 +1,21 @@
+{
+  "id": "betm-skorea-2021",
+  "slug": "billy2021",
+  "title": "빌리 엘리어트 더 뮤지컬 (2021)",
+  "theatre": "/theatres/bluesquare_wooribank_hall.json",
+  "startDate": "2021-08-31",
+  "endDate": "2022-02-13",
+  "runningtime": 180,
+  "stats": {
+    "pinnedRoles": ["빌리", "마이클"],
+    "presetCombos": [
+      { "id": "billyxmichael", "roles": ["빌리", "마이클"] },
+      {
+        "id": "dreamballet",
+        "label": "드림 발레 페어 (빌리 × 성인빌리)",
+        "roles": ["빌리", "성인빌리"],
+        "pointRoles": { "빌리": 7 }
+      }
+    ]
+  }
+}

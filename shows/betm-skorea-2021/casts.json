@@ -1,0 +1,231 @@
+[
+  {
+    "id": "billy",
+    "role": "빌리",
+    "fullName": "빌리 엘리엇",
+    "actors": [
+      {
+        "name": "이우진",
+        "role": "cast"
+      },
+      {
+        "name": "김시훈",
+        "role": "cast"
+      },
+      {
+        "name": "주현준",
+        "role": "cast"
+      },
+      {
+        "name": "전강혁",
+        "role": "cast"
+      }
+    ]
+  },
+  {
+    "id": "michael",
+    "role": "마이클",
+    "fullName": "마이클 캐프리",
+    "actors": [
+      {
+        "name": "성주환",
+        "role": "cast"
+      },
+      {
+        "name": "나다움",
+        "role": "cast"
+      },
+      {
+        "name": "강현중",
+        "role": "cast"
+      },
+      {
+        "name": "임동빈",
+        "role": "cast"
+      }
+    ]
+  },
+  {
+    "id": "debbie",
+    "role": "데비",
+    "fullName": "데비 윌킨슨",
+    "actors": [
+      {
+        "name": "이윤슬",
+        "role": "cast"
+      },
+      {
+        "name": "성아인",
+        "role": "cast"
+      },
+      {
+        "name": "김근영",
+        "role": "cast"
+      }
+    ]
+  },
+  {
+    "id": "small_boy",
+    "role": "스몰보이",
+    "actors": [
+      {
+        "name": "이서준",
+        "role": "cast"
+      },
+      {
+        "name": "김민준",
+        "role": "cast"
+      },
+      {
+        "name": "진석후",
+        "role": "cast"
+      }
+    ]
+  },
+  {
+    "id": "tall_boy",
+    "role": "톨보이",
+    "actors": [
+      {
+        "name": "유준석",
+        "role": "cast"
+      },
+      {
+        "name": "윤준상",
+        "role": "cast"
+      }
+    ]
+  },
+  {
+    "id": "mrs_wilkinson",
+    "role": "Mrs. 윌킨슨",
+    "fullName": "산드라 윌킨슨",
+    "actors": [
+      {
+        "name": "김영주",
+        "role": "cast"
+      },
+      {
+        "name": "최정원",
+        "role": "cast"
+      }
+    ]
+  },
+  {
+    "id": "dad",
+    "role": "아빠",
+    "fullName": "재키 엘리엇",
+    "actors": [
+      {
+        "name": "최명경",
+        "role": "cast"
+      },
+      {
+        "name": "조정근",
+        "role": "cast"
+      }
+    ]
+  },
+  {
+    "id": "grandma",
+    "role": "할머니",
+    "fullName": "에드나",
+    "actors": [
+      {
+        "name": "홍윤희",
+        "role": "cast"
+      },
+      {
+        "name": "박정자",
+        "role": "cast"
+      }
+    ]
+  },
+  {
+    "id": "tony",
+    "role": "토니",
+    "fullName": "토니 엘리엇",
+    "actors": [
+      {
+        "name": "김시영",
+        "role": "cast"
+      },
+      {
+        "name": "고철순",
+        "role": "cast"
+      }
+    ]
+  },
+  {
+    "id": "dead_mum",
+    "role": "데드맘",
+    "fullName": "제니 엘리엇",
+    "actors": [
+      {
+        "name": "김명희",
+        "role": "cast"
+      }
+    ]
+  },
+  {
+    "id": "old_billy",
+    "role": "성인빌리",
+    "actors": [
+      {
+        "name": "김명윤",
+        "role": "cast"
+      },
+      {
+        "name": "이선태",
+        "role": "cast"
+      },
+      {
+        "name": "서재민",
+        "role": "cast"
+      }
+    ]
+  },
+  {
+    "id": "george",
+    "role": "조지",
+    "fullName": "조지 왓슨",
+    "actors": [
+      {
+        "name": "오세준",
+        "role": "cast"
+      },
+      {
+        "name": "서만석",
+        "role": "cast"
+      }
+    ]
+  },
+  {
+    "id": "mr_braithwaite",
+    "role": "브레이스웨이트",
+    "shortName": "브웨",
+    "actors": [
+      {
+        "name": "이진하",
+        "role": "cast"
+      }
+    ]
+  },
+  {
+    "id": "ballet_girls",
+    "role": "발레걸즈",
+    "group": true,
+    "actors": [
+      {
+        "id": "bedlington",
+        "name": "베들링턴",
+        "role": "cast"
+      },
+      {
+        "id": "ashington",
+        "name": "애싱턴",
+        "role": "cast"
+      }
+    ]
+  }
+]
