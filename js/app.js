@@ -170,7 +170,7 @@ let scheduleHiddenCols = new Set(); // 숨긴 컬럼(배역 이름 또는 COL_TI
 let scheduleOpenDropdownRole = null; // 현재 열려있는 드롭다운의 컬럼 키(배역 이름 또는 COL_TICKET/COL_PRICE)
 let showCastHistory = false; // 켜면 비중 0인 배우도 취소선과 함께 표시
 let memoPopoverIdx = null; // 현재 열려있는 메모 팝오버의 공연 인덱스
-// === 막공(마지막 공연) 표시 — 요청 0045 ===
+// === 막공(마지막 공연) 표시 — 요청 0046 ===
 let lastShowRoleOn = false;   // 배역별 막공: 각 배우가 그 배역에서 마지막으로 서는 회차 강조
 let lastShowPairOn = false;   // 페어막: 선택 배역 조합이 마지막으로 함께 서는 회차 강조
 let lastShowPairRoles = [];   // 페어막 배역 선택(선택 순서 유지 — 토글 on/off와 무관하게 보존)
@@ -371,7 +371,7 @@ function buildTicketPopover(idx, grade, tk){
     </div>`;
 }
 
-/* ===== 막공(마지막 공연) — 요청 0045 =====
+/* ===== 막공(마지막 공연) — 요청 0046 =====
    배역별 막공: 배역-배우별로 마지막 출연(비중>0) 회차 인덱스를 계산해 그 셀의 이름을 강조.
    페어막: 선택 배역들의 '그날 배우 구성' 조합별 마지막 회차를 계산해 그 행의 선택 배역 셀들을
    타원(알약) 테두리 하나로 묶는다. 기준은 필터와 무관하게 전체 스케줄. */
@@ -2927,7 +2927,7 @@ document.getElementById("comboCreateBtn").addEventListener("click", ()=>{
     return sortedExisting.length===sortedNew.length && sortedExisting.every((r,i)=>r===sortedNew[i]);
   });
   if(duplicate){
-    showToast(`"${comboRoleSelection.join(" × ")}" 조합이 이미 존재합니다.`);
+    showToast(`"${comboRoleSelection.join(" × ")}" 페어가 이미 존재합니다.`);
     return;
   }
 
@@ -3297,7 +3297,7 @@ function buildStateSnapshot(){
     etcStatsOrder: [...etcStatsOrder],
     collapsedEtcStats: [...collapsedEtcStats],
     showCastHistory: showCastHistory,
-    // 막공(마지막 공연) 표시 설정 — 요청 0045
+    // 막공(마지막 공연) 표시 설정 — 요청 0046
     lastShowRoleOn: lastShowRoleOn,
     lastShowPairOn: lastShowPairOn,
     lastShowPairRoles: [...lastShowPairRoles],
@@ -4341,7 +4341,7 @@ async function init(){
   setupSeatColorUI();       // 시트맵 색상 설정 UI 연결
   setupShowSwitcher();      // 다른 공연 전환 드롭다운(설정 맨 아래)
   setupScheduleOptions();   // 스케줄 보기 옵션 체크박스 연결(저장값 반영)
-  setupLastShowModal();     // 막공(마지막 공연) 설정 오버레이 연결 — 요청 0045
+  setupLastShowModal();     // 막공(마지막 공연) 설정 오버레이 연결 — 요청 0046
   applyFinaleVisibility();  // Finale 탭 표시/숨김(기본 OFF)
   setupScheduleScrollLock(); // 방법3: 가로 드래그 중 세로 스크롤 잠금
 
