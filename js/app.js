@@ -83,7 +83,9 @@ async function loadData(){
     startDate: meta.startDate || "",
     endDate: meta.endDate || "",
     runningtime: (typeof meta.runningtime === "number" && meta.runningtime > 0) ? meta.runningtime : 180, // 분
-    grades: grades, casts: casts, performances: schedule
+    grades: grades, casts: casts, performances: schedule,
+    // 통계 프리셋·고정 배역 설정(선택) — showStatsConfig()/presetComboEntries() 참조
+    statsConfig: (meta.stats && typeof meta.stats === "object") ? meta.stats : {}
   };
   // 공휴일(있으면): 날짜 -> 이름. 공연과 무관한 공용 데이터(data/). 없어도 동작하도록 비-치명적으로 로드.
   try{ holidays = await j("/data/holidays.json"); } catch(e){ console.warn("holidays.json 로드 실패:", e.message); holidays = {}; }
@@ -1387,7 +1389,7 @@ function renderStats(){
           <button class="role-toggle" data-role="${escHtml(c.role)}" style="display:flex; align-items:center; gap:6px; background:none; border:none; cursor:pointer; padding:0; font-size:13px; font-weight:700; color:var(--gold); flex:1; text-align:left;">
             <span class="role-toggle-arrow">${isCollapsed ? "&#9656;" : "&#9662;"}</span> ${escHtml(c.role)}
           </button>
-          ${(c.role==="빌리"||c.role==="마이클") ? "" : `<button class="role-stat-del-btn stat-del-btn" data-role="${escHtml(c.role)}" title="${escHtml(c.role)} 삭제">삭제</button>`}
+          ${pinnedRoleStats().includes(c.role) ? "" : `<button class="role-stat-del-btn stat-del-btn" data-role="${escHtml(c.role)}" title="${escHtml(c.role)} 삭제">삭제</button>`}
         </div>
         <table class="role-stat-table" style="${isCollapsed ? 'display:none;' : ''}">
           <thead><tr><th>배우 이름</th><th>전체</th><th>종료</th><th>관극</th><th>예매</th></tr></thead>
@@ -2456,11 +2458,25 @@ function cartesian(arrs){
   return arrs.reduce((acc,curr)=>acc.flatMap(a=>curr.map(c=>[...a,c])), [[]]);
 }
 
-// 프리셋 ID 목록 (순서 변경 가능, 삭제 불가)
-const PRESET_IDS = ["preset-billyxmichael", "preset-dreamballet"];
+/* 프리셋(고정) 통계는 공연 정의(shows/<id>.json)의 stats 항목이 규정한다 — 코드에 배역명 하드코딩 금지:
+     stats.pinnedRoles   : 배역 통계에서 삭제 버튼을 숨길 배역명 배열
+     stats.presetCombos  : 항상 표시할 조합 통계 [{id, roles, label?, pointRoles?}] — 블록 id는 "preset-<id>"
+                           (기존 localStorage의 순서·접힘 상태와 호환되도록 id 규칙 유지)
+       - label      : 블록 제목(없으면 "배역 × 배역")
+       - pointRoles : {배역명: 비중지점} — 그 배역을 "해당 지점 담당 배우 1명"으로 좁혀 짝을 세는
+                      특수 조합(예: 드림 발레 페어 = {"빌리": 7}, 씬7 담당 빌리 × 성인빌리) */
+function showStatsConfig(){ return (performanceData && performanceData.statsConfig) || {}; }
+function pinnedRoleStats(){ const s = showStatsConfig(); return Array.isArray(s.pinnedRoles) ? s.pinnedRoles : []; }
+function presetComboEntries(){
+  const s = showStatsConfig();
+  return (Array.isArray(s.presetCombos) ? s.presetCombos : [])
+    .filter(p => p && p.id && Array.isArray(p.roles))
+    .map(p => ({ id: "preset-" + p.id, roles: p.roles, label: p.label, pointRoles: p.pointRoles, isPreset: true }));
+}
 
-// 씬 7을 담당한 빌리 배우 반환 (누적 weight 기준. 동점/미달이면 마지막 배우)
-function getBillyAtScene7(entry, mode){
+// 비중 지점(point)을 담당한 배우 반환 (누적 weight 기준. 동점/미달이면 마지막 배우)
+// 예: 빌리 씬7 담당 = castAtPoint(p.cast["빌리"], 7, mode). matchParticipant와 같은 개념(통계 모드 반영판).
+function castAtPoint(entry, point, mode){
   const items = parseCastWeighted(entry);
   if(!items.length) return null;
   if(mode==="first") return items[0].name;
@@ -2468,32 +2484,44 @@ function getBillyAtScene7(entry, mode){
     const started = items.find(it=>it.weight>0);
     return started ? started.name : items[0].name;
   }
-  // 'all' | 'weighted': 누적 weight로 씬7 담당 배우 찾기
+  // 'all' | 'weighted': 누적 weight로 point 담당 배우 찾기
   let cum = 0;
   for(const it of items){
     cum += it.weight;
-    if(cum >= 7) return it.name;
+    if(cum >= point) return it.name;
   }
   return items[items.length-1].name;
 }
 
-function buildDreamBalletHtml(isPreset){
+/* pointRoles가 있는 프리셋 조합(예: 드림 발레 페어) — 일반 조합과 달리,
+   pointRoles에 적힌 배역은 그 회차에서 "해당 비중 지점을 담당한 배우 1명"으로 좁혀 짝을 센다.
+   나머지 배역은 일반 조합처럼 통계 모드 기준 출연 배우 전원. */
+function buildPointComboHtml(def){
   const perfs = performanceData.performances;
-  const id = "preset-dreamballet";
+  const id = String(def.id);
+  const roles = def.roles;
+  const pointRoles = def.pointRoles || {};
   const isCollapsed = collapsedComboIds.has(id);
 
-  const seniorActors = (performanceData.casts.find(c=>c.role==="성인빌리") || {actors:[]}).actors.map(a=>a.name);
-  const billyActors  = (performanceData.casts.find(c=>c.role==="빌리")     || {actors:[]}).actors.map(a=>a.name);
-
+  // 로스터 조합을 0으로 미리 깔아 관측 0회 짝도 표에 보이게 한다(기존 드림 발레 표와 동일).
+  const actorLists = roles.map(role=>{
+    const roleInfo = performanceData.casts.find(c=>c.role===role);
+    return roleInfo ? roleInfo.actors.map(a=>a.name) : [];
+  });
   const pairMap = {};
-  billyActors.forEach(b=> seniorActors.forEach(s=>{ pairMap[`${b}|${s}`]={total:0,ended:0,watched:0,upcoming:0}; }));
+  cartesian(actorLists).forEach(t=>{ pairMap[t.join("|")] = {total:0,ended:0,watched:0,upcoming:0}; });
 
   perfs.forEach(p=>{
-    const dom = getBillyAtScene7(p.cast["빌리"], castStatsMode);
-    if(!dom) return;
-    const seniors = castNamesForMode(p.cast["성인빌리"], castStatsMode);
-    seniors.forEach(s=>{
-      const key = `${dom}|${s}`;
+    const namesPerRole = roles.map(role=>{
+      if(pointRoles[role] != null){
+        const dom = castAtPoint(p.cast[role], pointRoles[role], castStatsMode);
+        return dom ? [dom] : [];
+      }
+      return castNamesForMode(p.cast[role], castStatsMode);
+    });
+    if(namesPerRole.some(ns=>!ns.length)) return;
+    cartesian(namesPerRole).forEach(t=>{
+      const key = t.join("|");
       if(!pairMap[key]) pairMap[key] = {total:0,ended:0,watched:0,upcoming:0};
       pairMap[key].total++;
       if(isEnded(p)){
@@ -2505,15 +2533,17 @@ function buildDreamBalletHtml(isPreset){
     });
   });
 
-  const rows = Object.entries(pairMap).map(([key,s])=>{
-    const [billy,senior] = key.split("|");
-    return {tuple:[billy,senior], stats:s};
-  }).sort((a,b)=>{
-    const c = a.tuple[0].localeCompare(b.tuple[0],"ko"); return c!==0?c:a.tuple[1].localeCompare(b.tuple[1],"ko");
-  });
+  const rows = Object.entries(pairMap).map(([key,s])=>({ tuple: key.split("|"), stats: s }))
+    .sort((a,b)=>{
+      for(let k=0;k<a.tuple.length;k++){
+        const c = a.tuple[k].localeCompare(b.tuple[k],"ko");
+        if(c!==0) return c;
+      }
+      return 0;
+    });
 
-  const titleBar = buildComboTitleBar(id, "드림 발레 페어 (빌리 × 성인빌리)", true, isCollapsed);
-  const body = buildComboBody(rows, ["빌리","성인빌리"], isCollapsed);
+  const titleBar = buildComboTitleBar(id, def.label || roles.join(" × "), true, isCollapsed);
+  const body = buildComboBody(rows, roles, isCollapsed);
   return `<div class="combo-result-block" data-block-id="${id}">${titleBar}${body}</div>`;
 }
 
@@ -2568,7 +2598,7 @@ function buildComboBody(rows, rolesSelected, isCollapsed){
   return `<table class="role-stat-table" style="${isCollapsed ? 'display:none;' : ''}"><thead>${head}</thead><tbody>${body}</tbody></table>`;
 }
 
-function buildComboBlockHtml(id, rolesSelected, isPreset=false){
+function buildComboBlockHtml(id, rolesSelected, isPreset=false, label=null){
   const perfs = performanceData.performances;
 
   const actorLists = rolesSelected.map(role=>{
@@ -2628,27 +2658,32 @@ function buildComboBlockHtml(id, rolesSelected, isPreset=false){
   });
 
   const isCollapsed = collapsedComboIds.has(String(id));
-  const titleBar = buildComboTitleBar(id, rolesSelected.join(" × "), isPreset, isCollapsed);
+  const titleBar = buildComboTitleBar(id, label || rolesSelected.join(" × "), isPreset, isCollapsed);
   const body = buildComboBody(filteredRows, rolesSelected, isCollapsed);
   return `<div class="combo-result-block" data-block-id="${id}">${titleBar}${body}</div>`;
 }
 
 function getAllComboBlocks(){
+  const presets = presetComboEntries();
+  const presetIds = presets.map(p=>p.id);
+  // 이 공연의 stats 설정에 없는 프리셋 잔재 제거(예: 다른 공연의 프리셋이 저장돼 있던 경우)
+  comboBlocks = comboBlocks.filter(b=>!b.isPreset || presetIds.includes(String(b.id)));
   // 프리셋 항목이 comboBlocks 안에 없으면 앞에 삽입
-  const missingPresets = PRESET_IDS.filter(pid=>!comboBlocks.find(b=>b.id===pid));
-  if(missingPresets.length){
-    const presetEntries = [
-      {id:"preset-billyxmichael", roles:["빌리","마이클"], isPreset:true},
-      {id:"preset-dreamballet", isDreamBallet:true, isPreset:true}
-    ].filter(p=>missingPresets.includes(p.id));
-    comboBlocks = [...presetEntries, ...comboBlocks];
-  }
+  const missing = presets.filter(p=>!comboBlocks.find(b=>b.id===p.id));
+  if(missing.length) comboBlocks = [...missing, ...comboBlocks];
   return comboBlocks;
 }
 
 function buildAnyComboHtml(b){
-  if(b.isDreamBallet) return buildDreamBalletHtml(true);
-  return buildComboBlockHtml(b.id, b.roles, b.isPreset);
+  if(b.isPreset){
+    // 프리셋은 저장된 항목이 아니라 항상 현재 공연 정의(stats.presetCombos)로 렌더
+    // (예전에 저장된 {isDreamBallet:true} 같은 옛 형태도 id로 해석돼 호환)
+    const def = presetComboEntries().find(p=>p.id===String(b.id));
+    if(!def) return "";   // getAllComboBlocks가 걸러내지만 방어
+    if(def.pointRoles && Object.keys(def.pointRoles).length) return buildPointComboHtml(def);
+    return buildComboBlockHtml(def.id, def.roles, true, def.label);
+  }
+  return buildComboBlockHtml(b.id, b.roles, false);
 }
 
 function renderComboResults(){
