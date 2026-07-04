@@ -1529,34 +1529,44 @@ function renderStats(){
   const watchedShows = perfs.filter(p=>isEnded(p) && hasSeat(p)).length;
   const upcomingShows = perfs.filter(p=>!isEnded(p) && hasSeat(p)).length;
 
-  const cardsEl = document.getElementById("statTopCards");
-  cardsEl.innerHTML = `
-    <div class="stat-card"><div class="label">전체</div><div class="value">${totalShows}</div></div>
-    ${fin ? "" : `
-    <div class="stat-card"><div class="label">종료</div><div class="value">${endedShows}</div></div>
-    <div class="stat-card"><div class="label">남음</div><div class="value">${remainingShows}</div></div>`}
-    <div class="stat-card"><div class="label">관극</div><div class="value">${watchedShows}</div></div>
-    ${fin ? "" : `
-    <div class="stat-card"><div class="label">예매</div><div class="value">${upcomingShows}</div></div>`}
-  `;
-  cardsEl.style.gridTemplateColumns = `repeat(${fin ? 2 : 5},1fr)`;
-
   // 총 티켓 금액: 종료된 공연(지금까지 쓴 것) / 미래 공연(앞으로 쓸 것) / 전체
-  // 막 내린 공연은 전부 '쓴 금액'이므로 총액 하나만 표시
+  // (막 내린 공연은 상단 카드에 총액을 합쳐 한 줄로 보여주므로 카드보다 먼저 계산)
   let spentAmount = 0, upcomingAmount = 0;
   perfs.forEach(p=>{
     if(isCancelled(p)) return; // 취소된 공연은 금액 집계에서 제외
     const price = ticketPriceOf(p.seat, p.ticketType, p.ticketFee, (p.ticketDiscount!=null?p.ticketDiscount:null), p.ticketExtra) || 0;
     if(isEnded(p)) spentAmount += price; else upcomingAmount += price;
   });
+
+  const cardsEl = document.getElementById("statTopCards");
   const totalsEl = document.getElementById("ticketTotals");
-  totalsEl.innerHTML = `
-    ${fin ? "" : `
-    <div class="tt-card"><div class="label">지금까지 쓴 금액</div><div class="value">${formatKRW(spentAmount)}</div></div>
-    <div class="tt-card"><div class="label">앞으로 쓸 금액</div><div class="value">${formatKRW(upcomingAmount)}</div></div>`}
-    <div class="tt-card total"><div class="label">총액</div><div class="value">${formatKRW(spentAmount + upcomingAmount)}</div></div>
-  `;
-  totalsEl.style.gridTemplateColumns = `repeat(${fin ? 1 : 3},1fr)`;
+  if(fin){
+    // 막 내린 공연: 전체 · 관극 · 총액을 한 줄로
+    cardsEl.innerHTML = `
+      <div class="stat-card"><div class="label">전체</div><div class="value">${totalShows}</div></div>
+      <div class="stat-card"><div class="label">관극</div><div class="value">${watchedShows}</div></div>
+      <div class="stat-card"><div class="label">총액</div><div class="value">${formatKRW(spentAmount + upcomingAmount)}</div></div>
+    `;
+    cardsEl.style.gridTemplateColumns = "repeat(3,1fr)";
+    totalsEl.innerHTML = "";
+    totalsEl.style.display = "none";
+  } else {
+    cardsEl.innerHTML = `
+      <div class="stat-card"><div class="label">전체</div><div class="value">${totalShows}</div></div>
+      <div class="stat-card"><div class="label">종료</div><div class="value">${endedShows}</div></div>
+      <div class="stat-card"><div class="label">남음</div><div class="value">${remainingShows}</div></div>
+      <div class="stat-card"><div class="label">관극</div><div class="value">${watchedShows}</div></div>
+      <div class="stat-card"><div class="label">예매</div><div class="value">${upcomingShows}</div></div>
+    `;
+    cardsEl.style.gridTemplateColumns = "repeat(5,1fr)";
+    totalsEl.innerHTML = `
+      <div class="tt-card"><div class="label">지금까지 쓴 금액</div><div class="value">${formatKRW(spentAmount)}</div></div>
+      <div class="tt-card"><div class="label">앞으로 쓸 금액</div><div class="value">${formatKRW(upcomingAmount)}</div></div>
+      <div class="tt-card total"><div class="label">총액</div><div class="value">${formatKRW(spentAmount + upcomingAmount)}</div></div>
+    `;
+    totalsEl.style.display = "";
+    totalsEl.style.gridTemplateColumns = "repeat(3,1fr)";
+  }
 
   const now = new Date();
 
