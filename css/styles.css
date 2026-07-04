@@ -95,6 +95,19 @@
   :root[data-theme="meadow"], :root[data-theme="lavender"], :root[data-theme="paper"],
   :root[data-theme="swan"]{ color-scheme: light dark; }
 
+  /* 시스템(OS) 다크 모드일 때는 어두운 테마의 '흰 글씨'(--ink)를 살짝 낮춰 눈부심을 줄인다.
+     밝은 테마는 글씨가 어두우므로 대상 아님(제외). 이차 텍스트(--ink-dim)는 이미 회색이라 그대로. */
+  @media (prefers-color-scheme: dark){
+    :root,
+    :root[data-theme="midnight"], :root[data-theme="steel"], :root[data-theme="sage"],
+    :root[data-theme="rose"], :root[data-theme="red"], :root[data-theme="ocean"],
+    :root[data-theme="forest"], :root[data-theme="plum"], :root[data-theme="wine"],
+    :root[data-theme="lagoon"], :root[data-theme="coffee"], :root[data-theme="indigo"],
+    :root[data-theme="charcoal"], :root[data-theme="emerald"], :root[data-theme="sunset"]{
+      --ink: #d4d6da;
+    }
+  }
+
   *{box-sizing:border-box;}
   body{
     margin:0;
