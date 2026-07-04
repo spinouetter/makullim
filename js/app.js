@@ -170,7 +170,7 @@ let scheduleHiddenCols = new Set(); // 숨긴 컬럼(배역 이름 또는 COL_TI
 let scheduleOpenDropdownRole = null; // 현재 열려있는 드롭다운의 컬럼 키(배역 이름 또는 COL_TICKET/COL_PRICE)
 let showCastHistory = false; // 켜면 비중 0인 배우도 취소선과 함께 표시
 let memoPopoverIdx = null; // 현재 열려있는 메모 팝오버의 공연 인덱스
-// === 막공(마지막 공연) 표시 — 요청 0044 ===
+// === 막공(마지막 공연) 표시 — 요청 0045 ===
 let lastShowRoleOn = false;   // 배역별 막공: 각 배우가 그 배역에서 마지막으로 서는 회차 강조
 let lastShowPairOn = false;   // 페어막: 선택 배역 조합이 마지막으로 함께 서는 회차 강조
 let lastShowPairRoles = [];   // 페어막 배역 선택(선택 순서 유지 — 토글 on/off와 무관하게 보존)
@@ -371,7 +371,7 @@ function buildTicketPopover(idx, grade, tk){
     </div>`;
 }
 
-/* ===== 막공(마지막 공연) — 요청 0044 =====
+/* ===== 막공(마지막 공연) — 요청 0045 =====
    배역별 막공: 배역-배우별로 마지막 출연(비중>0) 회차 인덱스를 계산해 그 셀의 이름을 강조.
    페어막: 선택 배역들의 '그날 배우 구성' 조합별 마지막 회차를 계산해 그 행의 선택 배역 셀들을
    타원(알약) 테두리 하나로 묶는다. 기준은 필터와 무관하게 전체 스케줄. */
@@ -1522,6 +1522,7 @@ function renderStats(){
             </td>
             <td>${fmtStatValue(s.total)}</td>
             <td>${fmtStatValue(s.ended)}</td>
+            <td>${fmtStatValue(s.total - s.ended)}</td>
             <td>${fmtStatValue(s.watched)}</td>
             <td>${fmtStatValue(s.upcoming)}</td>
           </tr>
@@ -1539,7 +1540,7 @@ function renderStats(){
           ${pinnedRoleStats().includes(c.role) ? "" : `<button class="role-stat-del-btn stat-del-btn" data-role="${escHtml(c.role)}" title="${escHtml(c.role)} 삭제">삭제</button>`}
         </div>
         <table class="role-stat-table" style="${isCollapsed ? 'display:none;' : ''}">
-          <thead><tr><th>배우 이름</th><th>전체</th><th>종료</th><th>관극</th><th>예매</th></tr></thead>
+          <thead><tr><th>배우 이름</th><th>전체</th><th>종료</th><th>남음</th><th>관극</th><th>예매</th></tr></thead>
           <tbody>${rows}</tbody>
         </table>
       </div>
@@ -1683,7 +1684,7 @@ function renderEtcStats(){
   const perfs = performanceData.performances;
   const add = (b,p)=>{ b.total++; const e=isEnded(p), s=hasSeat(p); if(e){ b.ended++; if(s)b.watched++; } else if(s){ b.upcoming++; } };
   const nb = ()=>({total:0,ended:0,watched:0,upcoming:0});
-  const cells = b=>`<td>${b.total}</td><td>${b.ended}</td><td>${b.watched}</td><td>${b.upcoming}</td>`;
+  const cells = b=>`<td>${b.total}</td><td>${b.ended}</td><td>${b.total-b.ended}</td><td>${b.watched}</td><td>${b.upcoming}</td>`;
 
   // ----- 월별 -----
   function monthHtml(){
@@ -1692,8 +1693,8 @@ function renderEtcStats(){
     const rows = Object.keys(m).sort().map(k=>{
       const lbl = `${+k.slice(0,4)}년 ${+k.slice(5,7)}월`; // 2026년 7월
       return `<tr><td>${lbl}</td>${cells(m[k])}</tr>`;
-    }).join("") || `<tr><td colspan="5" style="color:var(--ink-dim);">기록 없음</td></tr>`;
-    return `<table class="role-stat-table"><thead><tr><th>월</th><th>전체</th><th>종료</th><th>관극</th><th>예매</th></tr></thead><tbody>${rows}</tbody></table>`;
+    }).join("") || `<tr><td colspan="6" style="color:var(--ink-dim);">기록 없음</td></tr>`;
+    return `<table class="role-stat-table"><thead><tr><th>월</th><th>전체</th><th>종료</th><th>남음</th><th>관극</th><th>예매</th></tr></thead><tbody>${rows}</tbody></table>`;
   }
 
   // ----- 요일별 (+ 마티네 / 휴일(주말 제외)) -----
@@ -1710,7 +1711,7 @@ function renderEtcStats(){
     let rows = DOW.map((name,i)=>`<tr><td>${name}</td>${cells(d[i])}</tr>`).join("");
     rows += `<tr class="etc-subrow"><td>마티네(평일 낮)</td>${cells(mat)}</tr>`;
     rows += `<tr class="etc-subrow"><td>휴일(주말 제외)</td>${cells(hol)}</tr>`;
-    return `<table class="role-stat-table"><thead><tr><th>요일</th><th>전체</th><th>종료</th><th>관극</th><th>예매</th></tr></thead><tbody>${rows}</tbody></table>`;
+    return `<table class="role-stat-table"><thead><tr><th>요일</th><th>전체</th><th>종료</th><th>남음</th><th>관극</th><th>예매</th></tr></thead><tbody>${rows}</tbody></table>`;
   }
 
   // ----- 티켓별 (등급 → 횟수 많은 순) -----
@@ -2744,14 +2745,14 @@ function buildComboBody(rows, rolesSelected, isCollapsed){
       i=j+1;
     }
   }
-  const head = `<tr>${rolesSelected.map(r=>`<th>${escHtml(r)}</th>`).join("")}<th>전체</th><th>종료</th><th>관극</th><th>예매</th></tr>`;
+  const head = `<tr>${rolesSelected.map(r=>`<th>${escHtml(r)}</th>`).join("")}<th>전체</th><th>종료</th><th>남음</th><th>관극</th><th>예매</th></tr>`;
   const body = rows.map((row,idx)=>{
     const roleCells = rolesSelected.map((_,col)=>{
       if(skip[idx][col]) return "";
       return `<td rowspan="${rowspan[idx][col]}">${escHtml(row.tuple[col])}</td>`;
     }).join("");
     const s = row.stats;
-    return `<tr>${roleCells}<td>${fmtStatValue(s.total)}</td><td>${fmtStatValue(s.ended)}</td><td>${fmtStatValue(s.watched)}</td><td>${fmtStatValue(s.upcoming)}</td></tr>`;
+    return `<tr>${roleCells}<td>${fmtStatValue(s.total)}</td><td>${fmtStatValue(s.ended)}</td><td>${fmtStatValue(s.total - s.ended)}</td><td>${fmtStatValue(s.watched)}</td><td>${fmtStatValue(s.upcoming)}</td></tr>`;
   }).join("");
   return `<table class="role-stat-table" style="${isCollapsed ? 'display:none;' : ''}"><thead>${head}</thead><tbody>${body}</tbody></table>`;
 }
@@ -3296,7 +3297,7 @@ function buildStateSnapshot(){
     etcStatsOrder: [...etcStatsOrder],
     collapsedEtcStats: [...collapsedEtcStats],
     showCastHistory: showCastHistory,
-    // 막공(마지막 공연) 표시 설정 — 요청 0044
+    // 막공(마지막 공연) 표시 설정 — 요청 0045
     lastShowRoleOn: lastShowRoleOn,
     lastShowPairOn: lastShowPairOn,
     lastShowPairRoles: [...lastShowPairRoles],
@@ -4340,7 +4341,7 @@ async function init(){
   setupSeatColorUI();       // 시트맵 색상 설정 UI 연결
   setupShowSwitcher();      // 다른 공연 전환 드롭다운(설정 맨 아래)
   setupScheduleOptions();   // 스케줄 보기 옵션 체크박스 연결(저장값 반영)
-  setupLastShowModal();     // 막공(마지막 공연) 설정 오버레이 연결 — 요청 0044
+  setupLastShowModal();     // 막공(마지막 공연) 설정 오버레이 연결 — 요청 0045
   applyFinaleVisibility();  // Finale 탭 표시/숨김(기본 OFF)
   setupScheduleScrollLock(); // 방법3: 가로 드래그 중 세로 스크롤 잠금
 
