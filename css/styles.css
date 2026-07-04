@@ -24,6 +24,10 @@
     --gold:#e0a13a; --gold-dim:#9c6e22; --glow:rgba(255,170,90,0.7);
     --g-vip:#e0a13a; --g-r:#c06a3c; --g-s:#4e8c87; --g-a:#5a6b8a; --g-b:#7f8a55; --g-hold:#77786f; --g-wheel:#9a5fc0; --g-none:#6b6b66;
     --radius:10px;
+    /* 앱 테마가 폼 컨트롤·스크롤바 등 UA 렌더를 지배하도록 색 스킴을 명시한다.
+       (미선언 시 브라우저 다크/라이트 선호가 새어 들어와 테마와 어긋남) — 어두운 테마 기본=dark,
+       밝은 테마는 아래에서 light로 덮어씀. */
+    color-scheme: dark;
     font-family: "Pretendard","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
   }
   /* 미드나잇 스테이지 */
@@ -85,6 +89,11 @@
   :root[data-theme="lavender"]{ --bg:#f3f0fa; --panel:#fdfcff; --panel2:#e9e3f5; --line:#d6cdea; --ink:#2a2630; --ink-dim:#776f86; --gold:#8a6fc4; --gold-dim:#5f4b92; --glow:rgba(150,120,210,0.4); --g-vip:#e0a13a; --g-r:#c06a3c; --g-s:#4e8c87; --g-a:#5a6b8a; --g-b:#7f8a55; --g-hold:#9a958c; --g-wheel:#9a5fc0; --g-none:#c0b8cc; }
   :root[data-theme="paper"]{ --bg:#f6f2e9; --panel:#fefcf6; --panel2:#ece3d2; --line:#ddd0b8; --ink:#2c2820; --ink-dim:#7a7058; --gold:#9c7b3a; --gold-dim:#6e5526; --glow:rgba(190,160,100,0.4); --g-vip:#c08a3a; --g-r:#c06a3c; --g-s:#4e8c87; --g-a:#5a6b8a; --g-b:#7f8a55; --g-hold:#9a958c; --g-wheel:#9a5fc0; --g-none:#c4b89e; }
   :root[data-theme="swan"]{ --bg:#f1f5f9; --panel:#ffffff; --panel2:#e6ecf2; --line:#d2dae3; --ink:#272d33; --ink-dim:#6f7882; --gold:#5a7fa6; --gold-dim:#3e5c80; --glow:rgba(120,150,185,0.4); --g-vip:#c08a3a; --g-r:#c06a3c; --g-s:#4e8c87; --g-a:#5a6b8a; --g-b:#7f8a55; --g-hold:#9a958c; --g-wheel:#9a5fc0; --g-none:#bcc4cc; }
+  /* 밝은 테마는 light 선호 + 브라우저 다크 시 다크 폴백 허용(절전·눈 보호로 OS 다크를 켠 경우 존중). */
+  :root[data-theme="tutu"], :root[data-theme="electricity"], :root[data-theme="cream"],
+  :root[data-theme="solidarity"], :root[data-theme="coaldust"], :root[data-theme="dawn"],
+  :root[data-theme="meadow"], :root[data-theme="lavender"], :root[data-theme="paper"],
+  :root[data-theme="swan"]{ color-scheme: light dark; }
 
   *{box-sizing:border-box;}
   body{
