@@ -481,7 +481,14 @@
   .cast-cell.pairlast-end::after{right:2px; border-right:2px solid var(--gold); border-top-right-radius:10px; border-bottom-right-radius:10px;}
   /* 막공 강조·페어 테두리가 있는 셀은 좌우 여유 패딩 — 모바일에서 pill·테두리가 이웃과 붙지 않게
      (모바일 패딩 축소 규칙 #scheduleTable tbody td 보다 우선하도록 같은 접두 셀렉터 사용) */
-  #scheduleTable tbody td.cast-cell.has-last, #scheduleTable tbody td.cast-cell.pairlast{padding-left:11px; padding-right:11px;}
+  #scheduleTable tbody td.cast-cell.has-last, #scheduleTable tbody td.cast-cell.pairlast, #scheduleTable tbody td.cast-cell.paircombo{padding-left:11px; padding-right:11px;}
+  /* 페어막 점선(요청 0051) — 다중 배우 행: 막공 조합 2개 이상이면 셀 전체 점선(all) */
+  .cast-cell.pairlast.pairdot::after{border-top-style:dotted; border-bottom-style:dotted;}
+  .cast-cell.pairlast-start.pairdot::after{border-left-style:dotted;}
+  .cast-cell.pairlast-end.pairdot::after{border-right-style:dotted;}
+  /* 페어막 조합별 묶기(combos) — 배우 상자·연결선은 SVG 오버레이(drawPairComboOverlay)가 그림.
+     여기서는 상자와 이름이 겹치지 않게 이름 좌우에 살짝 여백만 준다. */
+  .cast-cell .name.pair-mate{padding:0 6px; width:fit-content; margin:0 auto;}
   .role-head .role-name{display:block;}
   .role-head .role-sub{font-size:10px; color:var(--ink-dim); font-weight:400; text-transform:none;}
   .ticket-cell{width:96px; min-width:96px;}
