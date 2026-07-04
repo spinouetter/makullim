@@ -1350,11 +1350,13 @@ function renderStats(){
   const perfs = performanceData.performances;
   const totalShows = perfs.length;
   const endedShows = perfs.filter(isEnded).length;
+  const remainingShows = totalShows - endedShows;   // 남은 회차(아직 종료되지 않은 공연)
   const watchedShows = perfs.filter(p=>isEnded(p) && hasSeat(p)).length;
   const upcomingShows = perfs.filter(p=>!isEnded(p) && hasSeat(p)).length;
 
   document.getElementById("statTopCards").innerHTML = `
     <div class="stat-card"><div class="label">전체</div><div class="value">${totalShows}</div></div>
+    <div class="stat-card"><div class="label">남은</div><div class="value">${remainingShows}</div></div>
     <div class="stat-card"><div class="label">종료</div><div class="value">${endedShows}</div></div>
     <div class="stat-card"><div class="label">관극</div><div class="value">${watchedShows}</div></div>
     <div class="stat-card"><div class="label">예매</div><div class="value">${upcomingShows}</div></div>
