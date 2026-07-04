@@ -18,7 +18,9 @@ permissions:
 
 concurrency:
   group: pages
-  cancel-in-progress: true
+  # 배포 중인 run은 취소하지 않는다(취소 시 Pages 환경에 미완료 배포가 남아
+  # 이후 배포가 "Deployment failed, try again later"로 거부될 수 있음). GitHub 공식 권장값.
+  cancel-in-progress: false
 
 jobs:
   deploy:
