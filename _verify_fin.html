@@ -1,0 +1,10 @@
+<meta charset="utf-8"><body style="margin:0">
+<iframe id="f" src="" style="width:1200px;height:1000px;border:0"></iframe>
+<script>
+  const q = new URLSearchParams(location.search);
+  const f = document.getElementById('f');
+  f.src = "/?show=" + (q.get('show') || 'betm-skorea-2021');
+  f.addEventListener('load', () => setTimeout(() => {
+    if (q.get('tab')) f.contentDocument.querySelector('.tab-btn[data-page="' + q.get('tab') + '"]').click();
+  }, 1500));
+</script>

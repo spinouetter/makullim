@@ -508,6 +508,11 @@ function renderSchedule(){
     lastShowBtn.onclick = openLastShowModal;
   }
 
+  // 막 내린 공연: '지금' 버튼은 의미가 없어 숨김(요청 0049)
+  const showFin = isShowFinished();
+  const nowBtnEl = document.getElementById("nowBtn");
+  if(nowBtnEl) nowBtnEl.style.display = showFin ? "none" : "";
+
   const hiddenBar = document.getElementById("scheduleHiddenBar");
   // 페어막 중에는 배역 숨김이 무시되고(전 배역 표시) 숨김 기능도 잠기므로, 숨김 바에서 배역 항목 제외
   const hiddenColsShown = [...scheduleHiddenCols].filter(c=>!(pairActive && allRoles.includes(c)));
@@ -831,7 +836,7 @@ function renderSchedule(){
       : "";
 
     return `
-      <tr class="${isPast?'past':''} ${idx===currentIdx?'current-perf':''} ${highlightedRows.has(idx)?'row-highlight':''} ${cancelled?'perf-cancelled':''} ${reschedList.length?'perf-rescheduled':''}" data-idx="${idx}">
+      <tr class="${(isPast && !showFin)?'past':''} ${idx===currentIdx?'current-perf':''} ${highlightedRows.has(idx)?'row-highlight':''} ${cancelled?'perf-cancelled':''} ${reschedList.length?'perf-rescheduled':''}" data-idx="${idx}">
         ${floatCell}
         <td class="date-cell"${dcolor?` style="color:${dcolor}"`:''}><span class="date-text">${shortDateDow(p.date)}</span>${cancelled?`<span class="cancel-mark">취소</span>`:""}${reschedList.length?`<span class="resched-mark" title="${escHtml(rescheduleSummary(p))}">&#8635;</span>`:""}</td>
         <td class="time-cell"${dcolor?` style="color:${dcolor}"`:''}>${p.time}</td>
@@ -1503,34 +1508,55 @@ function setupBlockReorder(container, blockSel, handleSel, keyOf, applyOrder){
   });
 }
 
+/* 막을 내린 공연인지 — 모든 회차 종료 + 공연 종료일(endDate) 경과(요청 0049).
+   끝난 공연에서는 종료(=전체)·남음(=0)·예매(=0)·앞으로 쓸 금액(=0)이 무의미하므로
+   통계에서 숨기고, 스케줄의 '지금' 버튼·지난 공연 음영도 없앤다.
+   endDate가 미래면 회차가 아직 다 등록되지 않았을 수 있으므로 진행 중으로 본다. */
+function isShowFinished(){
+  const perfs = performanceData.performances;
+  if(!perfs.length || !perfs.every(isEnded)) return false;
+  const end = (performanceData.endDate || "").trim();
+  if(!end) return true;
+  return new Date() > new Date(end + "T23:59:59");
+}
+
 function renderStats(){
   const perfs = performanceData.performances;
+  const fin = isShowFinished();   // 막 내린 공연 → 종료·남음·예매 카드/열 숨김
   const totalShows = perfs.length;
   const endedShows = perfs.filter(isEnded).length;
   const remainingShows = totalShows - endedShows;   // 남은 회차(아직 종료되지 않은 공연)
   const watchedShows = perfs.filter(p=>isEnded(p) && hasSeat(p)).length;
   const upcomingShows = perfs.filter(p=>!isEnded(p) && hasSeat(p)).length;
 
-  document.getElementById("statTopCards").innerHTML = `
+  const cardsEl = document.getElementById("statTopCards");
+  cardsEl.innerHTML = `
     <div class="stat-card"><div class="label">전체</div><div class="value">${totalShows}</div></div>
+    ${fin ? "" : `
     <div class="stat-card"><div class="label">종료</div><div class="value">${endedShows}</div></div>
-    <div class="stat-card"><div class="label">남음</div><div class="value">${remainingShows}</div></div>
+    <div class="stat-card"><div class="label">남음</div><div class="value">${remainingShows}</div></div>`}
     <div class="stat-card"><div class="label">관극</div><div class="value">${watchedShows}</div></div>
-    <div class="stat-card"><div class="label">예매</div><div class="value">${upcomingShows}</div></div>
+    ${fin ? "" : `
+    <div class="stat-card"><div class="label">예매</div><div class="value">${upcomingShows}</div></div>`}
   `;
+  cardsEl.style.gridTemplateColumns = `repeat(${fin ? 2 : 5},1fr)`;
 
   // 총 티켓 금액: 종료된 공연(지금까지 쓴 것) / 미래 공연(앞으로 쓸 것) / 전체
+  // 막 내린 공연은 전부 '쓴 금액'이므로 총액 하나만 표시
   let spentAmount = 0, upcomingAmount = 0;
   perfs.forEach(p=>{
     if(isCancelled(p)) return; // 취소된 공연은 금액 집계에서 제외
     const price = ticketPriceOf(p.seat, p.ticketType, p.ticketFee, (p.ticketDiscount!=null?p.ticketDiscount:null), p.ticketExtra) || 0;
     if(isEnded(p)) spentAmount += price; else upcomingAmount += price;
   });
-  document.getElementById("ticketTotals").innerHTML = `
+  const totalsEl = document.getElementById("ticketTotals");
+  totalsEl.innerHTML = `
+    ${fin ? "" : `
     <div class="tt-card"><div class="label">지금까지 쓴 금액</div><div class="value">${formatKRW(spentAmount)}</div></div>
-    <div class="tt-card"><div class="label">앞으로 쓸 금액</div><div class="value">${formatKRW(upcomingAmount)}</div></div>
+    <div class="tt-card"><div class="label">앞으로 쓸 금액</div><div class="value">${formatKRW(upcomingAmount)}</div></div>`}
     <div class="tt-card total"><div class="label">총액</div><div class="value">${formatKRW(spentAmount + upcomingAmount)}</div></div>
   `;
+  totalsEl.style.gridTemplateColumns = `repeat(${fin ? 1 : 3},1fr)`;
 
   const now = new Date();
 
@@ -1563,10 +1589,10 @@ function renderStats(){
               ${escHtml(name)}<br><small style="color:var(--ink-dim); font-size:10px;">${roleTag}</small>
             </td>
             <td>${fmtStatValue(s.total)}</td>
-            <td>${fmtStatValue(s.ended)}</td>
-            <td>${fmtStatValue(s.total - s.ended)}</td>
+            ${fin ? "" : `<td>${fmtStatValue(s.ended)}</td>
+            <td>${fmtStatValue(s.total - s.ended)}</td>`}
             <td>${fmtStatValue(s.watched)}</td>
-            <td>${fmtStatValue(s.upcoming)}</td>
+            ${fin ? "" : `<td>${fmtStatValue(s.upcoming)}</td>`}
           </tr>
         `;
       }).join("");
@@ -1582,7 +1608,7 @@ function renderStats(){
           ${pinnedRoleStats().includes(c.role) ? "" : `<button class="role-stat-del-btn stat-del-btn" data-role="${escHtml(c.role)}" title="${escHtml(c.role)} 삭제">삭제</button>`}
         </div>
         <table class="role-stat-table" style="${isCollapsed ? 'display:none;' : ''}">
-          <thead><tr><th>배우 이름</th><th>전체</th><th>종료</th><th>남음</th><th>관극</th><th>예매</th></tr></thead>
+          <thead><tr><th>배우 이름</th><th>전체</th>${fin ? "" : `<th>종료</th><th>남음</th>`}<th>관극</th>${fin ? "" : `<th>예매</th>`}</tr></thead>
           <tbody>${rows}</tbody>
         </table>
       </div>
@@ -1724,9 +1750,11 @@ function renderEtcStats(){
   const el = document.getElementById("etcStats");
   if(!el) return;
   const perfs = performanceData.performances;
+  const fin = isShowFinished();   // 막 내린 공연 → 종료·남음·예매 열 숨김
   const add = (b,p)=>{ b.total++; const e=isEnded(p), s=hasSeat(p); if(e){ b.ended++; if(s)b.watched++; } else if(s){ b.upcoming++; } };
   const nb = ()=>({total:0,ended:0,watched:0,upcoming:0});
-  const cells = b=>`<td>${b.total}</td><td>${b.ended}</td><td>${b.total-b.ended}</td><td>${b.watched}</td><td>${b.upcoming}</td>`;
+  const cells = b=>`<td>${b.total}</td>${fin ? "" : `<td>${b.ended}</td><td>${b.total-b.ended}</td>`}<td>${b.watched}</td>${fin ? "" : `<td>${b.upcoming}</td>`}`;
+  const statHead = `<th>전체</th>${fin ? "" : `<th>종료</th><th>남음</th>`}<th>관극</th>${fin ? "" : `<th>예매</th>`}`;
 
   // ----- 월별 -----
   function monthHtml(){
@@ -1735,8 +1763,8 @@ function renderEtcStats(){
     const rows = Object.keys(m).sort().map(k=>{
       const lbl = `${+k.slice(0,4)}년 ${+k.slice(5,7)}월`; // 2026년 7월
       return `<tr><td>${lbl}</td>${cells(m[k])}</tr>`;
-    }).join("") || `<tr><td colspan="6" style="color:var(--ink-dim);">기록 없음</td></tr>`;
-    return `<table class="role-stat-table"><thead><tr><th>월</th><th>전체</th><th>종료</th><th>남음</th><th>관극</th><th>예매</th></tr></thead><tbody>${rows}</tbody></table>`;
+    }).join("") || `<tr><td colspan="${fin ? 3 : 6}" style="color:var(--ink-dim);">기록 없음</td></tr>`;
+    return `<table class="role-stat-table"><thead><tr><th>월</th>${statHead}</tr></thead><tbody>${rows}</tbody></table>`;
   }
 
   // ----- 요일별 (+ 마티네 / 휴일(주말 제외)) -----
@@ -1753,7 +1781,7 @@ function renderEtcStats(){
     let rows = DOW.map((name,i)=>`<tr><td>${name}</td>${cells(d[i])}</tr>`).join("");
     rows += `<tr class="etc-subrow"><td>마티네(평일 낮)</td>${cells(mat)}</tr>`;
     rows += `<tr class="etc-subrow"><td>휴일(주말 제외)</td>${cells(hol)}</tr>`;
-    return `<table class="role-stat-table"><thead><tr><th>요일</th><th>전체</th><th>종료</th><th>남음</th><th>관극</th><th>예매</th></tr></thead><tbody>${rows}</tbody></table>`;
+    return `<table class="role-stat-table"><thead><tr><th>요일</th>${statHead}</tr></thead><tbody>${rows}</tbody></table>`;
   }
 
   // ----- 티켓별 (등급 → 횟수 많은 순) -----
@@ -1774,7 +1802,8 @@ function renderEtcStats(){
     });
     const arr = Object.values(map).sort((a,b)=>
       ((gIdx[a.grade]??99)-(gIdx[b.grade]??99)) || ((b.watched+b.upcoming)-(a.watched+a.upcoming)) || a.type.localeCompare(b.type,"ko"));
-    if(!arr.length) return `<table class="role-stat-table"><thead><tr><th>등급</th><th>티켓 종류</th><th>관극</th><th>예매</th><th>총액</th></tr></thead><tbody><tr><td colspan="5" style="color:var(--ink-dim);">기록 없음</td></tr></tbody></table>`;
+    const tkHead = `<tr><th>등급</th><th>티켓 종류</th><th>관극</th>${fin ? "" : `<th>예매</th>`}<th>총액</th></tr>`;
+    if(!arr.length) return `<table class="role-stat-table"><thead>${tkHead}</thead><tbody><tr><td colspan="${fin ? 4 : 5}" style="color:var(--ink-dim);">기록 없음</td></tr></tbody></table>`;
     // 등급 같은 값은 rowspan으로 병합
     let rows="", i=0;
     while(i<arr.length){
@@ -1783,11 +1812,11 @@ function renderEtcStats(){
       for(let k=i;k<j;k++){
         const b=arr[k];
         const gradeTd = (k===i) ? `<td rowspan="${span}">${escHtml(b.grade)}</td>` : "";
-        rows += `<tr>${gradeTd}<td>${escHtml(b.type)}</td><td>${b.watched}</td><td>${b.upcoming}</td><td>${formatKRW(b.amount)}</td></tr>`;
+        rows += `<tr>${gradeTd}<td>${escHtml(b.type)}</td><td>${b.watched}</td>${fin ? "" : `<td>${b.upcoming}</td>`}<td>${formatKRW(b.amount)}</td></tr>`;
       }
       i=j;
     }
-    return `<table class="role-stat-table"><thead><tr><th>등급</th><th>티켓 종류</th><th>관극</th><th>예매</th><th>총액</th></tr></thead><tbody>${rows}</tbody></table>`;
+    return `<table class="role-stat-table"><thead>${tkHead}</thead><tbody>${rows}</tbody></table>`;
   }
 
   const blocks = {
@@ -2788,14 +2817,15 @@ function buildComboBody(rows, rolesSelected, isCollapsed){
       i=j+1;
     }
   }
-  const head = `<tr>${rolesSelected.map(r=>`<th>${escHtml(r)}</th>`).join("")}<th>전체</th><th>종료</th><th>남음</th><th>관극</th><th>예매</th></tr>`;
+  const fin = isShowFinished();   // 막 내린 공연 → 종료·남음·예매 열 숨김
+  const head = `<tr>${rolesSelected.map(r=>`<th>${escHtml(r)}</th>`).join("")}<th>전체</th>${fin ? "" : `<th>종료</th><th>남음</th>`}<th>관극</th>${fin ? "" : `<th>예매</th>`}</tr>`;
   const body = rows.map((row,idx)=>{
     const roleCells = rolesSelected.map((_,col)=>{
       if(skip[idx][col]) return "";
       return `<td rowspan="${rowspan[idx][col]}">${escHtml(row.tuple[col])}</td>`;
     }).join("");
     const s = row.stats;
-    return `<tr>${roleCells}<td>${fmtStatValue(s.total)}</td><td>${fmtStatValue(s.ended)}</td><td>${fmtStatValue(s.total - s.ended)}</td><td>${fmtStatValue(s.watched)}</td><td>${fmtStatValue(s.upcoming)}</td></tr>`;
+    return `<tr>${roleCells}<td>${fmtStatValue(s.total)}</td>${fin ? "" : `<td>${fmtStatValue(s.ended)}</td><td>${fmtStatValue(s.total - s.ended)}</td>`}<td>${fmtStatValue(s.watched)}</td>${fin ? "" : `<td>${fmtStatValue(s.upcoming)}</td>`}</tr>`;
   }).join("");
   return `<table class="role-stat-table" style="${isCollapsed ? 'display:none;' : ''}"><thead>${head}</thead><tbody>${body}</tbody></table>`;
 }
