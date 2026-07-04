@@ -18,14 +18,16 @@ permissions:
 
 concurrency:
   group: pages
-  cancel-in-progress: true
+  # 배포 중인 run은 취소하지 않는다(취소 시 Pages 환경에 미완료 배포가 남아
+  # 이후 배포가 "Deployment failed, try again later"로 거부될 수 있음). GitHub 공식 권장값.
+  cancel-in-progress: false
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
     environment:
       name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+      url: ${{ steps.deploy1.outputs.page_url || steps.deploy2.outputs.page_url || steps.deploy3.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
 
@@ -95,5 +97,25 @@ jobs:
       - uses: actions/upload-pages-artifact@v3
         with:
           path: .
-      - id: deployment
+      # Pages 배포는 GitHub 인프라 일시 오류로 "Deployment failed, try again later"가
+      # 간헐 발생한다(빌드·아티팩트는 성공, 배포 API만 실패). 자동으로 최대 3회 재시도한다.
+      # 아티팩트 업로드는 위에서 1회만 하고, deploy-pages만 재시도(중복 아티팩트 방지).
+      - name: Deploy to GitHub Pages
+        id: deploy1
+        continue-on-error: true
+        uses: actions/deploy-pages@v4
+      - name: Wait before retry 2
+        if: steps.deploy1.outcome == 'failure'
+        run: sleep 20
+      - name: Deploy to GitHub Pages (retry 2)
+        id: deploy2
+        if: steps.deploy1.outcome == 'failure'
+        continue-on-error: true
+        uses: actions/deploy-pages@v4
+      - name: Wait before retry 3
+        if: steps.deploy1.outcome == 'failure' && steps.deploy2.outcome == 'failure'
+        run: sleep 30
+      - name: Deploy to GitHub Pages (retry 3)
+        id: deploy3
+        if: steps.deploy1.outcome == 'failure' && steps.deploy2.outcome == 'failure'
         uses: actions/deploy-pages@v4
