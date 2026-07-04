@@ -811,16 +811,17 @@ function renderSchedule(){
       const lookup = {};
       const roleInfo = performanceData.casts.find(c=>c.role===role);
       roleInfo.actors.forEach(a=>lookup[a.name]=a.role);
-      return `<td class="${tdCls}">${
-        items.map(it=>{
-          const n = it.name;
-          const baseCls = lookup[n]==="alternative" ? "alt" : (lookup[n]==="swing" ? "swing":"");
-          const zeroCls = it.weight===0 ? "zero-weight" : "";
-          // 배역별 막공: 이 배우(캐스트만)가 이 배역으로 서는 마지막 회차면 강조(둥근 배경 사각형)
-          const lastCls = (lastShowMap && it.weight>0 && lookup[n]==="cast" && lastShowMap.get(role+"|"+n)===idx) ? "last-show" : "";
-          return `<span class="name ${baseCls} ${zeroCls} ${lastCls}">${escHtml(n)}</span>`;
-        }).join("")
-      }</td>`;
+      let hasLast = false;   // 셀 안에 막공 강조가 있으면 좌우 여유 패딩(has-last)
+      const namesHtml = items.map(it=>{
+        const n = it.name;
+        const baseCls = lookup[n]==="alternative" ? "alt" : (lookup[n]==="swing" ? "swing":"");
+        const zeroCls = it.weight===0 ? "zero-weight" : "";
+        // 배역별 막공: 이 배우(캐스트만)가 이 배역으로 서는 마지막 회차면 강조(둥근 배경 사각형)
+        const lastCls = (lastShowMap && it.weight>0 && lookup[n]==="cast" && lastShowMap.get(role+"|"+n)===idx) ? "last-show" : "";
+        if(lastCls) hasLast = true;
+        return `<span class="name ${baseCls} ${zeroCls} ${lastCls}">${escHtml(n)}</span>`;
+      }).join("");
+      return `<td class="${tdCls}${hasLast?' has-last':''}">${namesHtml}</td>`;
     }).join("");
 
     // 방법1: 컬럼이 아니라 0폭 sticky 셀 + 절대배치 오버레이 라벨. 가로 스크롤 시에만 보임.
