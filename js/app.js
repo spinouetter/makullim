@@ -2381,7 +2381,19 @@ function selectSeatEl(mainSvg, el){
   el.appendChild(box);
 }
 
+// 층 토글 버튼을 공연장 데이터(좌석의 floor)로부터 생성한다. 층이 1개뿐이면 버튼을 두지 않는다
+// (하나뿐인 층을 끄면 좌석이 전부 사라질 뿐이라 무의미). 하드코딩 1F·2F·3F를 대체(요청 0050).
+function renderFloorToggleButtons(){
+  const box = document.getElementById("floorToggleGroup");
+  if(!box) return;
+  const floors = [...new Set((seatmapData.seats||[]).map(s=>s.floor))].sort((a,b)=>a-b);
+  box.innerHTML = floors.length >= 2
+    ? floors.map(f=>`<button class="floor-toggle-btn active" data-floor="${escHtml(String(f))}">${escHtml(String(f))}F</button>`).join("")
+    : "";
+}
+
 function setupFloorToggle(){
+  renderFloorToggleButtons();
   document.querySelectorAll(".floor-toggle-btn[data-floor]").forEach(btn=>{
     const floor = btn.dataset.floor;
     btn.classList.toggle("active", !hiddenFloors.has(floor));
