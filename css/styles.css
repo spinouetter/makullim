@@ -479,6 +479,9 @@
   .cast-cell.pairlast::after{content:""; position:absolute; top:4px; bottom:4px; left:0; right:0; border-top:2px solid var(--gold); border-bottom:2px solid var(--gold); pointer-events:none;}
   .cast-cell.pairlast-start::after{left:2px; border-left:2px solid var(--gold); border-top-left-radius:10px; border-bottom-left-radius:10px;}
   .cast-cell.pairlast-end::after{right:2px; border-right:2px solid var(--gold); border-top-right-radius:10px; border-bottom-right-radius:10px;}
+  /* 막공 강조·페어 테두리가 있는 셀은 좌우 여유 패딩 — 모바일에서 pill·테두리가 이웃과 붙지 않게
+     (모바일 패딩 축소 규칙 #scheduleTable tbody td 보다 우선하도록 같은 접두 셀렉터 사용) */
+  #scheduleTable tbody td.cast-cell.has-last, #scheduleTable tbody td.cast-cell.pairlast{padding-left:11px; padding-right:11px;}
   .role-head .role-name{display:block;}
   .role-head .role-sub{font-size:10px; color:var(--ink-dim); font-weight:400; text-transform:none;}
   .ticket-cell{width:96px; min-width:96px;}
