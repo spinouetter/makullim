@@ -375,44 +375,51 @@ function buildTicketPopover(idx, grade, tk){
    배역별 막공: 배역-배우별로 마지막 출연(비중>0) 회차 인덱스를 계산해 그 셀의 이름을 강조.
    페어막: 선택 배역들의 '그날 배우 구성' 조합별 마지막 회차를 계산해 그 행의 선택 배역 셀들을
    타원(알약) 테두리 하나로 묶는다. 기준은 필터와 무관하게 전체 스케줄.
-   발표 경계 제외: 마지막 출연 뒤로 그 배역의 캐스팅이 더 발표되지 않았으면(이후 회차가
-   전부 미정 = 캐스팅 발표가 거기서 끝남) 진짜 막공인지 알 수 없으므로 표시하지 않는다.
-   단, 그 회차가 공연 종료일(endDate)이면 진짜 막공이므로 표시한다. */
-function isFinalDayPerf(i){
-  const p = performanceData.performances[i];
-  return !!(p && performanceData.endDate && p.date === performanceData.endDate);
-}
+   배역별 막공은 '마지막 공연(스케줄의 마지막 회차)'의 그 배역 캐스팅이 미정이면
+   진짜 막공을 알 수 없으므로 그 배역 전체를 표시하지 않는다(요청 0051).
+   마지막 회차가 발표된 배역은 모든 배우의 마지막 출연이 확정이므로 전부 표시한다. */
 function buildLastShowMap(){
+  const perfs = performanceData.performances;
   const map = new Map();       // "배역|배우" -> 마지막 출연 회차 인덱스
-  const lastCastIdx = {};      // 배역별 캐스팅이 발표된 마지막 회차
-  const roles = castRoleObjs().map(c=>c.role);
-  performanceData.performances.forEach((p,i)=>{
+  if(!perfs.length) return map;
+  const lastPerf = perfs[perfs.length-1];
+  const roles = castRoleObjs().map(c=>c.role)
+    .filter(role=>castVisibleNamesOf(lastPerf.cast[role]).length>0);   // 마지막 공연이 미정인 배역 제외
+  perfs.forEach((p,i)=>{
     roles.forEach(role=>{
-      const names = castVisibleNamesOf(p.cast[role]);
-      if(names.length) lastCastIdx[role] = i;
-      names.forEach(n=>map.set(role+"|"+n, i));
+      castVisibleNamesOf(p.cast[role]).forEach(n=>map.set(role+"|"+n, i));
     });
   });
-  for(const [k,i] of map){
-    const role = k.split("|")[0];
-    if(i === lastCastIdx[role] && !isFinalDayPerf(i)) map.delete(k);   // 발표 경계 제외
-  }
   return map;
 }
-function buildPairLastSet(pairRoles){
-  const last = new Map();      // 조합키 -> 마지막 회차 인덱스
-  let lastAllCastIdx = -1;     // 선택 배역 전부 캐스팅이 발표된 마지막 회차
-  performanceData.performances.forEach((p,i)=>{
-    const parts = pairRoles.map(r=>castVisibleNamesOf(p.cast[r]).slice().sort().join("·"));
-    if(parts.some(s=>!s)) return;   // 미정 배역이 있으면 조합 미성립(미래 회차 등)
-    lastAllCastIdx = i;
-    last.set(parts.join("|"), i);
+/* 페어막(요청 0051 개편): 배역당 배우 1명씩 뽑은 '개별 조합' 단위로 마지막 동반 출연을 계산.
+   - 발표 경계 제외 규칙은 페어막에는 적용하지 않는다(배역별 막공만 적용) — 사용자 지시.
+   - 한 배역에 배우가 2명 이상인 회차는: 막공인 개별 조합이 1개면 그 배우들만 윗줄로 정렬해
+     점선 한 줄로 묶고("line"), 2개 이상 섞이면 셀 전체를 점선으로 묶는다("all").
+   - 전 배역이 1명씩인 회차의 조합 막공은 기존 실선 타원("full"). */
+function buildPairLastInfo(pairRoles){
+  const perfs = performanceData.performances;
+  const namesAt = perfs.map(p=>pairRoles.map(r=>castVisibleNamesOf(p.cast[r])));
+  const last = new Map();      // 개별 조합키 -> 마지막 동반 출연 회차 인덱스
+  perfs.forEach((p,i)=>{
+    if(namesAt[i].some(l=>!l.length)) return;   // 미정 배역이 있으면 조합 없음
+    cartesian(namesAt[i]).forEach(tuple=>last.set(tuple.join("|"), i));
   });
-  const out = new Set();
-  for(const i of last.values()){
-    if(i < lastAllCastIdx || isFinalDayPerf(i)) out.add(i);   // 발표 경계 제외
+  const info = new Map();      // 회차 인덱스 -> {mode, actors?}
+  for(const [key,i] of last){
+    (info.get(i) || info.set(i, {tuples:[]}).get(i)).tuples.push(key.split("|"));
   }
-  return out;
+  for(const [i,e] of info){
+    const multi = namesAt[i].some(l=>l.length>1);
+    if(!multi){ e.mode = "full"; }
+    else if(e.tuples.length===1){
+      e.mode = "line";
+      e.actors = {};   // 배역 -> 막공 조합의 배우(윗줄 정렬 대상)
+      pairRoles.forEach((r,k)=>{ e.actors[r] = e.tuples[0][k]; });
+    } else { e.mode = "all"; }
+    delete e.tuples;
+  }
+  return info;
 }
 function lastShowPairValidRoles(){
   const roles = castRoleObjs().map(c=>c.role);
@@ -489,7 +496,7 @@ function renderSchedule(){
     ? [...pairRoles, ...allRoles.filter(r=>!pairRoles.includes(r))]
     : allRoles.filter(r=>!scheduleHiddenCols.has(r));
   const lastShowMap = lastShowRoleOn ? buildLastShowMap() : null;
-  const pairLastSet = pairActive ? buildPairLastSet(pairRoles) : null;
+  const pairLastInfo = pairActive ? buildPairLastInfo(pairRoles) : null;
   const showTicket = !scheduleHiddenCols.has(COL_TICKET);
   const showPrice = !scheduleHiddenCols.has(COL_PRICE);
   const visibleMatches = (performanceData.matches||[]).filter(m=>!scheduleHiddenCols.has("match:"+m.name));
@@ -797,21 +804,40 @@ function renderSchedule(){
       priceCell = `<td class="price-cell">${price!=null ? formatKRW(price) : '<span class="empty">—</span>'}</td>`;
     }
 
-    // 페어막: 이 행이 선택 배역 조합의 마지막 회차면, 선택 배역 셀들(맨 앞에 연속 배치)을
-    // 타원(알약) 테두리 하나로 묶는다(시작/중간/끝 셀 클래스로 테두리 분담).
-    const isPairLastRow = pairLastSet ? pairLastSet.has(idx) : false;
+    // 페어막(0051): 이 행에 마지막 동반 출연(개별 조합)이 있으면 선택 배역 셀들을 묶는다.
+    //  - full: 전 배역 1명씩 → 셀 전체 실선 타원(기존)
+    //  - line: 다중 배우 행에서 막공 조합이 1개 → 그 배우들만 윗줄 정렬 + 점선 한 줄
+    //  - all : 다중 배우 행에서 막공 조합이 2개 이상 → 셀 전체 점선
+    const pairInfo = pairLastInfo ? pairLastInfo.get(idx) : null;
+    const pairItemsOf = role => showCastHistory
+      ? parseCastWeighted(p.cast[role])
+      : parseCastWeighted(p.cast[role]).filter(it=>it.weight>0);
+    // line 모드: 페어 셀들의 표시 줄 수를 맞추기 위한 최대 줄 수(모자란 셀은 빈칸 패딩)
+    const pairMaxLines = (pairInfo && pairInfo.mode==="line")
+      ? Math.max(...pairRoles.map(r=>pairItemsOf(r).length)) : 0;
     const castCells = visibleRoles.map(role=>{
       let tdCls = "cast-cell";
-      if(isPairLastRow && pairRoles.includes(role)){
-        tdCls += " pairlast";
+      const inPair = !!(pairInfo && pairRoles.includes(role));
+      if(inPair && pairInfo.mode!=="line"){
+        tdCls += " pairlast" + (pairInfo.mode==="all" ? " pairdot" : "");
         if(role===pairRoles[0]) tdCls += " pairlast-start";
         if(role===pairRoles[pairRoles.length-1]) tdCls += " pairlast-end";
       }
-      const items = showCastHistory
+      if(inPair && pairInfo.mode==="line"){
+        tdCls += " pairline";
+        if(role===pairRoles[0]) tdCls += " pairline-start";
+        if(role===pairRoles[pairRoles.length-1]) tdCls += " pairline-end";
+      }
+      let items = showCastHistory
         ? parseCastWeighted(p.cast[role])
         : parseCastWeighted(p.cast[role]).filter(it=>it.weight>0);
       if(items.length===0){
         return `<td class="${tdCls}"><span class="empty">미정</span></td>`;
+      }
+      // line 모드: 막공 조합의 배우를 윗줄로 정렬(점선이 윗줄만 묶음)
+      if(inPair && pairInfo.mode==="line"){
+        const target = pairInfo.actors[role];
+        items = [...items.filter(it=>it.name===target), ...items.filter(it=>it.name!==target)];
       }
       const lookup = {};
       const roleInfo = performanceData.casts.find(c=>c.role===role);
@@ -826,7 +852,10 @@ function renderSchedule(){
         if(lastCls) hasLast = true;
         return `<span class="name ${baseCls} ${zeroCls} ${lastCls}">${escHtml(n)}</span>`;
       }).join("");
-      return `<td class="${tdCls}${hasLast?' has-last':''}">${namesHtml}</td>`;
+      // line 모드: 줄 수가 모자란 페어 셀은 빈칸으로 채워 윗줄 위치를 일치시킴
+      const padHtml = (inPair && pairInfo.mode==="line" && items.length < pairMaxLines)
+        ? `<span class="name pair-pad">&nbsp;</span>`.repeat(pairMaxLines - items.length) : "";
+      return `<td class="${tdCls}${hasLast?' has-last':''}">${namesHtml}${padHtml}</td>`;
     }).join("");
 
     // 방법1: 컬럼이 아니라 0폭 sticky 셀 + 절대배치 오버레이 라벨. 가로 스크롤 시에만 보임.
