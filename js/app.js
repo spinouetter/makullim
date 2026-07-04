@@ -2811,7 +2811,7 @@ document.getElementById("comboCreateBtn").addEventListener("click", ()=>{
     return sortedExisting.length===sortedNew.length && sortedExisting.every((r,i)=>r===sortedNew[i]);
   });
   if(duplicate){
-    showToast(`"${comboRoleSelection.join(" × ")}" 조합이 이미 존재합니다.`);
+    showToast(`"${comboRoleSelection.join(" × ")}" 페어가 이미 존재합니다.`);
     return;
   }
 
