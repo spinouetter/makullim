@@ -111,26 +111,38 @@ async function loadData(){
 /* =========================================================
    TAB NAVIGATION
    ========================================================= */
+// 탭 활성화. push=true면 히스토리에 남겨 '뒤로가기'로 이전 탭으로 돌아갈 수 있게 한다.
+function activateTab(page, push){
+  const btn = document.querySelector('.tab-btn[data-page="'+page+'"]');
+  if(!btn || btn.style.display === "none") return;   // 숨긴 탭(Finale off 등)은 무시
+  const wasActive = btn.classList.contains("active");
+  document.querySelectorAll(".tab-btn").forEach(b=>b.classList.remove("active"));
+  document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+  btn.classList.add("active");
+  document.getElementById("page-"+page).classList.add("active");
+  if(push && !wasActive){ try{ history.pushState({ tab:page }, ""); }catch(e){} }
+  // Finale(인증 이미지): 탭을 열 때마다 최신 데이터로 포스터 SVG 생성
+  if(page === "finale" && typeof window.renderFinale === "function") window.renderFinale();
+  // 좌석맵이 처음 보일 때: 숨겨진 채 계산된 임시 초기 뷰를 실제 뷰포트 크기로 재맞춤
+  if(page === "seatmap" && seatNeedsInitialFit){
+    const vp = document.getElementById("svgViewport");
+    if(vp && vp.clientWidth > 0){ mainViewBox = computeInitialViewBox(); applyMainViewBox(); seatNeedsInitialFit = false; }
+  }
+}
+window.activateTab = activateTab;
 document.querySelectorAll(".tab-btn").forEach(btn=>{
-  btn.addEventListener("click", ()=>{
-    document.querySelectorAll(".tab-btn").forEach(b=>b.classList.remove("active"));
-    document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
-    btn.classList.add("active");
-    document.getElementById("page-"+btn.dataset.page).classList.add("active");
-    // Finale(인증 이미지): 탭을 열 때마다 최신 데이터로 포스터 SVG 생성
-    if(btn.dataset.page === "finale" && typeof window.renderFinale === "function"){
-      window.renderFinale();
-    }
-    // 좌석맵이 처음 보일 때: 숨겨진 채 계산된 임시 초기 뷰를 실제 뷰포트 크기로 재맞춤
-    if(btn.dataset.page === "seatmap" && seatNeedsInitialFit){
-      const vp = document.getElementById("svgViewport");
-      if(vp && vp.clientWidth > 0){
-        mainViewBox = computeInitialViewBox();
-        applyMainViewBox();
-        seatNeedsInitialFit = false;
-      }
-    }
-  });
+  btn.addEventListener("click", ()=> activateTab(btn.dataset.page, true));
+});
+// 현재 탭을 히스토리 베이스로 기록(첫 탭 변경 후 뒤로가기가 여기로 돌아오도록)
+try{
+  const cur = document.querySelector(".tab-btn.active");
+  history.replaceState({ tab: cur ? cur.dataset.page : "schedule" }, "");
+}catch(e){}
+// 뒤로가기: 이전 탭으로. (Finale 오버레이가 열려 있으면 그 닫기는 finale.js가 처리하므로 건드리지 않음)
+window.addEventListener("popstate", (e)=>{
+  const ov = document.getElementById("finaleOverlay");
+  if(ov && ov.style.display !== "none") return;
+  activateTab((e.state && e.state.tab) || "schedule", false);
 });
 
 /* =========================================================
@@ -1434,13 +1446,16 @@ function renderMatchStats(){
   if(!el) return;
   const matches = performanceData.matches || [];
 
+  // 정의된 대결이 없으면 '대결 통계' 섹션 자체를 숨긴다.
+  const section = document.getElementById("matchStatSection");
+  if(matches.length===0){ if(section) section.style.display = "none"; el.innerHTML = ""; return; }
+  if(section) section.style.display = "";
+
   const optEl = document.getElementById("matchAssumeWin");
   if(optEl){
     optEl.checked = matchAssumeDefaultWin;
     optEl.onchange = ()=>{ matchAssumeDefaultWin = optEl.checked; saveState(); renderMatchStats(); };
   }
-
-  if(matches.length===0){ el.innerHTML = `<p style="color:var(--ink-dim); font-size:13px;">정의된 대결이 없습니다.</p>`; return; }
 
   const ended = performanceData.performances.filter(isEnded);
   const rateNum = s => { const d=s.win+s.loss+s.draw; return d>0 ? s.win/d : -1; };
