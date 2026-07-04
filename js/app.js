@@ -170,6 +170,10 @@ let scheduleHiddenCols = new Set(); // 숨긴 컬럼(배역 이름 또는 COL_TI
 let scheduleOpenDropdownRole = null; // 현재 열려있는 드롭다운의 컬럼 키(배역 이름 또는 COL_TICKET/COL_PRICE)
 let showCastHistory = false; // 켜면 비중 0인 배우도 취소선과 함께 표시
 let memoPopoverIdx = null; // 현재 열려있는 메모 팝오버의 공연 인덱스
+// === 막공(마지막 공연) 표시 — 요청 0044 ===
+let lastShowRoleOn = false;   // 배역별 막공: 각 배우가 그 배역에서 마지막으로 서는 회차 강조
+let lastShowPairOn = false;   // 페어막: 선택 배역 조합이 마지막으로 함께 서는 회차 강조
+let lastShowPairRoles = [];   // 페어막 배역 선택(선택 순서 유지 — 토글 on/off와 무관하게 보존)
 let scheduleAutoScrolled = false; // 현재 공연으로의 자동 스크롤을 한 번만 수행
 let ticketPopoverIdx = null; // 현재 열려있는 티켓 선택 팝오버의 공연 인덱스
 let tmIdx = -1;              // 티켓 관리 모달의 공연 인덱스
@@ -367,13 +371,105 @@ function buildTicketPopover(idx, grade, tk){
     </div>`;
 }
 
+/* ===== 막공(마지막 공연) — 요청 0044 =====
+   배역별 막공: 배역-배우별로 마지막 출연(비중>0) 회차 인덱스를 계산해 그 셀의 이름을 강조.
+   페어막: 선택 배역들의 '그날 배우 구성' 조합별 마지막 회차를 계산해 그 행의 선택 배역 셀들을
+   타원(알약) 테두리 하나로 묶는다. 기준은 필터와 무관하게 전체 스케줄. */
+function buildLastShowMap(){
+  const map = new Map();   // "배역|배우" -> 마지막 출연 회차 인덱스
+  const roles = castRoleObjs().map(c=>c.role);
+  performanceData.performances.forEach((p,i)=>{
+    roles.forEach(role=>{
+      castVisibleNamesOf(p.cast[role]).forEach(n=>map.set(role+"|"+n, i));
+    });
+  });
+  return map;
+}
+function buildPairLastSet(pairRoles){
+  const last = new Map();  // 조합키 -> 마지막 회차 인덱스
+  performanceData.performances.forEach((p,i)=>{
+    const parts = pairRoles.map(r=>castVisibleNamesOf(p.cast[r]).slice().sort().join("·"));
+    if(parts.some(s=>!s)) return;   // 미정 배역이 있으면 조합 미성립(미래 회차 등)
+    last.set(parts.join("|"), i);
+  });
+  return new Set(last.values());
+}
+function lastShowPairValidRoles(){
+  const roles = castRoleObjs().map(c=>c.role);
+  return lastShowPairRoles.filter(r=>roles.includes(r));
+}
+function lastShowPairActive(){ return lastShowPairOn && lastShowPairValidRoles().length>0; }
+
+// 막공 설정 오버레이(시트맵 필터와 같은 방식). 토글·배역 선택은 즉시 반영·저장.
+// 페어막 배역 선택 순서(chip 번호)는 '배역 통계 추가'와 같은 클릭 순서 방식이며,
+// 토글을 꺼도 선택은 지워지지 않는다(초기화 버튼으로만 리셋).
+function renderLastShowModalBody(){
+  const roleToggle = document.getElementById("lastShowRoleToggle");
+  const pairToggle = document.getElementById("lastShowPairToggle");
+  if(roleToggle) roleToggle.checked = lastShowRoleOn;
+  if(pairToggle) pairToggle.checked = lastShowPairOn;
+  const picker = document.getElementById("lastShowPairPicker");
+  if(!picker) return;
+  const roles = castRoleObjs().map(c=>c.role);
+  picker.innerHTML = `
+    <div class="combo-actor-chips">
+      ${roles.map(role=>{
+        const i = lastShowPairRoles.indexOf(role);
+        const selected = i>=0;
+        return `<div class="combo-chip ${selected?'selected':''}" data-role="${escHtml(role)}">${escHtml(role)}${selected?`<span class="chip-badge">${i+1}</span>`:""}</div>`;
+      }).join("")}
+    </div>`;
+  picker.querySelectorAll(".combo-chip").forEach(chip=>{
+    chip.addEventListener("click", ()=>{
+      const role = chip.dataset.role;
+      const i = lastShowPairRoles.indexOf(role);
+      if(i>=0) lastShowPairRoles.splice(i,1); else lastShowPairRoles.push(role);
+      renderLastShowModalBody();
+      renderSchedule();
+      saveState();
+    });
+  });
+}
+function openLastShowModal(){
+  renderLastShowModalBody();
+  document.getElementById("lastShowModal").style.display = "flex";
+}
+function closeLastShowModal(){
+  const m = document.getElementById("lastShowModal");
+  if(m) m.style.display = "none";
+}
+function setupLastShowModal(){
+  document.getElementById("lastShowCloseBtn")?.addEventListener("click", closeLastShowModal);
+  document.getElementById("lastShowApplyBtn")?.addEventListener("click", closeLastShowModal);
+  document.getElementById("lastShowResetBtn")?.addEventListener("click", ()=>{
+    lastShowRoleOn = false; lastShowPairOn = false; lastShowPairRoles = [];
+    renderLastShowModalBody(); renderSchedule(); saveState();
+  });
+  document.getElementById("lastShowRoleToggle")?.addEventListener("change", e=>{
+    lastShowRoleOn = e.target.checked; renderSchedule(); saveState();
+  });
+  document.getElementById("lastShowPairToggle")?.addEventListener("change", e=>{
+    lastShowPairOn = e.target.checked; renderSchedule(); saveState();
+  });
+  document.getElementById("lastShowModal")?.addEventListener("click", e=>{
+    if(e.target.id === "lastShowModal") closeLastShowModal();   // 바깥 클릭 닫기
+  });
+}
+
 function renderSchedule(){
   const head = document.getElementById("scheduleHead");
   const body = document.getElementById("scheduleBody");
   const table = document.getElementById("scheduleTable");
   table.classList.toggle("hl-mode", rowHighlightOn);  // 방법2(날짜 셀 클릭 가능)
   const allRoles = castRoleObjs().map(c=>c.role);
-  const visibleRoles = allRoles.filter(r=>!scheduleHiddenCols.has(r));
+  // 페어막이 켜지면: 선택 배역이 맨 앞으로 오고(선택 순서), 배역 숨김은 무시(전부 표시)
+  const pairActive = lastShowPairActive();
+  const pairRoles = pairActive ? lastShowPairValidRoles() : [];
+  const visibleRoles = pairActive
+    ? [...pairRoles, ...allRoles.filter(r=>!pairRoles.includes(r))]
+    : allRoles.filter(r=>!scheduleHiddenCols.has(r));
+  const lastShowMap = lastShowRoleOn ? buildLastShowMap() : null;
+  const pairLastSet = pairActive ? buildPairLastSet(pairRoles) : null;
   const showTicket = !scheduleHiddenCols.has(COL_TICKET);
   const showPrice = !scheduleHiddenCols.has(COL_PRICE);
   const visibleMatches = (performanceData.matches||[]).filter(m=>!scheduleHiddenCols.has("match:"+m.name));
@@ -386,14 +482,22 @@ function renderSchedule(){
     renderSchedule();
   };
 
+  const lastShowBtn = document.getElementById("lastShowBtn");
+  if(lastShowBtn){
+    lastShowBtn.classList.toggle("active", lastShowRoleOn || pairActive);
+    lastShowBtn.onclick = openLastShowModal;
+  }
+
   const hiddenBar = document.getElementById("scheduleHiddenBar");
-  if(scheduleHiddenCols.size===0){
+  // 페어막 중에는 배역 숨김이 무시되고(전 배역 표시) 숨김 기능도 잠기므로, 숨김 바에서 배역 항목 제외
+  const hiddenColsShown = [...scheduleHiddenCols].filter(c=>!(pairActive && allRoles.includes(c)));
+  if(hiddenColsShown.length===0){
     hiddenBar.innerHTML = "";
   } else {
     hiddenBar.innerHTML = `
       <div class="hidden-roles-bar">
         <select id="hiddenColSelect">
-          ${[...scheduleHiddenCols].map(c=>`<option value="${c}">${colLabel(c)}</option>`).join("")}
+          ${hiddenColsShown.map(c=>`<option value="${c}">${colLabel(c)}</option>`).join("")}
         </select>
         <button id="hiddenColAddBtn">표시</button>
       </div>
@@ -481,9 +585,10 @@ function renderSchedule(){
                 <div class="role-dropdown-actions">
                   <button class="role-clear-btn" data-role="${role}">모두 해제</button>
                 </div>
+                ${pairActive ? "" : `
                 <div class="role-dropdown-actions" style="border-top:none; margin-top:0; padding-top:0;">
                   <button class="role-hide-btn" data-role="${role}">숨기기</button>
-                </div>
+                </div>`}
               </div>
             ` : ""}
           </div>
@@ -665,22 +770,33 @@ function renderSchedule(){
       priceCell = `<td class="price-cell">${price!=null ? formatKRW(price) : '<span class="empty">—</span>'}</td>`;
     }
 
+    // 페어막: 이 행이 선택 배역 조합의 마지막 회차면, 선택 배역 셀들(맨 앞에 연속 배치)을
+    // 타원(알약) 테두리 하나로 묶는다(시작/중간/끝 셀 클래스로 테두리 분담).
+    const isPairLastRow = pairLastSet ? pairLastSet.has(idx) : false;
     const castCells = visibleRoles.map(role=>{
+      let tdCls = "cast-cell";
+      if(isPairLastRow && pairRoles.includes(role)){
+        tdCls += " pairlast";
+        if(role===pairRoles[0]) tdCls += " pairlast-start";
+        if(role===pairRoles[pairRoles.length-1]) tdCls += " pairlast-end";
+      }
       const items = showCastHistory
         ? parseCastWeighted(p.cast[role])
         : parseCastWeighted(p.cast[role]).filter(it=>it.weight>0);
       if(items.length===0){
-        return `<td class="cast-cell"><span class="empty">미정</span></td>`;
+        return `<td class="${tdCls}"><span class="empty">미정</span></td>`;
       }
       const lookup = {};
       const roleInfo = performanceData.casts.find(c=>c.role===role);
       roleInfo.actors.forEach(a=>lookup[a.name]=a.role);
-      return `<td class="cast-cell">${
+      return `<td class="${tdCls}">${
         items.map(it=>{
           const n = it.name;
           const baseCls = lookup[n]==="alternative" ? "alt" : (lookup[n]==="swing" ? "swing":"");
           const zeroCls = it.weight===0 ? "zero-weight" : "";
-          return `<span class="name ${baseCls} ${zeroCls}">${escHtml(n)}</span>`;
+          // 배역별 막공: 이 배우가 이 배역으로 서는 마지막 회차면 강조(둥근 배경 사각형)
+          const lastCls = (lastShowMap && it.weight>0 && lastShowMap.get(role+"|"+n)===idx) ? "last-show" : "";
+          return `<span class="name ${baseCls} ${zeroCls} ${lastCls}">${escHtml(n)}</span>`;
         }).join("")
       }</td>`;
     }).join("");
@@ -3180,6 +3296,10 @@ function buildStateSnapshot(){
     etcStatsOrder: [...etcStatsOrder],
     collapsedEtcStats: [...collapsedEtcStats],
     showCastHistory: showCastHistory,
+    // 막공(마지막 공연) 표시 설정 — 요청 0044
+    lastShowRoleOn: lastShowRoleOn,
+    lastShowPairOn: lastShowPairOn,
+    lastShowPairRoles: [...lastShowPairRoles],
     seatShowWatched: seatShowWatched,
     seatShowBooked: seatShowBooked,
     seatMapFilterActive: seatMapFilterActive,
@@ -3276,6 +3396,14 @@ function applyState(state){
   if(Array.isArray(state.etcStatsOrder)) etcStatsOrder = state.etcStatsOrder.slice();
   collapsedEtcStats = new Set(state.collapsedEtcStats || []);
   if(typeof state.showCastHistory === "boolean") showCastHistory = state.showCastHistory;
+
+  // 막공(마지막 공연) 표시 설정 — 배역 선택은 현재 공연에 있는 배역만 남긴다
+  if(typeof state.lastShowRoleOn === "boolean") lastShowRoleOn = state.lastShowRoleOn;
+  if(typeof state.lastShowPairOn === "boolean") lastShowPairOn = state.lastShowPairOn;
+  if(Array.isArray(state.lastShowPairRoles)){
+    const lsValid = castRoleObjs().map(c=>c.role);
+    lastShowPairRoles = state.lastShowPairRoles.filter(r=>lsValid.includes(r));
+  }
 
   if(typeof state.seatShowWatched === "boolean") seatShowWatched = state.seatShowWatched;
   if(typeof state.seatShowBooked === "boolean") seatShowBooked = state.seatShowBooked;
@@ -4212,6 +4340,7 @@ async function init(){
   setupSeatColorUI();       // 시트맵 색상 설정 UI 연결
   setupShowSwitcher();      // 다른 공연 전환 드롭다운(설정 맨 아래)
   setupScheduleOptions();   // 스케줄 보기 옵션 체크박스 연결(저장값 반영)
+  setupLastShowModal();     // 막공(마지막 공연) 설정 오버레이 연결 — 요청 0044
   applyFinaleVisibility();  // Finale 탭 표시/숨김(기본 OFF)
   setupScheduleScrollLock(); // 방법3: 가로 드래그 중 세로 스크롤 잠금
 
