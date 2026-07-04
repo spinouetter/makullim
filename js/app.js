@@ -444,7 +444,9 @@ function drawPairComboOverlay(){
   const wrapRect = wrap.getBoundingClientRect();
   const toLocal = r => ({ x: r.left - wrapRect.left + wrap.scrollLeft, y: r.top - wrapRect.top + wrap.scrollTop,
                           w: r.width, h: r.height });
-  const stroke = getComputedStyle(document.documentElement).getPropertyValue("--gold").trim() || "#e0a13a";
+  const gold = getComputedStyle(document.documentElement).getPropertyValue("--gold").trim() || "#e0a13a";
+  // 조합이 둘 이상이면 체인마다 색을 다르게(첫 조합은 테마 gold, 이후 팔레트 순환)
+  const CHAIN_COLORS = [gold, "#4f9fd0", "#4fae72", "#b06fd0", "#d0654f", "#3fb6ad"];
   // 행별로: 조합 인덱스 k마다 멤버 상자(DOM 순 = 페어 컬럼 순)를 잇는다
   wrap.querySelectorAll("#scheduleBody tr").forEach(tr=>{
     const byCombo = {};
@@ -453,15 +455,17 @@ function drawPairComboOverlay(){
         (byCombo[k] || (byCombo[k] = [])).push(sp);
       });
     });
-    const drawnBox = new Set();   // 같은 배우 상자는 한 번만
-    Object.values(byCombo).forEach(spans=>{
+    const combos = Object.values(byCombo);
+    const boxCount = new Map();   // 배우가 여러 조합에 속하면 상자를 동심(밖으로 3px씩)으로
+    combos.forEach((spans, ci)=>{
+      const stroke = combos.length > 1 ? CHAIN_COLORS[ci % CHAIN_COLORS.length] : gold;
       const boxes = spans.map(sp=>{
+        const grow = 3 * (boxCount.get(sp) || 0);
+        boxCount.set(sp, (boxCount.get(sp) || 0) + 1);
         const r = toLocal(sp.getBoundingClientRect());
-        return { x:r.x-4, y:r.y-1, w:r.w+8, h:r.h+2, sp };
+        return { x:r.x-4-grow, y:r.y-1-grow, w:r.w+8+grow*2, h:r.h+2+grow*2 };
       });
       boxes.forEach(b=>{
-        if(drawnBox.has(b.sp)) return;
-        drawnBox.add(b.sp);
         const rect = document.createElementNS(svgNS, "rect");
         rect.setAttribute("x", b.x); rect.setAttribute("y", b.y);
         rect.setAttribute("width", b.w); rect.setAttribute("height", b.h);
