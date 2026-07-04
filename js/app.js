@@ -374,25 +374,45 @@ function buildTicketPopover(idx, grade, tk){
 /* ===== 막공(마지막 공연) — 요청 0046 =====
    배역별 막공: 배역-배우별로 마지막 출연(비중>0) 회차 인덱스를 계산해 그 셀의 이름을 강조.
    페어막: 선택 배역들의 '그날 배우 구성' 조합별 마지막 회차를 계산해 그 행의 선택 배역 셀들을
-   타원(알약) 테두리 하나로 묶는다. 기준은 필터와 무관하게 전체 스케줄. */
+   타원(알약) 테두리 하나로 묶는다. 기준은 필터와 무관하게 전체 스케줄.
+   발표 경계 제외: 마지막 출연 뒤로 그 배역의 캐스팅이 더 발표되지 않았으면(이후 회차가
+   전부 미정 = 캐스팅 발표가 거기서 끝남) 진짜 막공인지 알 수 없으므로 표시하지 않는다.
+   단, 그 회차가 공연 종료일(endDate)이면 진짜 막공이므로 표시한다. */
+function isFinalDayPerf(i){
+  const p = performanceData.performances[i];
+  return !!(p && performanceData.endDate && p.date === performanceData.endDate);
+}
 function buildLastShowMap(){
-  const map = new Map();   // "배역|배우" -> 마지막 출연 회차 인덱스
+  const map = new Map();       // "배역|배우" -> 마지막 출연 회차 인덱스
+  const lastCastIdx = {};      // 배역별 캐스팅이 발표된 마지막 회차
   const roles = castRoleObjs().map(c=>c.role);
   performanceData.performances.forEach((p,i)=>{
     roles.forEach(role=>{
-      castVisibleNamesOf(p.cast[role]).forEach(n=>map.set(role+"|"+n, i));
+      const names = castVisibleNamesOf(p.cast[role]);
+      if(names.length) lastCastIdx[role] = i;
+      names.forEach(n=>map.set(role+"|"+n, i));
     });
   });
+  for(const [k,i] of map){
+    const role = k.split("|")[0];
+    if(i === lastCastIdx[role] && !isFinalDayPerf(i)) map.delete(k);   // 발표 경계 제외
+  }
   return map;
 }
 function buildPairLastSet(pairRoles){
-  const last = new Map();  // 조합키 -> 마지막 회차 인덱스
+  const last = new Map();      // 조합키 -> 마지막 회차 인덱스
+  let lastAllCastIdx = -1;     // 선택 배역 전부 캐스팅이 발표된 마지막 회차
   performanceData.performances.forEach((p,i)=>{
     const parts = pairRoles.map(r=>castVisibleNamesOf(p.cast[r]).slice().sort().join("·"));
     if(parts.some(s=>!s)) return;   // 미정 배역이 있으면 조합 미성립(미래 회차 등)
+    lastAllCastIdx = i;
     last.set(parts.join("|"), i);
   });
-  return new Set(last.values());
+  const out = new Set();
+  for(const i of last.values()){
+    if(i < lastAllCastIdx || isFinalDayPerf(i)) out.add(i);   // 발표 경계 제외
+  }
+  return out;
 }
 function lastShowPairValidRoles(){
   const roles = castRoleObjs().map(c=>c.role);
@@ -794,8 +814,8 @@ function renderSchedule(){
           const n = it.name;
           const baseCls = lookup[n]==="alternative" ? "alt" : (lookup[n]==="swing" ? "swing":"");
           const zeroCls = it.weight===0 ? "zero-weight" : "";
-          // 배역별 막공: 이 배우가 이 배역으로 서는 마지막 회차면 강조(둥근 배경 사각형)
-          const lastCls = (lastShowMap && it.weight>0 && lastShowMap.get(role+"|"+n)===idx) ? "last-show" : "";
+          // 배역별 막공: 이 배우(캐스트만)가 이 배역으로 서는 마지막 회차면 강조(둥근 배경 사각형)
+          const lastCls = (lastShowMap && it.weight>0 && lookup[n]==="cast" && lastShowMap.get(role+"|"+n)===idx) ? "last-show" : "";
           return `<span class="name ${baseCls} ${zeroCls} ${lastCls}">${escHtml(n)}</span>`;
         }).join("")
       }</td>`;
