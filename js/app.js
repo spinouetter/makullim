@@ -1689,7 +1689,7 @@ function gradeOf(seatId){
   return null;
 }
 function gradeClass(gname){
-  return {VIP:"vip", R:"r", S:"s", A:"a"}[gname] || "";
+  return {VIP:"vip", R:"r", S:"s", A:"a", B:"b", "보류":"hold", "휠체어":"wheel"}[gname] || "";
 }
 
 function gradeFillVar(gname){
@@ -2826,12 +2826,12 @@ function applyColorTheme(){
    - 등급/히트맵은 각각 이름 붙인 프리셋 목록을 독립 관리.
    - 색은 CSS 변수(--g-*) 인라인 주입 + countHeatColor(heatConfig)로 수렴.
    ========================================================= */
-const GRADE_KEYS = ["vip","r","s","a","none"];
-const GRADE_LABELS = { vip:"VIP", r:"R", s:"S", a:"A", none:"미등록" };
+const GRADE_KEYS = ["vip","r","s","a","b","hold","wheel","none"];
+const GRADE_LABELS = { vip:"VIP", r:"R", s:"S", a:"A", b:"B", hold:"보류", wheel:"휠체어", none:"미등록" };
 const HEAT_STEPS = 10;
 let seatColorEnabled = false;
 let seatColorPreviewForce = false;   // 프리뷰 팝업이 열린 동안 작업색 강제 적용
-let seatGradeWork = { baseId:null, dirty:false, grades:null };      // grades:{vip,r,s,a,none}
+let seatGradeWork = { baseId:null, dirty:false, grades:null };      // grades:{vip,r,s,a,b,hold,wheel,none}
 let seatGradePresets = [];                                          // [{id,name,grades}]
 let seatHeatWork = { baseId:null, dirty:false, heat:COUNT_HEAT.slice(), heatMax:HEAT_STEPS }; // heat:[…10]
 let seatHeatPresets = [];                                           // [{id,name,heat,heatMax}]
