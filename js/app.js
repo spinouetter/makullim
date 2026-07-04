@@ -1406,6 +1406,7 @@ function renderStats(){
             </td>
             <td>${fmtStatValue(s.total)}</td>
             <td>${fmtStatValue(s.ended)}</td>
+            <td>${fmtStatValue(s.total - s.ended)}</td>
             <td>${fmtStatValue(s.watched)}</td>
             <td>${fmtStatValue(s.upcoming)}</td>
           </tr>
@@ -1423,7 +1424,7 @@ function renderStats(){
           ${pinnedRoleStats().includes(c.role) ? "" : `<button class="role-stat-del-btn stat-del-btn" data-role="${escHtml(c.role)}" title="${escHtml(c.role)} 삭제">삭제</button>`}
         </div>
         <table class="role-stat-table" style="${isCollapsed ? 'display:none;' : ''}">
-          <thead><tr><th>배우 이름</th><th>전체</th><th>종료</th><th>관극</th><th>예매</th></tr></thead>
+          <thead><tr><th>배우 이름</th><th>전체</th><th>종료</th><th>남음</th><th>관극</th><th>예매</th></tr></thead>
           <tbody>${rows}</tbody>
         </table>
       </div>
@@ -1567,7 +1568,7 @@ function renderEtcStats(){
   const perfs = performanceData.performances;
   const add = (b,p)=>{ b.total++; const e=isEnded(p), s=hasSeat(p); if(e){ b.ended++; if(s)b.watched++; } else if(s){ b.upcoming++; } };
   const nb = ()=>({total:0,ended:0,watched:0,upcoming:0});
-  const cells = b=>`<td>${b.total}</td><td>${b.ended}</td><td>${b.watched}</td><td>${b.upcoming}</td>`;
+  const cells = b=>`<td>${b.total}</td><td>${b.ended}</td><td>${b.total-b.ended}</td><td>${b.watched}</td><td>${b.upcoming}</td>`;
 
   // ----- 월별 -----
   function monthHtml(){
@@ -1576,8 +1577,8 @@ function renderEtcStats(){
     const rows = Object.keys(m).sort().map(k=>{
       const lbl = `${+k.slice(0,4)}년 ${+k.slice(5,7)}월`; // 2026년 7월
       return `<tr><td>${lbl}</td>${cells(m[k])}</tr>`;
-    }).join("") || `<tr><td colspan="5" style="color:var(--ink-dim);">기록 없음</td></tr>`;
-    return `<table class="role-stat-table"><thead><tr><th>월</th><th>전체</th><th>종료</th><th>관극</th><th>예매</th></tr></thead><tbody>${rows}</tbody></table>`;
+    }).join("") || `<tr><td colspan="6" style="color:var(--ink-dim);">기록 없음</td></tr>`;
+    return `<table class="role-stat-table"><thead><tr><th>월</th><th>전체</th><th>종료</th><th>남음</th><th>관극</th><th>예매</th></tr></thead><tbody>${rows}</tbody></table>`;
   }
 
   // ----- 요일별 (+ 마티네 / 휴일(주말 제외)) -----
@@ -1594,7 +1595,7 @@ function renderEtcStats(){
     let rows = DOW.map((name,i)=>`<tr><td>${name}</td>${cells(d[i])}</tr>`).join("");
     rows += `<tr class="etc-subrow"><td>마티네(평일 낮)</td>${cells(mat)}</tr>`;
     rows += `<tr class="etc-subrow"><td>휴일(주말 제외)</td>${cells(hol)}</tr>`;
-    return `<table class="role-stat-table"><thead><tr><th>요일</th><th>전체</th><th>종료</th><th>관극</th><th>예매</th></tr></thead><tbody>${rows}</tbody></table>`;
+    return `<table class="role-stat-table"><thead><tr><th>요일</th><th>전체</th><th>종료</th><th>남음</th><th>관극</th><th>예매</th></tr></thead><tbody>${rows}</tbody></table>`;
   }
 
   // ----- 티켓별 (등급 → 횟수 많은 순) -----
@@ -2628,14 +2629,14 @@ function buildComboBody(rows, rolesSelected, isCollapsed){
       i=j+1;
     }
   }
-  const head = `<tr>${rolesSelected.map(r=>`<th>${escHtml(r)}</th>`).join("")}<th>전체</th><th>종료</th><th>관극</th><th>예매</th></tr>`;
+  const head = `<tr>${rolesSelected.map(r=>`<th>${escHtml(r)}</th>`).join("")}<th>전체</th><th>종료</th><th>남음</th><th>관극</th><th>예매</th></tr>`;
   const body = rows.map((row,idx)=>{
     const roleCells = rolesSelected.map((_,col)=>{
       if(skip[idx][col]) return "";
       return `<td rowspan="${rowspan[idx][col]}">${escHtml(row.tuple[col])}</td>`;
     }).join("");
     const s = row.stats;
-    return `<tr>${roleCells}<td>${fmtStatValue(s.total)}</td><td>${fmtStatValue(s.ended)}</td><td>${fmtStatValue(s.watched)}</td><td>${fmtStatValue(s.upcoming)}</td></tr>`;
+    return `<tr>${roleCells}<td>${fmtStatValue(s.total)}</td><td>${fmtStatValue(s.ended)}</td><td>${fmtStatValue(s.total - s.ended)}</td><td>${fmtStatValue(s.watched)}</td><td>${fmtStatValue(s.upcoming)}</td></tr>`;
   }).join("");
   return `<table class="role-stat-table" style="${isCollapsed ? 'display:none;' : ''}"><thead>${head}</thead><tbody>${body}</tbody></table>`;
 }
