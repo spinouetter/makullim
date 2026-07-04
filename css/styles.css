@@ -910,6 +910,7 @@
   }
 
   .seatmap-right-group{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+  .bar-right-group{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; }  /* 옵션 바 우측 버튼 그룹(스케줄 등) */
   #seatFilterBtn{ position:relative; }
   .filter-count{
     /* 배지를 버튼 오른쪽 '아래'로: 위로 두면 옵션 바가 nav 밑으로 스크롤될 때 상단에서 잘림 */

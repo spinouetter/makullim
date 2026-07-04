@@ -10,7 +10,7 @@
 <!-- __SHOW__ --><!-- 배포 시 GitHub Action이 slug 스텁(<slug>/index.html)을 만들며 위 마커를
      <script>window.MAKOLLIM_SHOW_ID="<id>";window.MAKOLLIM_BUILD="<커밋SHA>";</script> 로 치환한다.
      루트는 빌드 버전만 주입. BUILD는 데이터(JSON) 요청의 캐시 버스터(?v=) — 로컬 개발(미주입)은 no-store로 항상 최신. -->
-<link rel="stylesheet" href="/css/styles.css?v=84">
+<link rel="stylesheet" href="/css/styles.css?v=85">
 </head>
 <body>
 
@@ -36,11 +36,14 @@
   <section class="page active" id="page-schedule">
     <div class="floor-toggle-bar">
       <div id="scheduleHiddenBar"></div>
-      <button class="floor-toggle-btn" id="nowBtn" style="margin-left:auto;" disabled>지금</button>
-      <button class="floor-toggle-btn" id="lastShowBtn">막공</button>
-      <button class="floor-toggle-btn" id="castHistoryToggleBtn">변경 내역</button>
-      <button class="floor-toggle-btn" id="filterClearBtn" disabled>필터 해제</button>
-      <button class="floor-toggle-btn" id="clearHighlightBtn" style="display:none;">선택 해제</button>
+      <!-- 우측 버튼 그룹: 정렬 앵커(margin-left:auto)를 그룹이 담당 → 안의 버튼을 숨겨도 정렬 유지 -->
+      <div class="bar-right-group" style="margin-left:auto;">
+        <button class="floor-toggle-btn" id="nowBtn" disabled>지금</button>
+        <button class="floor-toggle-btn" id="lastShowBtn">막공</button>
+        <button class="floor-toggle-btn" id="castHistoryToggleBtn">변경 내역</button>
+        <button class="floor-toggle-btn" id="filterClearBtn" disabled>필터 해제</button>
+        <button class="floor-toggle-btn" id="clearHighlightBtn" style="display:none;">선택 해제</button>
+      </div>
     </div>
     <div class="table-scroll-wrap">
       <table id="scheduleTable">
