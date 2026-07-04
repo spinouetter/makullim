@@ -396,6 +396,29 @@
   .opt-indent{ margin-left:24px; }
   .date-cell{white-space:nowrap; font-weight:700;}
   .time-cell{color:var(--ink-dim); white-space:nowrap;}
+
+  /* 취소된 공연: 날짜·시간·좌석번호를 흐리게 + 취소선 (배지·아이콘은 제외) */
+  #scheduleTable tbody tr.perf-cancelled .date-text,
+  #scheduleTable tbody tr.perf-cancelled .time-cell{
+    text-decoration:line-through; opacity:0.5;
+  }
+  #scheduleTable tbody tr.perf-cancelled .seat-input{
+    text-decoration:line-through; opacity:0.55; color:var(--ink-dim);
+  }
+  #scheduleTable tbody tr.perf-cancelled .float-label{ text-decoration:line-through; }
+  /* '취소' 배지 */
+  .cancel-mark{
+    display:inline-block; margin-left:5px; padding:0 4px;
+    font-size:10px; font-weight:700; line-height:1.5;
+    color:#e0594a; border:1px solid #e0594a; border-radius:4px;
+    vertical-align:middle; text-decoration:none;
+  }
+  /* 일정 변경(리스케줄) 표시: 이전 일정은 title 툴팁으로 안내 */
+  .resched-mark{
+    display:inline-block; margin-left:4px;
+    font-size:12px; font-weight:700; color:#5b8fd6;
+    vertical-align:middle; cursor:help; text-decoration:none;
+  }
   .seat-cell{width:106px; min-width:106px; max-width:106px;}
   .note-input{ width:100%; padding:2px 6px; }
   .seat-input{
