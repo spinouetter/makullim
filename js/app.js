@@ -1357,7 +1357,7 @@ function renderStats(){
   document.getElementById("statTopCards").innerHTML = `
     <div class="stat-card"><div class="label">전체</div><div class="value">${totalShows}</div></div>
     <div class="stat-card"><div class="label">종료</div><div class="value">${endedShows}</div></div>
-    <div class="stat-card"><div class="label">남은</div><div class="value">${remainingShows}</div></div>
+    <div class="stat-card"><div class="label">남음</div><div class="value">${remainingShows}</div></div>
     <div class="stat-card"><div class="label">관극</div><div class="value">${watchedShows}</div></div>
     <div class="stat-card"><div class="label">예매</div><div class="value">${upcomingShows}</div></div>
   `;
