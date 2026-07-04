@@ -17,7 +17,7 @@
 1. **checkout** — 저장소 체크아웃.
 2. **공연 slug 스텁 생성** — `shows/index.json`의 각 공연 id에 대해 `shows/<id>.json`의 `slug`를 읽어 `/<slug>/index.html`을 만든다. `index.html`을 복사하며 `<!-- __SHOW__ -->` 마커를 `window.MAKOLLIM_SHOW_ID="<id>"`로 치환 → `/<slug>/` 접속 시 그 공연을 바로 로드. **스텁은 배포물에만 있고 저장소엔 커밋하지 않는다.** slug가 예약 폴더명(css·js·data·fonts·shows·theatres·scripts·requests·images·json)과 겹치면 사고 방지를 위해 **실패** 처리.
 3. **Dropbox 키 주입** — Secret `DROPBOX_APP_KEY`가 있으면 `js/config.js`의 `__DROPBOX_APP_KEY__` 자리표시자에 sed로 주입(없으면 백업 기능 비활성으로 배포).
-4. **피날레 썸네일 생성** — `scripts/gen-finale-preview.js`(playwright-core)로 각 공연의 '관극 인증 이미지' 미리보기를 랜덤 데이터로 렌더해 `shows/*/images/finale-preview.png` 생성. 러너의 시스템 Google Chrome을 재사용(없으면 playwright 크로미엄 설치로 폴백). **실패해도 배포는 계속**(앱이 라이브 보드로 폴백). 산출물도 배포물에만 포함(커밋 안 함).
+4. **피날레 썸네일 생성** — `scripts/gen-finale-preview.js`(playwright-core)로 각 공연의 '관극 인증 이미지' 미리보기를 랜덤 데이터로 렌더해 `shows/*/images/finale-preview.jpg` 생성(사진 많은 보드라 JPG로 용량↓). 러너의 시스템 Google Chrome을 재사용(없으면 playwright 크로미엄 설치로 폴백). **실패해도 배포는 계속**(앱이 라이브 보드로 폴백). 산출물도 배포물에만 포함(커밋 안 함).
 5. **빌드 의존물 정리** — `node_modules`·`package*.json` 삭제(배포물 오염 방지), 실패해도 항상 실행.
 6. **`.nojekyll`** 생성 후 `configure-pages` → `upload-pages-artifact`(path `.`) → `deploy-pages`. **`deploy-pages`는 간헐적 배포 API 실패에 대비해 최대 3회 재시도**(아티팩트 업로드는 1회만, 배포만 재시도해 중복 방지).
 
@@ -29,4 +29,4 @@
 - 새 공연 추가 시: `shows/index.json`에 id, `shows/<id>.json`에 고유 `slug`. slug는 예약 폴더명과 겹치면 안 됨.
 
 ### 산출물(커밋 안 함, 배포물에만)
-- `/<slug>/index.html`(공연 스텁), `shows/*/images/finale-preview.png`(썸네일), 주입된 `js/config.js`.
+- `/<slug>/index.html`(공연 스텁), `shows/*/images/finale-preview.jpg`(썸네일), 주입된 `js/config.js`.
