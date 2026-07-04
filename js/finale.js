@@ -189,15 +189,69 @@
   //   placeholder: 사진 없을 때 대체 이미지
   const XLINK = "http://www.w3.org/1999/xlink";
   const DEF_PHOTOS = { pattern: "images/{name}.jpeg", placeholder: "images/" + encodeURIComponent("플레이스홀더") + ".jpeg" };
+  const PLACEHOLDER_KEY = "플레이스홀더";   // 스프라이트 내 플레이스홀더 타일 키(파일명 stem)
   function photoUrlFrom(photos, name){ return window.showUrl(((photos && photos.pattern) || DEF_PHOTOS.pattern).replace("{name}", encodeURIComponent(name))); }
   function placeholderUrl(photos){ return window.showUrl((photos && photos.placeholder) || DEF_PHOTOS.placeholder); }
-  // 실제 사진은 위쪽 정렬(YMin: 얼굴 상단), 플레이스홀더는 세로 중앙(YMid)
+
+  // 캐스팅 사진 스프라이트(합친 1장 + 좌표 JSON). sync-cast.py가 생성, 공연 폴더에 커밋.
+  //  요청 수를 줄이려 개별 <image href> 대신 스프라이트 1장을 오프셋+클립해 각 슬롯에 표시.
+  //  스프라이트가 없거나(다른 공연) 이름이 없으면 기존 개별 사진 방식으로 폴백.
+  let spriteAtlas;   // undefined=미로드, null=없음, {sprite,w,h,tiles} = 로드됨
+  async function loadSpriteAtlas(){
+    if(spriteAtlas !== undefined) return spriteAtlas;
+    try{ const r = await fetch(window.showUrl("images/casting-sprite.json"), { cache: "no-store" });
+      spriteAtlas = r.ok ? await r.json() : null; }
+    catch(e){ spriteAtlas = null; }
+    return spriteAtlas;
+  }
+  // 스프라이트의 tile을 슬롯(el의 x/y/w/h)에 cover로 채워 표시. align: "top"(사진) | "center"(플레이스홀더).
+  //  전체 스프라이트를 배율 k로 그려 tile이 슬롯을 덮게 오프셋 + 슬롯 rect로 clip. 내보내기용 좌표는 data-*에 보관.
+  function setPhotoFromSprite(el, tile, align){
+    const sx = +el.getAttribute("x"), sy = +el.getAttribute("y"),
+          sw = +el.getAttribute("width"), sh = +el.getAttribute("height");
+    const SW = spriteAtlas.w, SH = spriteAtlas.h, tx = tile.x, ty = tile.y, tw = tile.w, th = tile.h;
+    const k = Math.max(sw/tw, sh/th);                       // cover 배율
+    const ix = sx + sw/2 - (tx + tw/2)*k;                   // 가로 가운데(xMid)
+    const iy = (align === "center") ? (sy + sh/2 - (ty + th/2)*k) : (sy - ty*k);   // top(YMin) 또는 center(YMid)
+    // 슬롯 rect로 클립
+    const svg = el.ownerSVGElement || (el.closest && el.closest("svg"));
+    if(svg){
+      let defs = svg.querySelector("defs.fn-sprite-defs");
+      if(!defs){ defs = document.createElementNS(SVGNS, "defs"); defs.setAttribute("class", "fn-sprite-defs"); svg.insertBefore(defs, svg.firstChild); }
+      const cid = "fnclip-" + (el.id || ("p" + (fnClipSeq++)));
+      const cp = document.createElementNS(SVGNS, "clipPath"); cp.setAttribute("id", cid); cp.setAttribute("clipPathUnits", "userSpaceOnUse");
+      const rc = document.createElementNS(SVGNS, "rect"); rc.setAttribute("x", sx); rc.setAttribute("y", sy); rc.setAttribute("width", sw); rc.setAttribute("height", sh);
+      cp.appendChild(rc); defs.appendChild(cp);
+      el.setAttribute("clip-path", "url(#" + cid + ")");
+    }
+    // 내보내기(inlinePhotos)에서 타일을 슬롯 크기로 잘라 넣기 위해 원 좌표 보관
+    el.dataset.tile = [tx, ty, tw, th].join(",");
+    el.dataset.slot = [sx, sy, sw, sh].join(",");
+    el.dataset.align = align;
+    el.setAttribute("preserveAspectRatio", "none");
+    el.setAttribute("x", ix); el.setAttribute("y", iy); el.setAttribute("width", SW*k); el.setAttribute("height", SH*k);
+    const url = window.showUrl(spriteAtlas.sprite);
+    el.setAttributeNS(XLINK, "href", url); el.setAttribute("href", url);
+  }
+  let fnClipSeq = 0;
+  // 실제 사진은 위쪽 정렬(YMin: 얼굴 상단), 플레이스홀더는 세로 중앙(YMid).
+  //  스프라이트에 해당 이름(또는 플레이스홀더)이 있으면 스프라이트에서, 없으면 개별 사진(+에러 폴백).
   function setPhoto(el, name, photos){
     if(!el) return;
+    // 스프라이트가 있는 공연: 스프라이트가 '있는 사진 전체'의 소스이므로 개별 요청 없이 여기서 끝낸다.
+    //  이름이 스프라이트에 있으면 그 타일(사진, 상단정렬), 없으면 플레이스홀더 타일(중앙). → 요청 1건.
+    //  (사진을 바꿨는데 스프라이트를 안 만들면 그 배우만 플레이스홀더로 보임 → sync-cast.py 재실행으로 갱신)
+    if(spriteAtlas && spriteAtlas.tiles){
+      const tiles = spriteAtlas.tiles;
+      if(name && tiles[name]) return setPhotoFromSprite(el, tiles[name], "top");
+      if(tiles[PLACEHOLDER_KEY]) return setPhotoFromSprite(el, tiles[PLACEHOLDER_KEY], "center");
+    }
+    // 스프라이트 없는 공연 → 기존 개별 사진(+에러 시 플레이스홀더)
     const ph = placeholderUrl(photos), url = name ? photoUrlFrom(photos, name) : ph;
     if(!name) el.setAttribute("preserveAspectRatio", "xMidYMid slice");   // 이름 없는 슬롯 → 중앙
-    el.addEventListener("error", function onerr(){    // 사진 없으면 플레이스홀더로(세로 중앙)
+    el.addEventListener("error", function onerr(){    // 사진 없으면 플레이스홀더로(스프라이트 우선, 없으면 개별)
       el.removeEventListener("error", onerr);
+      if(tiles && tiles[PLACEHOLDER_KEY]) return setPhotoFromSprite(el, tiles[PLACEHOLDER_KEY], "center");
       el.setAttribute("preserveAspectRatio", "xMidYMid slice");
       el.setAttributeNS(XLINK, "href", ph); el.setAttribute("href", ph);
     }, { once: true });
@@ -542,7 +596,7 @@
       if(!vp || !dataReady()){ _boardRendering = null; return null; }
       const mani = await loadManifest();
       const hasVB = applyViewBox(mani);
-      const [txt, css] = await Promise.all([loadBoard(mani), loadFontCss(mani)]);
+      const [txt, css] = await Promise.all([loadBoard(mani), loadFontCss(mani), loadSpriteAtlas()]);
       vp.innerHTML = txt;
       const svg = vp.querySelector("svg");
       if(!svg){ _boardRendering = null; return null; }
@@ -826,9 +880,41 @@
       img.src=href;
     });
   }
+  function loadImage(url){ return new Promise((res, rej)=>{ const im = new Image(); im.onload = ()=>res(im); im.onerror = ()=>rej(new Error("이미지 로드 실패: " + url)); im.src = url; }); }
+  // 스프라이트에서 tile 영역을 슬롯 비율로 cover 크롭해 data URI(JPEG)로. align: "top" | "center".
+  function spriteTileDataUrl(spriteImg, tile, slot, align){
+    try{
+      const tx = tile.x, ty = tile.y, tw = tile.w, th = tile.h, sw = slot.w, sh = slot.h;
+      const slotA = sw/sh, tileA = tw/th;
+      let cx, cy, cw, ch;   // 스프라이트에서 잘라올 소스 사각형(tile 안의 cover 영역)
+      if(tileA > slotA){ ch = th; cw = th*slotA; cy = ty; cx = tx + (tw - cw)/2; }        // 좌우 크롭(가운데)
+      else { cw = tw; ch = tw/slotA; cx = tx; cy = ty + (align === "center" ? (th - ch)/2 : 0); }   // 상/하(top=상단, center=중앙)
+      const H = Math.max(1, Math.min(600, Math.round(ch))), W = Math.max(1, Math.round(H*slotA));
+      const cv = document.createElement("canvas"); cv.width = W; cv.height = H;
+      cv.getContext("2d").drawImage(spriteImg, cx, cy, cw, ch, 0, 0, W, H);
+      return cv.toDataURL("image/jpeg", 0.92);
+    }catch(e){ return null; }
+  }
   async function inlinePhotos(root, crop){
     const imgs = [...root.querySelectorAll("image")];
-    await Promise.all(imgs.map(async el=>{
+    // ① 스프라이트 기반 슬롯: 스프라이트 1장만 로드해 타일별로 슬롯 크기 data URI로 교체(+슬롯 좌표 복원·clip 제거)
+    const sprites = imgs.filter(el => el.dataset && el.dataset.tile);
+    if(sprites.length && spriteAtlas){
+      let spriteImg = null;
+      try{ spriteImg = await loadImage(window.showUrl(spriteAtlas.sprite)); }catch(e){}
+      for(const el of sprites){
+        const t = el.dataset.tile.split(",").map(Number), s = el.dataset.slot.split(",").map(Number);
+        const durl = spriteImg ? spriteTileDataUrl(spriteImg, {x:t[0],y:t[1],w:t[2],h:t[3]}, {w:s[2],h:s[3]}, el.dataset.align) : null;
+        if(durl){
+          el.setAttribute("x", s[0]); el.setAttribute("y", s[1]); el.setAttribute("width", s[2]); el.setAttribute("height", s[3]);
+          el.setAttribute("preserveAspectRatio", "none"); el.removeAttribute("clip-path");
+          el.setAttribute("href", durl); el.setAttributeNS(XLINK, "href", durl);
+        }
+      }
+    }
+    // ② 나머지(개별 사진) — 기존 방식
+    const rest = imgs.filter(el => !(el.dataset && el.dataset.tile));
+    await Promise.all(rest.map(async el=>{
       const href = el.getAttribute("href") || el.getAttributeNS(XLINK, "href");
       if(!href || href.indexOf("data:") === 0) return;   // placeholder(svg) 등 이미 인라인
       if(crop){
