@@ -32,6 +32,16 @@ let currentShowId = "";   // 현재 공연 id(=meta.id) — 공연 전환 드롭
 function showUrl(p){ return /^(\/|https?:)/.test(p) ? p : SHOW_BASE + p; }
 window.showUrl = showUrl;   // finale.js 등에서 사용
 
+/* 데이터(JSON) URL에 배포 빌드 버전을 붙인다 — js?v=NN과 같은 캐시 버스팅.
+   데이터 파일은 커밋 시점에 확정되므로, 배포 시 Action이 주입하는 커밋 버전
+   (window.MAKOLLIM_BUILD) 하나면 충분하다. 배포가 새로 되면 URL이 바뀌어 항상 최신,
+   같은 배포 안에서는 브라우저 캐시가 그대로 쓰인다. 로컬 개발(미주입)은 원경로 유지. */
+function dataUrl(p){
+  const v = window.MAKOLLIM_BUILD;
+  return v ? p + (p.includes("?") ? "&" : "?") + "v=" + encodeURIComponent(v) : p;
+}
+window.dataUrl = dataUrl;   // finale.js 등에서 재사용 가능
+
 const LOCAL_HOSTS = new Set(["localhost", "127.0.0.1", "[::1]", ""]);
 async function resolveShowMeta(j){
   if(window.MAKOLLIM_SHOW_ID) return j("/shows/" + window.MAKOLLIM_SHOW_ID + ".json");
@@ -62,8 +72,9 @@ async function resolveShowMeta(j){
    분리 이전의 단일 객체 구조를 그대로 재구성하므로 이후의 렌더링 로직은 수정 불필요. */
 async function loadData(){
   const j = async (path)=>{
-    // cache:"no-store" → 데이터 파일(schedule 등)을 항상 최신으로 받아온다(브라우저 캐시 무시).
-    const res = await fetch(path, { cache: "no-store" });
+    // 배포본(빌드 버전 주입): ?v=<빌드>가 붙은 URL이라 브라우저 캐시를 그대로 활용한다.
+    // 로컬 개발(미주입): cache:"no-store"로 항상 최신을 받아온다(브라우저 캐시 무시).
+    const res = await fetch(dataUrl(path), window.MAKOLLIM_BUILD ? undefined : { cache: "no-store" });
     if(!res.ok) throw new Error(path + " 로드 실패 (" + res.status + ")");
     return res.json();
   };
@@ -73,11 +84,16 @@ async function loadData(){
   currentShowId = meta.id;
   setupStorageNamespace(meta.id); // 막올림별 localStorage 네임스페이스 설정
   const theatrePath = meta.theatre || "/theatres/default.json";
-  const [seatmap, grades, casts, schedule] = await Promise.all([
+  // 데이터 파일은 전부 한 번에 병렬로 받는다(요청 워터폴 단축 — 요청 0042).
+  // holidays(공용)·matches·resellers는 없어도 동작하도록 비-치명적으로 로드.
+  const [seatmap, grades, casts, schedule, holidaysRaw, matchesRaw, resellersRaw] = await Promise.all([
     j(showUrl(theatrePath)),
     j(showUrl("grades.json")),
     j(showUrl("casts.json")),
-    j(showUrl("schedule.json"))
+    j(showUrl("schedule.json")),
+    j("/data/holidays.json").catch(e=>{ console.warn("holidays.json 로드 실패:", e.message); return {}; }),
+    j(showUrl("matches.json")).catch(e=>{ console.warn("matches.json 로드 실패:", e.message); return []; }),
+    j(showUrl("resellers.json")).catch(e=>{ console.warn("resellers.json 로드 실패:", e.message); return []; })
   ]);
   seatmapData = seatmap;
   performanceData = {
@@ -89,15 +105,10 @@ async function loadData(){
     // 통계 프리셋·고정 배역 설정(선택) — showStatsConfig()/presetComboEntries() 참조
     statsConfig: (meta.stats && typeof meta.stats === "object") ? meta.stats : {}
   };
-  // 공휴일(있으면): 날짜 -> 이름. 공연과 무관한 공용 데이터(data/). 없어도 동작하도록 비-치명적으로 로드.
-  try{ holidays = await j("/data/holidays.json"); } catch(e){ console.warn("holidays.json 로드 실패:", e.message); holidays = {}; }
-  holidaySet = new Set(Object.keys(holidays || {}));
-  // 대결(match) 정의(있으면). 없어도 동작하도록 비-치명적으로 로드. 승패 결과는 공연 데이터(schedule)에 들어옴.
-  try{ performanceData.matches = await j(showUrl("matches.json")); } catch(e){ console.warn("matches.json 로드 실패:", e.message); performanceData.matches = []; }
-  if(!Array.isArray(performanceData.matches)) performanceData.matches = [];
-  // 예매처(리셀러) 지정(있으면): 좌석별 예매처 목록. 없어도 동작하도록 비-치명적으로 로드.
-  try{ performanceData.resellers = await j(showUrl("resellers.json")); } catch(e){ console.warn("resellers.json 로드 실패:", e.message); performanceData.resellers = []; }
-  if(!Array.isArray(performanceData.resellers)) performanceData.resellers = [];
+  holidays = holidaysRaw || {};   // 공휴일: 날짜 -> 이름 (공연과 무관한 공용 데이터 data/)
+  holidaySet = new Set(Object.keys(holidays));
+  performanceData.matches = Array.isArray(matchesRaw) ? matchesRaw : [];       // 대결(승부) 정의 — 결과는 schedule에
+  performanceData.resellers = Array.isArray(resellersRaw) ? resellersRaw : []; // 좌석별 예매처(리셀러)
   SEAT_BBOX = computeSeatBBox();
   performanceData.performances.forEach((p,i)=>{
     p.sid = "s"+(i+1);        // 공연 숨겨진 ID (시간순)
@@ -4016,7 +4027,7 @@ async function setupShowSwitcher(){
   const sel = document.getElementById("showSelect");
   const section = document.getElementById("showSwitchSection");
   if(!sel || !section) return;
-  const j = async (path)=>{ const r = await fetch(path, { cache:"no-store" }); if(!r.ok) throw new Error(path); return r.json(); };
+  const j = async (path)=>{ const r = await fetch(dataUrl(path), window.MAKOLLIM_BUILD ? undefined : { cache:"no-store" }); if(!r.ok) throw new Error(path); return r.json(); };
   let shows = [];
   try{
     const idx = await j("/shows/index.json");
