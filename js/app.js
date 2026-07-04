@@ -733,12 +733,14 @@ function renderSchedule(){
     return true;
   });
 
-  // 종료되지 않은 첫 공연 = 현재 관극 중 또는 바로 다음 공연 (시간순)
-  const currentIdx = performanceData.performances.findIndex(pp=>!isEnded(pp));
+  // 종료되지 않은 첫 공연 = 현재 관극 중 또는 바로 다음 공연 (시간순). 취소된 공연은 제외.
+  const currentIdx = performanceData.performances.findIndex(pp=>!isEnded(pp) && !isCancelled(pp));
 
   body.innerHTML = filteredPerfs.map(p=>{
     const idx = performanceData.performances.indexOf(p);
     const isPast = isEnded(p); // 종료(시작+러닝타임 경과)된 공연을 과거로 표시
+    const cancelled = isCancelled(p);       // 취소된 공연 → 흐림 + 취소선
+    const reschedList = reschedulesOf(p);   // 일정 변경 이력(있으면 표시)
     const dcolor = dateColorOf(p.date); // 일/공휴일=빨강, 토=파랑
     const ticketType = p.ticketType || "";
     const ticketFee = !!p.ticketFee;
@@ -828,9 +830,9 @@ function renderSchedule(){
       : "";
 
     return `
-      <tr class="${isPast?'past':''} ${idx===currentIdx?'current-perf':''} ${highlightedRows.has(idx)?'row-highlight':''}" data-idx="${idx}">
+      <tr class="${isPast?'past':''} ${idx===currentIdx?'current-perf':''} ${highlightedRows.has(idx)?'row-highlight':''} ${cancelled?'perf-cancelled':''} ${reschedList.length?'perf-rescheduled':''}" data-idx="${idx}">
         ${floatCell}
-        <td class="date-cell"${dcolor?` style="color:${dcolor}"`:''}>${shortDateDow(p.date)}</td>
+        <td class="date-cell"${dcolor?` style="color:${dcolor}"`:''}><span class="date-text">${shortDateDow(p.date)}</span>${cancelled?`<span class="cancel-mark">취소</span>`:""}${reschedList.length?`<span class="resched-mark" title="${escHtml(rescheduleSummary(p))}">&#8635;</span>`:""}</td>
         <td class="time-cell"${dcolor?` style="color:${dcolor}"`:''}>${p.time}</td>
         <td class="seat-cell">
           <div style="display:flex; align-items:center; gap:8px;">
@@ -1237,7 +1239,7 @@ function floatLabelText(p){
 // 방법1: 가로 스크롤이 '날짜의 년도 폭'을 넘으면 오버레이 표시 → 그 임계값(px)을 날짜셀 첫 3글자("26/") 폭으로 측정
 let floatThreshold = 22;
 function computeFloatThreshold(){
-  const cell = document.querySelector("#scheduleBody .date-cell");
+  const cell = document.querySelector("#scheduleBody .date-cell .date-text");
   if(!cell || !cell.firstChild || cell.firstChild.nodeType !== 3) return;
   try{
     const range = document.createRange();
@@ -1293,7 +1295,25 @@ function isEnded(p){
   return end < new Date();
 }
 function hasSeat(p){
+  if(isCancelled(p)) return false; // 취소된 공연은 관극/예매(좌석 기반 집계)에서 제외
   return !!(p.seat && p.seat.trim()!=="");
+}
+// 취소된 공연 여부(공연 정의 schedule.json의 cancelled 플래그)
+function isCancelled(p){ return !!(p && p.cancelled); }
+// 스케줄 변경 이력. schedule.json의 reschedules 리스트(오래된 순, 각 항목 {date,time}).
+// 스케줄은 여러 번 바뀔 수 있어 이전 일정을 통째로 리스트로 보관한다.
+function reschedulesOf(p){
+  return (p && Array.isArray(p.reschedules))
+    ? p.reschedules.filter(r=>r && (r.date || r.time))
+    : [];
+}
+// 변경 이력 요약(툴팁용): "26/04/12 (일) 19:00 → … → 현재 26/04/20 (월) 19:00"
+function rescheduleSummary(p){
+  const list = reschedulesOf(p);
+  if(!list.length) return "";
+  const parts = list.map(r=>perfDateLabel(r) || "미정");
+  parts.push("현재 " + (perfDateLabel(p) || "미정"));
+  return "일정 변경: " + parts.join(" → ");
 }
 // 마티네(평일 낮공연): 시작 시각이 17시 이전이면서 주말·공휴일이 아닌 날
 function isMatinee(p){
@@ -1501,6 +1521,7 @@ function renderStats(){
   // 총 티켓 금액: 종료된 공연(지금까지 쓴 것) / 미래 공연(앞으로 쓸 것) / 전체
   let spentAmount = 0, upcomingAmount = 0;
   perfs.forEach(p=>{
+    if(isCancelled(p)) return; // 취소된 공연은 금액 집계에서 제외
     const price = ticketPriceOf(p.seat, p.ticketType, p.ticketFee, (p.ticketDiscount!=null?p.ticketDiscount:null), p.ticketExtra) || 0;
     if(isEnded(p)) spentAmount += price; else upcomingAmount += price;
   });
@@ -1861,7 +1882,7 @@ function gradeFillVar(gname){
 }
 
 function watchCountOf(seatId){
-  return performanceData.performances.filter(p=>p.seat===seatId && isEnded(p)).length;
+  return performanceData.performances.filter(p=>p.seat===seatId && isEnded(p) && !isCancelled(p)).length;
 }
 
 function seatVisualStyle(count){
@@ -2075,6 +2096,7 @@ function seatPerfMatchesFilter(p){
 function seatMapCount(seatId){
   return performanceData.performances.filter(p=>{
     if(p.seat!==seatId) return false;
+    if(isCancelled(p)) return false; // 취소된 공연은 좌석맵 집계에서 제외
     const ended = isEnded(p);
     if(ended && !seatShowWatched) return false;
     if(!ended && !seatShowBooked) return false;
@@ -2523,7 +2545,7 @@ function showSeatDetail(seatId){
   const price = grade ? grade.prices[0] : null;
 
   const roles = castRoleObjs().map(c=>c.role);
-  const perfsHere = performanceData.performances.filter(p=>p.seat===seatId);
+  const perfsHere = performanceData.performances.filter(p=>p.seat===seatId && !isCancelled(p));
 
   const perfRows = perfsHere.length===0
     ? `<tr><td colspan="${3+roles.length}" style="color:var(--ink-dim); font-style:italic;">이 좌석에서 본 공연이 없습니다.</td></tr>`
