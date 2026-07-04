@@ -4109,6 +4109,24 @@ document.addEventListener("click", e=>{
   }
 });
 
+// 헤더 제목("막올림 · <공연 제목>")이 길면(특히 모바일) 두 줄로 줄바꿈된다.
+// 한 줄에 들어갈 때까지 글자 크기를 자동으로 줄여(fit-to-width) 한 줄로 맞춘다.
+// 공연마다 제목 길이가 다르므로 폭을 실측해 조절한다(하드코딩 없음).
+function fitHeaderTitle(){
+  const h1 = document.querySelector("header h1");
+  const header = h1 && h1.closest("header");
+  if(!h1 || !header) return;
+  const MAX = 22, MIN = 13;            // px — CSS 기본 22px, 가독 하한 13px
+  h1.style.whiteSpace = "nowrap";
+  h1.style.fontSize = MAX + "px";
+  const cs = getComputedStyle(header);
+  const avail = header.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+  if(!(avail > 0)) return;             // 레이아웃 전이면 건드리지 않음
+  let size = MAX;
+  // 한 줄(nowrap) 폭이 가용 폭을 넘으면 0.5px씩 줄인다. 하한에서 멈추면 이후엔 줄바꿈 허용.
+  while(size > MIN && h1.scrollWidth > avail){ size -= 0.5; h1.style.fontSize = size + "px"; }
+}
+
 function updateHeaderHeightVar(){
   const el = document.getElementById("appHeaderSticky");
   if(el) document.documentElement.style.setProperty("--header-h", el.offsetHeight + "px");
@@ -4122,7 +4140,7 @@ function updateAppHeight(){
   const h = (window.visualViewport && window.visualViewport.height) || window.innerHeight;
   document.documentElement.style.setProperty("--app-height", h + "px");
 }
-function updateLayoutVars(){ updateHeaderHeightVar(); updateAppHeight(); }
+function updateLayoutVars(){ fitHeaderTitle(); updateHeaderHeightVar(); updateAppHeight(); }
 
 window.addEventListener("resize", updateLayoutVars);
 window.addEventListener("orientationchange", updateLayoutVars);
@@ -4130,6 +4148,8 @@ if(window.visualViewport){
   window.visualViewport.addEventListener("resize", updateAppHeight);
 }
 updateLayoutVars();
+// 웹폰트가 늦게 로드되면 글자 폭이 바뀌므로, 폰트 준비 후 제목 크기를 다시 맞춘다.
+if(document.fonts && document.fonts.ready){ document.fonts.ready.then(updateLayoutVars); }
 
 // 컬러 테마 선택 버튼
 document.querySelectorAll(".theme-btn").forEach(btn=>{
@@ -4376,6 +4396,7 @@ async function init(){
     : "";
   document.getElementById("theaterName").textContent =
     seatmapData.theater + (period ? ` · ${period}` : "");
+  fitHeaderTitle();   // 제목이 정해졌으니 한 줄에 맞게 글자 크기 조정(모바일 줄바꿈 방지)
 
   loadStateFromStorage();
   applyColorTheme(); // 저장된 컬러 테마 적용
