@@ -394,9 +394,12 @@ function buildLastShowMap(){
 }
 /* 페어막(요청 0051 개편): 배역당 배우 1명씩 뽑은 '개별 조합' 단위로 마지막 동반 출연을 계산.
    - 발표 경계 제외 규칙은 페어막에는 적용하지 않는다(배역별 막공만 적용) — 사용자 지시.
-   - 한 배역에 배우가 2명 이상인 회차는: 막공인 개별 조합이 1개면 그 배우들만 윗줄로 정렬해
-     점선 한 줄로 묶고("line"), 2개 이상 섞이면 셀 전체를 점선으로 묶는다("all").
-   - 전 배역이 1명씩인 회차의 조합 막공은 기존 실선 타원("full"). */
+   - 전 배역이 1명씩인 회차의 조합 막공은 기존 실선 타원("full").
+   - 한 배역에 배우가 2명 이상인 회차는(출연 순서 유지 — 정렬 금지):
+     · 그 회차의 모든 개별 조합이 전부 막공이면 셀 전체를 점선으로("all")
+     · 일부만 막공이면 조합별로 배우마다 점선 상자 + 같은 조합끼리 점선 연결선("combos")
+       — (A,D)·(B,C)처럼 교차하는 조합도 각각 따로 묶인다. 연결선은 SVG 오버레이
+       (drawPairComboOverlay)가 렌더 후 실제 위치를 재서 그린다. */
 function buildPairLastInfo(pairRoles){
   const perfs = performanceData.performances;
   const namesAt = perfs.map(p=>pairRoles.map(r=>castVisibleNamesOf(p.cast[r])));
@@ -405,22 +408,87 @@ function buildPairLastInfo(pairRoles){
     if(namesAt[i].some(l=>!l.length)) return;   // 미정 배역이 있으면 조합 없음
     cartesian(namesAt[i]).forEach(tuple=>last.set(tuple.join("|"), i));
   });
-  const info = new Map();      // 회차 인덱스 -> {mode, actors?}
+  const info = new Map();      // 회차 인덱스 -> {mode, combos?}
   for(const [key,i] of last){
     (info.get(i) || info.set(i, {tuples:[]}).get(i)).tuples.push(key.split("|"));
   }
   for(const [i,e] of info){
     const multi = namesAt[i].some(l=>l.length>1);
+    const allCount = namesAt[i].reduce((n,l)=>n*l.length, 1);
     if(!multi){ e.mode = "full"; }
-    else if(e.tuples.length===1){
-      e.mode = "line";
-      e.actors = {};   // 배역 -> 막공 조합의 배우(윗줄 정렬 대상)
-      pairRoles.forEach((r,k)=>{ e.actors[r] = e.tuples[0][k]; });
-    } else { e.mode = "all"; }
+    else if(e.tuples.length >= allCount){ e.mode = "all"; }
+    else { e.mode = "combos"; e.combos = e.tuples; }
     delete e.tuples;
   }
   return info;
 }
+
+// 페어막 "combos" 모드의 연결선/상자 오버레이 — 렌더된 이름(.pair-mate)의 실제 좌표를 재서
+// 표 스크롤 컨테이너 안에 SVG로 그린다(가로 스크롤과 함께 움직임). renderSchedule 끝과
+// 창 크기 변경 시 다시 그린다.
+function drawPairComboOverlay(){
+  const wrap = document.querySelector("#page-schedule .table-scroll-wrap");
+  if(!wrap) return;
+  const old = wrap.querySelector(".pair-combo-overlay");
+  if(old) old.remove();
+  const mates = wrap.querySelectorAll(".pair-mate");
+  if(!mates.length) return;
+  const table = wrap.querySelector("#scheduleTable");
+  if(getComputedStyle(wrap).position === "static") wrap.style.position = "relative";
+  const svgNS = "http://www.w3.org/2000/svg";
+  const svg = document.createElementNS(svgNS, "svg");
+  svg.setAttribute("class", "pair-combo-overlay");
+  svg.setAttribute("width", table.scrollWidth);
+  svg.setAttribute("height", table.scrollHeight);
+  svg.style.cssText = "position:absolute; left:0; top:0; pointer-events:none; overflow:visible;";
+  const wrapRect = wrap.getBoundingClientRect();
+  const toLocal = r => ({ x: r.left - wrapRect.left + wrap.scrollLeft, y: r.top - wrapRect.top + wrap.scrollTop,
+                          w: r.width, h: r.height });
+  const stroke = getComputedStyle(document.documentElement).getPropertyValue("--gold").trim() || "#e0a13a";
+  // 행별로: 조합 인덱스 k마다 멤버 상자(DOM 순 = 페어 컬럼 순)를 잇는다
+  wrap.querySelectorAll("#scheduleBody tr").forEach(tr=>{
+    const byCombo = {};
+    tr.querySelectorAll(".pair-mate").forEach(sp=>{
+      (sp.dataset.pairc || "").split(" ").filter(Boolean).forEach(k=>{
+        (byCombo[k] || (byCombo[k] = [])).push(sp);
+      });
+    });
+    const drawnBox = new Set();   // 같은 배우 상자는 한 번만
+    Object.values(byCombo).forEach(spans=>{
+      const boxes = spans.map(sp=>{
+        const r = toLocal(sp.getBoundingClientRect());
+        return { x:r.x-4, y:r.y-1, w:r.w+8, h:r.h+2, sp };
+      });
+      boxes.forEach(b=>{
+        if(drawnBox.has(b.sp)) return;
+        drawnBox.add(b.sp);
+        const rect = document.createElementNS(svgNS, "rect");
+        rect.setAttribute("x", b.x); rect.setAttribute("y", b.y);
+        rect.setAttribute("width", b.w); rect.setAttribute("height", b.h);
+        rect.setAttribute("rx", 8);
+        rect.setAttribute("fill", "none");
+        rect.setAttribute("stroke", stroke);
+        rect.setAttribute("stroke-width", "2");
+        rect.setAttribute("stroke-dasharray", "3 3");
+        svg.appendChild(rect);
+      });
+      for(let i=0; i<boxes.length-1; i++){
+        const a = boxes[i], b = boxes[i+1];
+        const line = document.createElementNS(svgNS, "line");
+        line.setAttribute("x1", a.x + a.w); line.setAttribute("y1", a.y + a.h/2);
+        line.setAttribute("x2", b.x);       line.setAttribute("y2", b.y + b.h/2);
+        line.setAttribute("stroke", stroke);
+        line.setAttribute("stroke-width", "2");
+        line.setAttribute("stroke-dasharray", "3 3");
+        svg.appendChild(line);
+      }
+    });
+  });
+  wrap.appendChild(svg);
+}
+window.addEventListener("resize", ()=>{
+  if(document.querySelector("#page-schedule .pair-mate")) drawPairComboOverlay();
+});
 function lastShowPairValidRoles(){
   const roles = castRoleObjs().map(c=>c.role);
   return lastShowPairRoles.filter(r=>roles.includes(r));
@@ -805,39 +873,26 @@ function renderSchedule(){
     }
 
     // 페어막(0051): 이 행에 마지막 동반 출연(개별 조합)이 있으면 선택 배역 셀들을 묶는다.
-    //  - full: 전 배역 1명씩 → 셀 전체 실선 타원(기존)
-    //  - line: 다중 배우 행에서 막공 조합이 1개 → 그 배우들만 윗줄 정렬 + 점선 한 줄
-    //  - all : 다중 배우 행에서 막공 조합이 2개 이상 → 셀 전체 점선
+    //  - full  : 전 배역 1명씩 → 셀 전체 실선 타원(기존)
+    //  - all   : 다중 배우 행에서 모든 조합이 막공 → 셀 전체 점선
+    //  - combos: 다중 배우 행에서 일부 조합만 막공 → 조합별 배우 점선 상자+연결선
+    //            (출연 순서 유지 — 표시는 drawPairComboOverlay가 그림, 여기선 표식만)
     const pairInfo = pairLastInfo ? pairLastInfo.get(idx) : null;
-    const pairItemsOf = role => showCastHistory
-      ? parseCastWeighted(p.cast[role])
-      : parseCastWeighted(p.cast[role]).filter(it=>it.weight>0);
-    // line 모드: 페어 셀들의 표시 줄 수를 맞추기 위한 최대 줄 수(모자란 셀은 빈칸 패딩)
-    const pairMaxLines = (pairInfo && pairInfo.mode==="line")
-      ? Math.max(...pairRoles.map(r=>pairItemsOf(r).length)) : 0;
     const castCells = visibleRoles.map(role=>{
       let tdCls = "cast-cell";
       const inPair = !!(pairInfo && pairRoles.includes(role));
-      if(inPair && pairInfo.mode!=="line"){
+      const rIdx = inPair ? pairRoles.indexOf(role) : -1;
+      if(inPair && pairInfo.mode!=="combos"){
         tdCls += " pairlast" + (pairInfo.mode==="all" ? " pairdot" : "");
         if(role===pairRoles[0]) tdCls += " pairlast-start";
         if(role===pairRoles[pairRoles.length-1]) tdCls += " pairlast-end";
       }
-      if(inPair && pairInfo.mode==="line"){
-        tdCls += " pairline";
-        if(role===pairRoles[0]) tdCls += " pairline-start";
-        if(role===pairRoles[pairRoles.length-1]) tdCls += " pairline-end";
-      }
-      let items = showCastHistory
+      if(inPair && pairInfo.mode==="combos") tdCls += " paircombo";
+      const items = showCastHistory
         ? parseCastWeighted(p.cast[role])
         : parseCastWeighted(p.cast[role]).filter(it=>it.weight>0);
       if(items.length===0){
         return `<td class="${tdCls}"><span class="empty">미정</span></td>`;
-      }
-      // line 모드: 막공 조합의 배우를 윗줄로 정렬(점선이 윗줄만 묶음)
-      if(inPair && pairInfo.mode==="line"){
-        const target = pairInfo.actors[role];
-        items = [...items.filter(it=>it.name===target), ...items.filter(it=>it.name!==target)];
       }
       const lookup = {};
       const roleInfo = performanceData.casts.find(c=>c.role===role);
@@ -850,12 +905,15 @@ function renderSchedule(){
         // 배역별 막공: 이 배우(캐스트만)가 이 배역으로 서는 마지막 회차면 강조(둥근 배경 사각형)
         const lastCls = (lastShowMap && it.weight>0 && lookup[n]==="cast" && lastShowMap.get(role+"|"+n)===idx) ? "last-show" : "";
         if(lastCls) hasLast = true;
-        return `<span class="name ${baseCls} ${zeroCls} ${lastCls}">${escHtml(n)}</span>`;
+        // combos 모드: 이 배우가 속한 막공 조합 번호들을 표식으로 남김(오버레이가 상자·연결선을 그림)
+        let mateAttr = "";
+        if(inPair && pairInfo.mode==="combos" && it.weight>0){
+          const ks = pairInfo.combos.map((t,k)=>t[rIdx]===n ? k : -1).filter(k=>k>=0);
+          if(ks.length) mateAttr = ` data-pairc="${ks.join(" ")}"`;
+        }
+        return `<span class="name ${baseCls} ${zeroCls} ${lastCls}${mateAttr?' pair-mate':''}"${mateAttr}>${escHtml(n)}</span>`;
       }).join("");
-      // line 모드: 줄 수가 모자란 페어 셀은 빈칸으로 채워 윗줄 위치를 일치시킴
-      const padHtml = (inPair && pairInfo.mode==="line" && items.length < pairMaxLines)
-        ? `<span class="name pair-pad">&nbsp;</span>`.repeat(pairMaxLines - items.length) : "";
-      return `<td class="${tdCls}${hasLast?' has-last':''}">${namesHtml}${padHtml}</td>`;
+      return `<td class="${tdCls}${hasLast?' has-last':''}">${namesHtml}</td>`;
     }).join("");
 
     // 방법1: 컬럼이 아니라 0폭 sticky 셀 + 절대배치 오버레이 라벨. 가로 스크롤 시에만 보임.
@@ -914,6 +972,8 @@ function renderSchedule(){
       </tr>
     `;
   }).join("");
+
+  drawPairComboOverlay();   // 페어막 combos 모드 상자·연결선(렌더된 위치 기준)
 
   body.querySelectorAll(".ticket-trigger").forEach(btn=>{
     btn.addEventListener("click", e=>{
