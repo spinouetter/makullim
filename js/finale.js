@@ -86,7 +86,7 @@
   const _rp = new URLSearchParams(location.search);
   const RANDOM_MODE = _rp.has("randomData");
   const RANDOM_SEED = (_rp.get("randomData") || "").trim() || ("rnd-" + Math.floor(Math.random()*1e9));
-  const previewImg = () => window.showUrl("images/finale-preview.png");   // CI가 생성하는 썸네일(없으면 라이브 보드로 폴백)
+  const previewImg = () => window.showUrl("images/finale-preview.jpg");   // CI가 생성하는 썸네일(없으면 라이브 보드로 폴백)
   // 문자열 시드 → 32bit 해시(FNV-1a) → mulberry32 PRNG (같은 시드 = 같은 결과)
   function makeRng(seedStr){
     let h = 2166136261 >>> 0; const s = String(seedStr);
@@ -557,6 +557,18 @@
       if(hasVB) svg.setAttribute("viewBox", `${VB_X} ${VB_Y} ${VB_W} ${VB_H}`);   // 크롭
       else adoptSvgViewBox(svg);                                                  // 크롭 없음(SVG 자체 좌표)
       svg.dataset.w = VB_W; svg.dataset.h = VB_H;
+      // 다크모드에서 투명 영역(원본 흰 배경이 viewBox 전체를 덮지 않음)이 어두운 배경으로 비치거나
+      // 어둡게 저장되지 않도록, viewBox 전체를 덮는 불투명 흰 배경을 맨 뒤에 깐다.
+      {
+        const vb = (svg.getAttribute("viewBox") || "").split(/\s+/).map(Number);
+        if(vb.length === 4 && vb.every(n => !isNaN(n))){
+          const bg = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+          bg.setAttribute("x", vb[0]); bg.setAttribute("y", vb[1]);
+          bg.setAttribute("width", vb[2]); bg.setAttribute("height", vb[3]);
+          bg.setAttribute("fill", "#ffffff");
+          svg.insertBefore(bg, svg.firstChild);
+        }
+      }
       if(randomModeActive()) applyRandomViewings();   // 랜덤 데이터 모드: 관극 기록(좌석) 무작위 생성
       renderManifest(svg, mani);                       // casts 파생 슬롯 + bindings(좌석 포함) — 스탯은 app 공용 함수
       if(css){ try{ if(document.fonts && document.fonts.load) await document.fonts.load('20px "Anton"'); }catch(e){} fitRoleLabels(svg); }
@@ -594,7 +606,7 @@
       [designOrder[i],designOrder[j]] = [designOrder[j],designOrder[i]];
     }
   }
-  // CI가 만든 정적 미리보기(images/finale-preview.png) 존재 여부를 1회만 화면 밖에서 확인해 캐시.
+  // CI가 만든 정적 미리보기(images/finale-preview.jpg) 존재 여부를 1회만 화면 밖에서 확인해 캐시.
   // <img>를 DOM에 넣어 404를 기다리면 '깨진 이미지 아이콘'이 잠깐 보이므로, 오프-DOM Image로 미리 판별.
   let _previewOk = null, _previewProbe = null;
   function previewExists(){
@@ -850,7 +862,7 @@
       await new Promise((res,rej)=>{ img.onload=res; img.onerror=()=>rej(new Error("SVG 로드 실패")); img.src=url; });
       const canvas=document.createElement("canvas"); canvas.width=VB_W*scale; canvas.height=VB_H*scale;
       const ctx=canvas.getContext("2d");
-      if(type==="image/jpeg"){ ctx.fillStyle="#fff"; ctx.fillRect(0,0,canvas.width,canvas.height); }
+      ctx.fillStyle="#fff"; ctx.fillRect(0,0,canvas.width,canvas.height);   // PNG·JPG 모두 흰 배경(다크 저장 방지)
       ctx.setTransform(scale,0,0,scale,0,0); ctx.drawImage(img,0,0);
       return await new Promise(res=>canvas.toBlob(res,type,quality));
     } finally { URL.revokeObjectURL(url); }
