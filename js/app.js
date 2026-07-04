@@ -95,6 +95,9 @@ async function loadData(){
   // 대결(match) 정의(있으면). 없어도 동작하도록 비-치명적으로 로드. 승패 결과는 공연 데이터(schedule)에 들어옴.
   try{ performanceData.matches = await j(showUrl("matches.json")); } catch(e){ console.warn("matches.json 로드 실패:", e.message); performanceData.matches = []; }
   if(!Array.isArray(performanceData.matches)) performanceData.matches = [];
+  // 예매처(리셀러) 지정(있으면): 좌석별 예매처 목록. 없어도 동작하도록 비-치명적으로 로드.
+  try{ performanceData.resellers = await j(showUrl("resellers.json")); } catch(e){ console.warn("resellers.json 로드 실패:", e.message); performanceData.resellers = []; }
+  if(!Array.isArray(performanceData.resellers)) performanceData.resellers = [];
   SEAT_BBOX = computeSeatBBox();
   performanceData.performances.forEach((p,i)=>{
     p.sid = "s"+(i+1);        // 공연 숨겨진 ID (시간순)
@@ -320,10 +323,11 @@ function buildTicketPopover(idx, grade, tk){
     .sort((a,b)=> (b.discount||0)-(a.discount||0) || a.name.localeCompare(b.name,'ko'));
   const prices = [...topG, ...midG, ...botG];
   const selEntry = isCustom ? null : resolveTicketEntry(grade, ticketType); // 옛 이름(alias)도 해당 타입으로 선택 표시
+  const reseller = resellerOf(perf.seat); // 좌석의 예매처(리셀러). 없으면 괄호 표기 생략
   return `
     <div class="ticket-popover" data-idx="${idx}">
       <div class="popover-date">${perfDateLabel(perf)}</div>
-      <div class="ticket-popover-title">${grade.name}석 티켓 선택</div>
+      <div class="ticket-popover-title">${grade.name}석 티켓 선택${reseller ? ` (${escHtml(reseller)} 예매)` : ""}</div>
       <div class="ticket-options">
         ${prices.map(pr=>`
           <label class="ticket-option">
@@ -1690,6 +1694,14 @@ function gradeOf(seatId){
 }
 function gradeClass(gname){
   return {VIP:"vip", R:"r", S:"s", A:"a", B:"b", "보류":"hold", "휠체어":"wheel"}[gname] || "";
+}
+
+function resellerOf(seatId){
+  if(!seatId) return null;
+  for(const r of (performanceData.resellers || [])){
+    if(r.seatIds.includes(seatId)) return r.name;
+  }
+  return null;
 }
 
 function gradeFillVar(gname){
