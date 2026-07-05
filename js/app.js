@@ -875,8 +875,8 @@ function renderSchedule(){
           ? `<span class="tk-grade" style="background:${gradeFillVar(gradeName)};">${gradeName[0]}</span>` : "";
         const pill = `<span class="tk-buyout">전관</span>`;
         inner = grade
-          ? `<button class="ticket-trigger" data-idx="${idx}" title="티켓 선택">${chip}${pill}</button>`
-          : `<span class="ticket-trigger tk-buyout-static">${pill}</span>`;
+          ? `<button class="ticket-trigger tk-buyout-box" data-idx="${idx}" title="티켓 선택">${chip}${pill}</button>`
+          : `<span class="ticket-trigger tk-buyout-box tk-buyout-static">${pill}</span>`;
       } else if(!grade){
         // 좌석 미입력/무효 → 등급을 알 수 없어 티켓 선택 불가
         inner = `<span class="tk-none">—</span>`;
