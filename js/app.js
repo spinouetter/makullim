@@ -846,7 +846,7 @@ function renderSchedule(){
     const isPast = isEnded(p); // 종료(시작+러닝타임 경과)된 공연을 과거로 표시
     const cancelled = isCancelled(p);       // 취소된 공연 → 흐림 + 취소선
     const reschedList = reschedulesOf(p);   // 일정 변경 이력(있으면 표시)
-    const dcolor = dateColorOf(p.date); // 일/공휴일=빨강, 토=파랑
+    const dcolor = perfColorOf(p); // 일/공휴일=빨강, 토=파랑, 마티네=녹색
     const ticketType = p.ticketType || "";
     const ticketFee = !!p.ticketFee;
     const ticketTransferred = !!p.ticketTransferred; // 양도받은 티켓
@@ -1355,6 +1355,10 @@ function dateColorOf(dateStr){
   if(dow===0 || holidaySet.has((dateStr||"").trim())) return "#e0594a";
   if(dow===6) return "#5b8fd6";
   return null;
+}
+// 회차 단위 색: 일/공휴일=빨강, 토=파랑에 더해 마티네(평일 낮공연)=녹색
+function perfColorOf(p){
+  return dateColorOf(p.date) || (isMatinee(p) ? "#4fae72" : null);
 }
 // "26/04/12 (일)" 형태 (요일 포함)
 function shortDateDow(dateStr){
@@ -2984,7 +2988,7 @@ function showSeatDetail(seatId){
             return `<span class="name ${cls}">${escHtml(n)}</span>`;
           }).join("")}</td>`;
         }).join("");
-        const dcolor = dateColorOf(p.date);
+        const dcolor = perfColorOf(p);
         const noteVal = (p.note || "").trim();
         const memoCell = noteVal
           ? `<button class="seat-memo-icon" data-note="${escHtml(noteVal)}" title="${escHtml(noteVal)}" style="background:none; border:none; cursor:pointer; padding:2px; color:var(--gold); display:inline-flex;">
