@@ -1744,6 +1744,7 @@ function renderStats(){
 
   renderMatchStats();
   renderEtcStats();
+  renderDisruptionStats();
 }
 
 /* 대결(match) 통계: 배역별 표(승률 정렬) + 주배역×서브배역 조합 표(주배역=단독순서, rowspan).
@@ -1956,6 +1957,134 @@ function renderEtcStats(){
   setupBlockReorder(el, ".etc-stat-block", ".role-drag-handle", b=>b.dataset.key, keys=>{
     etcStatsOrder = keys; saveState(); renderEtcStats();
   });
+}
+
+/* 취소·변경 통계 — 공연 정의 stats.disruptions가 켜진 공연만 표시(요청 0052).
+   스케줄 데이터에서 전부 계산: 취소(cancelled)·일정 변경(reschedules)·
+   캐스팅 변경(비중 0 = 공지됐다 빠진 배우)·공연 중 변경(비중>0 배우 2명 이상). */
+function renderDisruptionStats(){
+  const section = document.getElementById("disruptionStatSection");
+  const el = document.getElementById("disruptionStats");
+  if(!section || !el) return;
+  if(!showStatsConfig().disruptions){ section.style.display = "none"; el.innerHTML = ""; return; }
+  section.style.display = "";
+
+  const perfs = performanceData.performances;
+  const total = perfs.length;
+  const roles = castRoleObjs().map(c=>c.role);
+
+  const cancelledN = perfs.filter(isCancelled).length;
+  const reschedN   = perfs.filter(p=>reschedulesOf(p).length>0).length;
+  const reschedMoves = perfs.reduce((s,p)=>s+reschedulesOf(p).length, 0);
+
+  // 셀 단위: 배역×회차의 빠짐(비중0)·투입(빠짐 있는 셀의 실제 출연)·공연 중 변경·취소 출연
+  let swapCells=0;
+  const per={};  // role -> actor -> {cancel,out,in,mid}
+  const bump=(role,name,k)=>{ const r=per[role]||(per[role]={}); const a=r[name]||(r[name]={cancel:0,out:0,in:0,midOut:0,midIn:0}); a[k]++; };
+  const midList=[];
+  perfs.forEach(p=>{
+    roles.forEach(role=>{
+      const items = parseCastWeighted(p.cast ? p.cast[role] : null);
+      if(!items.length) return;
+      const zero = items.filter(it=>it.weight===0);
+      const act  = items.filter(it=>it.weight>0);
+      if(isCancelled(p)){ act.forEach(it=>bump(role,it.name,"cancel")); return; }
+      if(zero.length){
+        swapCells++;
+        zero.forEach(it=>bump(role,it.name,"out"));
+        act.forEach(it=>bump(role,it.name,"in"));
+      }
+      if(act.length>=2){
+        act.forEach((it,idx)=>{
+          if(idx < act.length-1) bump(role,it.name,"midOut"); // 시작했다 중도에 빠짐
+          if(idx > 0)            bump(role,it.name,"midIn");  // 중도 투입
+        });
+        midList.push({date:p.date, time:p.time, role, names:act.map(it=>it.name)});
+      }
+    });
+  });
+
+  // 연속 중단 구간: 취소 회차가 정상 회차로 끊기지 않고 이어진 블록
+  const runs=[]; let run=null;
+  perfs.forEach(p=>{
+    if(isCancelled(p)){
+      if(!run) run={from:p.date, to:p.date, count:0};
+      run.to=p.date; run.count++;
+    } else if(run){ runs.push(run); run=null; }
+  });
+  if(run) runs.push(run);
+  const daySpan=r=>Math.round((new Date(r.to)-new Date(r.from))/86400000)+1;
+
+  // 무탈 회차: 취소·일정 변경·캐스팅 변경·공연 중 변경가 전혀 없던 회차
+  const calm = perfs.filter(p=>{
+    if(isCancelled(p) || reschedulesOf(p).length) return false;
+    return roles.every(role=>{
+      const items = parseCastWeighted(p.cast ? p.cast[role] : null);
+      return !items.some(it=>it.weight===0) && items.filter(it=>it.weight>0).length<=1;
+    });
+  }).length;
+
+  const pct=n=>total ? (Math.round(n*1000/total)/10)+"%" : "-";
+  const md=d=>`${+d.slice(5,7)}/${+d.slice(8,10)}`;
+
+  // ── 요약 ──
+  const summary = `
+    <table class="role-stat-table"><tbody>
+      <tr><td>전체 회차</td><td>${total}</td></tr>
+      <tr><td>취소 회차</td><td>${cancelledN} (${pct(cancelledN)})</td></tr>
+      <tr><td>일정 변경 회차</td><td>${reschedN} (변경 이력 ${reschedMoves}건)</td></tr>
+      <tr><td>캐스팅 변경(공지 대비)</td><td>${swapCells}건</td></tr>
+      <tr><td>공연 중 변경</td><td>${midList.length}건</td></tr>
+      <tr><td>예정대로 진행된 회차</td><td>${calm} (${pct(calm)})</td></tr>
+    </tbody></table>`;
+
+  // ── 중단 구간 ──
+  const runRows = runs.map(r=>{
+    const span = daySpan(r);
+    const range = r.from===r.to ? md(r.from) : `${md(r.from)} ~ ${md(r.to)}`;
+    return `<tr><td>${range}</td><td>${span}일</td><td>${r.count}회차</td></tr>`;
+  }).join("") || `<tr><td colspan="3" style="color:var(--ink-dim);">없음</td></tr>`;
+  const runsHtml = `<table class="role-stat-table"><thead><tr><th>기간</th><th>일수</th><th>취소</th></tr></thead><tbody>${runRows}</tbody></table>`;
+
+  // ── 공연 중 변경 목록 ──
+  const midRows = midList.map(m=>
+    `<tr><td>${md(m.date)} ${m.time.slice(0,5)}</td><td>${escHtml(m.role)}</td><td>${m.names.map((n,i)=>escHtml(n)+(i<m.names.length-1?"&#9660;":"&#9650;")).join(" → ")}</td></tr>`
+  ).join("") || `<tr><td colspan="3" style="color:var(--ink-dim);">없음</td></tr>`;
+  const midHtml = `<table class="role-stat-table"><thead><tr><th>회차</th><th>배역</th><th>배우</th></tr></thead><tbody>${midRows}</tbody></table>`;
+
+  // ── 배역·배우별 표 (배역 rowspan, 합계 많은 순) ──
+  const arr=[];
+  roles.forEach(role=>{
+    const r=per[role]; if(!r) return;
+    Object.keys(r).forEach(name=>{
+      const a=r[name], sum=a.cancel+a.out+a.in+a.midOut+a.midIn;
+      if(sum>0) arr.push({role, name, ...a, sum});
+    });
+  });
+  let actorRows="", i=0;
+  const byRole=roles.filter(role=>arr.some(x=>x.role===role));
+  byRole.forEach(role=>{
+    const list=arr.filter(x=>x.role===role).sort((a,b)=>b.sum-a.sum || a.name.localeCompare(b.name,"ko"));
+    list.forEach((x,k)=>{
+      const roleTd = k===0 ? `<td rowspan="${list.length}">${escHtml(role)}</td>` : "";
+      actorRows += `<tr>${roleTd}<td>${escHtml(x.name)}</td><td>${x.cancel||""}</td><td>${x.out||""}</td><td>${x.in||""}</td><td>${[x.midOut?`&#9660;${x.midOut}`:"",x.midIn?`&#9650;${x.midIn}`:""].filter(Boolean).join(" ")}</td></tr>`;
+    });
+  });
+  const actorHtml = actorRows
+    ? `<table class="role-stat-table"><thead><tr><th>배역</th><th>배우</th><th>취소</th><th>변경(빠짐)</th><th>변경(투입)</th><th>공연 중 변경</th></tr></thead><tbody>${actorRows}</tbody></table>`
+    : `<p style="color:var(--ink-dim); font-size:13px;">기록 없음</p>`;
+  const actorNote = actorRows ? `<p style="color:var(--ink-dim); font-size:12px; margin:6px 0 0;">공연 중 변경: &#9660; 공연 중 빠짐 · &#9650; 중도 투입</p>` : "";
+
+  const block=(title,html)=>`
+    <div style="margin-bottom:14px;">
+      <div style="font-size:13px; font-weight:700; color:var(--gold); margin-bottom:8px;">${title}</div>
+      ${html}
+    </div>`;
+  el.innerHTML =
+    block("요약", summary) +
+    block("중단 구간(연속 취소)", runsHtml) +
+    block("배역·배우별 취소·변경", actorHtml + actorNote) +
+    block("공연 중 변경", midHtml);
 }
 
 /* =========================================================
