@@ -364,7 +364,7 @@ function buildTicketPopover(idx, grade, tk, opts){
     <div class="ticket-popover" data-idx="${idx}">
       <div class="ticket-popover-head">
         <span class="popover-date">${perfDateLabel(perf)}</span>
-        ${opts.showAddTicket ? `<button class="tk-add-multi" data-idx="${idx}" title="현재 티켓 저장 후 티켓 추가">티켓 추가하기</button>` : ""}
+        ${opts.showAddTicket ? `<button class="tk-add-multi" data-idx="${idx}" title="현재 티켓 저장 후 좌석 추가">좌석 추가하기</button>` : ""}
       </div>
       <div class="ticket-popover-title">${grade.name}석 티켓 선택${reseller ? ` (${escHtml(reseller)} 예매)` : ""}</div>
       <div class="ticket-options">
