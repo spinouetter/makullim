@@ -534,7 +534,7 @@
   }
   .ticket-trigger{ position:relative; }
   /* 전관(buyout) 회차 표시: 티켓 알약과 같은 모양에 텍스트=전관, 배경만 보라, 할인율 없음 — 0056 */
-  .tk-buyout{font-size:12px; font-weight:800; color:#a78bfa;}
+  .tk-buyout{font-size:12px; font-weight:800; color:#a78bfa; display:inline-flex; align-items:center; height:16px;}
   .ticket-trigger.tk-buyout-box{
     background:color-mix(in srgb, #a78bfa 18%, var(--panel2));
     border-color:color-mix(in srgb, #a78bfa 40%, var(--line));
