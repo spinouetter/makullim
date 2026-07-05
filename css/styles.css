@@ -260,6 +260,15 @@
     font-size:11px; font-weight:700; color:var(--gold);
     margin-bottom:6px; letter-spacing:0.3px; white-space:nowrap;
   }
+  /* 티켓 팝오버 상단: 날짜(왼쪽) + '티켓 추가하기'(오른쪽 정렬) */
+  .ticket-popover-head{ display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:6px; }
+  .ticket-popover-head .popover-date{ margin-bottom:0; }
+  .tk-add-multi{
+    font-size:10px; font-weight:700; white-space:nowrap;
+    padding:3px 8px; border:1px solid var(--gold); color:var(--gold);
+    background:transparent; border-radius:6px; cursor:pointer;
+  }
+  .tk-add-multi:hover{ background:color-mix(in srgb, var(--gold) 15%, transparent); }
 
   .role-dropdown{
     position:absolute;
