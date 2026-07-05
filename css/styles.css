@@ -533,6 +533,15 @@
     background:#5b9bff; box-shadow:0 0 0 1px var(--panel);
   }
   .ticket-trigger{ position:relative; }
+  /* 전관(buyout) 회차 표시: 티켓 알약과 같은 모양에 텍스트=전관, 배경만 보라, 할인율 없음 — 0056 */
+  .tk-buyout{font-size:12px; font-weight:800; color:#a78bfa; display:inline-flex; align-items:center; height:16px;}
+  .ticket-trigger.tk-buyout-box{
+    background:color-mix(in srgb, #a78bfa 18%, var(--panel2));
+    border-color:color-mix(in srgb, #a78bfa 40%, var(--line));
+  }
+  /* 좌석(등급) 없는 전관: 클릭 불가지만 같은 모양의 박스로 */
+  .ticket-trigger.tk-buyout-static{cursor:default;}
+  .ticket-trigger.tk-buyout-static:hover{border-color:color-mix(in srgb, #a78bfa 40%, var(--line));}
   .ticket-trigger .tk-icon + .tk-transfer-dot{ position:absolute; top:1px; right:1px; }
 
   /* 다중 티켓: 좌석칸 오른쪽 위 + 버튼(코너) / 개수 배지 / 모드 꺼졌을 때 점 */
