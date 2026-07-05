@@ -275,7 +275,7 @@ tracker/
 ```json
 {
   "theater": "샤롯데씨어터",
-  "heightScale": 0.42,
+  "heightScale": 0.54,
   "floorMeta": {
     "1": { "centerOriginX": -8.5, "centerWidth": 17, "centerMaxRow": 22 }
   },
@@ -287,7 +287,7 @@ tracker/
 ```
 
 - `theater` — 화면 우상단에 표시되는 극장 이름.
-- `heightScale`(선택, 0~1) — 좌석맵의 **세로(무대→객석 깊이) 축이 실제 대비 그려진 비율**(예: `0.42` = 실제의 42%로 눌러 그림). 숨김 기능 `?equidist`(무대에서 같은 거리 좌석 찾기, 요청 0053)가 이 값으로 세로를 복원(`실제 = svgY / heightScale`)해 실제 거리를 계산합니다. 없으면 보정 없이 계산합니다(일반 렌더링에는 영향 없음).
+- `heightScale`(선택, 0~1) — 좌석맵의 **세로(무대→객석 깊이) 축이 실제 대비 그려진 비율**(예: `0.54` = 실제의 54%로 눌러 그림). 숨김 기능 `?equidist`(무대에서 같은 거리 좌석 찾기, 요청 0053)가 이 값으로 세로를 복원(`실제 = svgY / heightScale`)해 실제 거리를 계산합니다. 없으면 보정 없이 계산합니다(일반 렌더링에는 영향 없음).
 - `seats[]` — 좌석 하나당 객체 하나.
   - `id` — `"층-행-번호"` 형식 문자열(예: `"1-7-23"`). `grades.json`의 `seatIds`와 `schedule.json`의 `seat`이 이 id로 좌석을 참조합니다.
   - `floor` / `row` / `column` — 정수. `floor`는 층 토글(1·2·3층)과 연결됩니다.
