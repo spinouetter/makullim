@@ -300,7 +300,10 @@ function escHtml(s){
 //  - excludeSids: 이 공연 ID는 제외(할인 미적용).
 //  - weekdayOnly: true면 주말(토·일)·공휴일 공연에는 적용 안 됨.
 //  - dateFrom / dateTo: 적용 기간(YYYY-MM-DD, 포함). 이 기간 밖이면 적용 안 됨.
+//  - buyout: 전관(buyout) 회차에서도 선택 가능한 티켓(예: 정가·초대권). 전관 회차에는
+//    이 표시가 있는 티켓만 노출된다(일반 회차에는 영향 없음).
 function priceAppliesTo(pr, perf){
+  if(perf && perf.buyout && !pr.buyout) return false;
   if(Array.isArray(pr.sids) && !(perf && pr.sids.includes(perf.sid))) return false;
   if(Array.isArray(pr.times) && !(perf && pr.times.includes(perf.time))) return false;
   if(Array.isArray(pr.excludeSids) && perf && pr.excludeSids.includes(perf.sid)) return false;
