@@ -7,6 +7,7 @@
   "endDate": "2022-02-13",
   "runningtime": 180,
   "stats": {
+    "disruptions": true,
     "pinnedRoles": ["빌리", "마이클"],
     "presetCombos": [
       { "id": "billyxmichael", "roles": ["빌리", "마이클"] },
