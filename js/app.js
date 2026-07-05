@@ -1781,14 +1781,17 @@ function renderMatchStats(){
     optEl.onchange = ()=>{ matchAssumeDefaultWin = optEl.checked; saveState(); renderMatchStats(); };
   }
 
-  const ended = performanceData.performances.filter(isEnded);
+  // 대결 통계 대상 회차: 공연이 종료됐거나(isEnded) 결과(승자)가 기록된 회차.
+  // → 공연 종료 전이라도 승부 결과를 입력하면 통계에 즉시 반영된다(대결별 판정).
+  const hasMatchResult = (p, m) => !!(p.match && p.match[m.name] && p.match[m.name].winner);
+  const perfsForMatch = (m) => performanceData.performances.filter(p => isEnded(p) || hasMatchResult(p, m));
   const rateNum = s => { const d=s.win+s.loss+s.draw; return d>0 ? s.win/d : -1; };
   const rateStr = s => { const d=s.win+s.loss+s.draw; return d>0 ? Math.round(s.win/d*100)+"%" : "-"; };
   const tallyResult = (s, r)=>{ s.total++; if(r==='win')s.win++; else if(r==='loss')s.loss++; else if(r==='draw')s.draw++; };
 
   function roleStatsOf(m, role){
     const acc={};
-    ended.forEach(p=>{
+    perfsForMatch(m).forEach(p=>{
       const actor=matchParticipant(p,role,m.point); if(!actor) return;
       const s=acc[actor]||(acc[actor]={total:0,win:0,loss:0,draw:0});
       tallyResult(s, matchRoleResult(p,m,role));
@@ -1821,7 +1824,7 @@ function renderMatchStats(){
       const m=b.m, main=m.roles[0], sub=m.roles[1];
       title = `${escHtml(m.name)} 대결 · ${escHtml(main)}×${escHtml(sub)} 승리`;
       const pair={};
-      ended.forEach(p=>{
+      perfsForMatch(m).forEach(p=>{
         const a0=matchParticipant(p,main,m.point), a1=matchParticipant(p,sub,m.point);
         if(!a0||!a1) return;
         const byMain=pair[a0]||(pair[a0]={});
