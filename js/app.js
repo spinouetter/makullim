@@ -46,7 +46,7 @@ const LOCAL_HOSTS = new Set(["localhost", "127.0.0.1", "[::1]", ""]);
 
 // 숨김 기능(요청 0053): 주소에 ?equidist 를 붙였을 때만 켜진다.
 // 좌석맵에서 좌석을 선택하면 '무대에서 (초점까지 거리의 합이) 같은' 좌석들을 강조한다.
-// 좌석맵은 세로(무대→객석 깊이) 축이 공연장별로 축소돼 그려져 있어(heightReduction),
+// 좌석맵은 세로(무대→객석 깊이) 축이 공연장별로 '실제의 heightScale 배'로 눌려 그려져 있어,
 // 거리 계산 시 그 축을 복원해 안내용 타원(실제로는 세로로 눌린 타원)을 그린다.
 //   ?equidist            → center: 무대 중앙 한 점 초점(동심원)
 //   ?equidist=ends       → 무대 양 끝 두 점을 초점으로 하는 타원
@@ -2633,15 +2633,16 @@ function selectSeatEl(mainSvg, el){
    숨김 기능(요청 0053): 무대에서 같은 거리의 좌석 찾기
    - 주소에 ?equidist 가 있을 때만 동작(EQUIDIST_ON).
    - 무대 중앙(floorMeta[floor].stage.cx/cy)을 원점으로 동심원.
-   - 좌석맵 세로(깊이) 축이 공연장별로 축소돼 그려져 있어(theatre.heightReduction),
-     복원계수 vScale = 1 - heightReduction 로 세로를 되돌린 뒤 거리를 계산한다.
+   - 좌석맵 세로(깊이) 축이 공연장별로 '실제의 theatre.heightScale 배'로 눌려 그려져 있어,
+     복원계수 vScale = heightScale 로 세로를 되돌린 뒤 거리를 계산한다(예: 0.42 → svgY/0.42).
    - 같은 층에서 실제 거리가 선택 좌석과 ±EQUIDIST_TOL 안이면 강조하고, 안내용 타원을 그린다.
    ========================================================= */
 const SVG_NS = "http://www.w3.org/2000/svg";
-// 세로 축소 복원계수: heightReduction(예: 0.42=42% 축소) → vScale(예: 0.58)
+// 세로 축소 복원계수 vScale: 좌석맵 세로(깊이)가 '실제의 heightScale 배'로 그려짐.
+// 예: heightScale=0.42 → 실제 대비 42%로 눌림 → 실제 깊이는 svgY/0.42 로 복원.
 function seatDepthScale(){
-  const r = Number(seatmapData && seatmapData.heightReduction);
-  return (Number.isFinite(r) && r > 0 && r < 1) ? (1 - r) : 1; // 값이 없으면 보정 없음(정원)
+  const s = Number(seatmapData && seatmapData.heightScale);
+  return (Number.isFinite(s) && s > 0 && s < 1) ? s : 1; // 값이 없으면 보정 없음(정원)
 }
 // 모드별 초점(무대 위 x좌표 두 점, 둘 다 무대 y=cy). center는 두 초점이 같은 한 점.
 function equidistFoci(stage, mode){
