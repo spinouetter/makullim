@@ -1372,8 +1372,9 @@ function dateColorOf(dateStr){
   if(dow===6) return "#5b8fd6";
   return null;
 }
-// 회차 단위 색: 일/공휴일=빨강, 토=파랑에 더해 마티네(평일 낮공연)=녹색
+// 회차 단위 색: 전관=보라(최우선), 일/공휴일=빨강, 토=파랑, 마티네(평일 낮공연)=녹색
 function perfColorOf(p){
+  if(p && p.buyout) return "#a78bfa"; // 전관 알약과 같은 색
   return dateColorOf(p.date) || (isMatinee(p) ? "#4fae72" : null);
 }
 // "26/04/12 (일)" 형태 (요일 포함)
