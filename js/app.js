@@ -1972,6 +1972,13 @@ function renderDisruptionStats(){
   const perfs = performanceData.performances;
   const total = perfs.length;
   const roles = castRoleObjs().map(c=>c.role);
+  // 싱글 캐스트 배역은 전 회차 출연이 기본이라 '정규 캐스트 본인'의 취소만 집계에서 제외.
+  // 그 배역 커버의 취소는 표시한다(커버 예정 회차가 날아간 것은 의미 있는 정보).
+  const soloCastActor = {};   // role -> 유일한 정규 cast 배우 이름
+  castRoleObjs().forEach(c=>{
+    const cs=(c.actors||[]).filter(a=>a.role==="cast");
+    if(cs.length<=1 && cs[0]) soloCastActor[c.role]=cs[0].name;
+  });
 
   const cancelledN = perfs.filter(isCancelled).length;
   const reschedN   = perfs.filter(p=>reschedulesOf(p).length>0).length;
@@ -1988,7 +1995,7 @@ function renderDisruptionStats(){
       if(!items.length) return;
       const zero = items.filter(it=>it.weight===0);
       const act  = items.filter(it=>it.weight>0);
-      if(isCancelled(p)){ act.forEach(it=>bump(role,it.name,"cancel")); return; }
+      if(isCancelled(p)){ act.forEach(it=>{ if(soloCastActor[role]!==it.name) bump(role,it.name,"cancel"); }); return; }
       if(zero.length){
         swapCells++;
         zero.forEach(it=>bump(role,it.name,"out"));
