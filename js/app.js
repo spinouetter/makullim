@@ -2073,14 +2073,14 @@ function renderDisruptionStats(){
   byRole.forEach(role=>{
     const list=arr.filter(x=>x.role===role).sort((a,b)=>b.sum-a.sum || a.name.localeCompare(b.name,"ko"));
     list.forEach((x,k)=>{
-      const roleTd = k===0 ? `<td rowspan="${list.length}">${escHtml(role)}</td>` : "";
-      actorRows += `<tr>${roleTd}<td>${escHtml(x.name)}</td><td>${x.cancel||""}</td><td>${x.out||""}</td><td>${x.in||""}</td><td>${[x.midOut?`&#9660;${x.midOut}`:"",x.midIn?`&#9650;${x.midIn}`:""].filter(Boolean).join(" ")}</td></tr>`;
+      const roleTd = k===0 ? `<td rowspan="${list.length}" style="white-space:nowrap;">${escHtml(role)}</td>` : "";
+      actorRows += `<tr>${roleTd}<td style="white-space:nowrap;">${escHtml(x.name)}</td><td>${x.cancel||""}</td><td>${x.out||""}</td><td>${x.in||""}</td><td>${[x.midOut?`&#9660;${x.midOut}`:"",x.midIn?`&#9650;${x.midIn}`:""].filter(Boolean).join(" ")}</td></tr>`;
     });
   });
   const actorHtml = actorRows
-    ? `<table class="role-stat-table"><thead><tr><th>배역</th><th>배우</th><th>취소</th><th>변경(빠짐)</th><th>변경(투입)</th><th>공연 중 변경</th></tr></thead><tbody>${actorRows}</tbody></table>`
+    ? `<table class="role-stat-table"><thead><tr><th>배역</th><th>배우</th><th>취소</th><th>빠짐</th><th>투입</th><th>공연 중</th></tr></thead><tbody>${actorRows}</tbody></table>`
     : `<p style="color:var(--ink-dim); font-size:13px;">기록 없음</p>`;
-  const actorNote = actorRows ? `<p style="color:var(--ink-dim); font-size:12px; margin:6px 0 0;">공연 중 변경: &#9660; 공연 중 빠짐 · &#9650; 중도 투입</p>` : "";
+  const actorNote = actorRows ? `<p style="color:var(--ink-dim); font-size:12px; margin:6px 0 0;">빠짐: 공지 후 미출연 · 투입: 대신 출연 · 공연 중: &#9660; 중도 빠짐 / &#9650; 중도 투입</p>` : "";
 
   const block=(title,html)=>`
     <div style="margin-bottom:14px;">
