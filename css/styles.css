@@ -536,8 +536,8 @@
   /* 전관(buyout) 회차 표시: 티켓 이름·할인율 대신 '전관' 알약 — 0056 */
   .tk-buyout{
     display:inline-block;
-    font-size:10px; font-weight:800; color:#a78bfa;
-    background:color-mix(in srgb, #a78bfa 16%, transparent); border-radius:4px; padding:1px 4px;
+    font-size:12px; font-weight:800; color:#a78bfa;
+    background:color-mix(in srgb, #a78bfa 16%, transparent); border-radius:4px; padding:0 5px;
   }
   /* 좌석(등급) 없는 전관: 클릭 불가지만 티켓 알약(트리거)과 같은 크기의 박스로 */
   .ticket-trigger.tk-buyout-static{cursor:default;}
