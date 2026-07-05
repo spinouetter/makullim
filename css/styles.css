@@ -406,6 +406,10 @@
     text-decoration:line-through; opacity:0.55; color:var(--ink-dim);
   }
   #scheduleTable tbody tr.perf-cancelled .float-label{ text-decoration:line-through; }
+  /* 취소된 공연: 캐스팅 배우 이름도 흐리게 + 취소선 (변경/미출연 배우 표기와 동일) */
+  #scheduleTable tbody tr.perf-cancelled .cast-cell .name{
+    text-decoration:line-through; opacity:0.55;
+  }
   /* '취소' 배지 */
   .cancel-mark{
     display:inline-block; margin-left:5px; padding:0 4px;
