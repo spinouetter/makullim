@@ -338,7 +338,8 @@ function parseTicketPopover(scope, idx){
 
 // 티켓 선택 팝오버: 해당 등급의 티켓 목록(이름·할인율·가격) + 직접 입력 + 수수료 + 저장/해제
 // tk = 편집 대상 티켓 객체 {ticketType, ticketFee, ticketDiscount, ticketExtra, ticketTransferred}
-function buildTicketPopover(idx, grade, tk){
+function buildTicketPopover(idx, grade, tk, opts){
+  opts = opts || {};
   const perf = performanceData.performances[idx] || {};
   tk = tk || {};
   const ticketType = tk.ticketType || "";
@@ -357,7 +358,10 @@ function buildTicketPopover(idx, grade, tk){
   const reseller = resellerOf(perf.seat); // 좌석의 예매처(리셀러). 없으면 괄호 표기 생략
   return `
     <div class="ticket-popover" data-idx="${idx}">
-      <div class="popover-date">${perfDateLabel(perf)}</div>
+      <div class="ticket-popover-head">
+        <span class="popover-date">${perfDateLabel(perf)}</span>
+        ${opts.showAddTicket ? `<button class="tk-add-multi" data-idx="${idx}" title="현재 티켓 저장 후 티켓 추가">티켓 추가하기</button>` : ""}
+      </div>
       <div class="ticket-popover-title">${grade.name}석 티켓 선택${reseller ? ` (${escHtml(reseller)} 예매)` : ""}</div>
       <div class="ticket-options">
         ${prices.map(pr=>`
@@ -882,7 +886,8 @@ function renderSchedule(){
             + `</button>`;
         }
       }
-      const popover = (ticketPopoverIdx===idx && grade) ? buildTicketPopover(idx, grade, topTicketObj(p)) : "";
+      // 다중 티켓 모드 OFF일 때만 팝오버에 '티켓 추가하기' 노출(ON이면 좌석칸 + 버튼 사용)
+      const popover = (ticketPopoverIdx===idx && grade) ? buildTicketPopover(idx, grade, topTicketObj(p), { showAddTicket: !multiTicketMode }) : "";
       ticketCell = `<td class="ticket-cell" style="position:relative;">${inner}${popover}</td>`;
     }
 
@@ -1031,6 +1036,24 @@ function renderSchedule(){
       renderStats();   // 티켓 변경 → 통계(티켓 금액) 갱신
       renderSeatMap(true); // 시트맵 갱신(사용자 줌/위치 유지)
       saveState();
+    });
+  });
+
+  // 티켓 추가하기: 현재 티켓 내용을 맨 위 티켓으로 저장하고 다중 티켓 관리 창을 연다(다중 모드 OFF일 때만 노출).
+  body.querySelectorAll(".tk-add-multi").forEach(btn=>{
+    btn.addEventListener("click", e=>{
+      e.stopPropagation();
+      const idx = +btn.dataset.idx;
+      const perf = performanceData.performances[idx];
+      const f = parseTicketPopover(body, idx);
+      perf.ticketType = f.ticketType; perf.ticketDiscount = f.ticketDiscount;
+      perf.ticketFee = f.ticketFee; perf.ticketExtra = f.ticketExtra; perf.ticketTransferred = f.ticketTransferred;
+      ticketPopoverIdx = null;
+      renderSchedule();
+      renderStats();
+      renderSeatMap(true);
+      saveState();
+      openTicketManager(idx); // 다중 티켓 관리(추가) 창으로 진입
     });
   });
 
