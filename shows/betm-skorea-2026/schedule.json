@@ -730,6 +730,7 @@
   {
     "date": "2026-04-25",
     "time": "14:00",
+    "buyout": true,
     "seat": "",
     "note": "",
     "cast": {
@@ -3089,6 +3090,7 @@
   {
     "date": "2026-05-30",
     "time": "14:00",
+    "buyout": true,
     "seat": "",
     "note": "",
     "cast": {
@@ -5526,6 +5528,7 @@
   {
     "date": "2026-07-08",
     "time": "18:30",
+    "buyout": true,
     "seat": "",
     "note": "",
     "cast": {

@@ -134,6 +134,7 @@ async function loadData(){
     if(p.ticketExtra == null) p.ticketExtra = 0; // 기타 비용(취소 수수료 등, 원)
     if(p.ticketTransferred == null) p.ticketTransferred = false; // 양도받은 티켓 여부(없으면 내가 구매)
     if(!Array.isArray(p.extraTickets)) p.extraTickets = []; // 다중 티켓: 2번째 이후 티켓들(맨 위=평면 필드)
+    p.buyout = !!p.buyout;    // 전관(단체 대관) 회차 — 일반 예매 없음 (schedule.json 제공)
     if(p.match == null || typeof p.match !== "object") p.match = {}; // 매치명 -> {winner, note} (서버 제공)
   });
 }
@@ -299,7 +300,10 @@ function escHtml(s){
 //  - excludeSids: 이 공연 ID는 제외(할인 미적용).
 //  - weekdayOnly: true면 주말(토·일)·공휴일 공연에는 적용 안 됨.
 //  - dateFrom / dateTo: 적용 기간(YYYY-MM-DD, 포함). 이 기간 밖이면 적용 안 됨.
+//  - buyout: 전관(buyout) 회차에서도 선택 가능한 티켓(예: 정가·초대권). 전관 회차에는
+//    이 표시가 있는 티켓만 노출된다(일반 회차에는 영향 없음).
 function priceAppliesTo(pr, perf){
+  if(perf && perf.buyout && !pr.buyout) return false;
   if(Array.isArray(pr.sids) && !(perf && pr.sids.includes(perf.sid))) return false;
   if(Array.isArray(pr.times) && !(perf && pr.times.includes(perf.time))) return false;
   if(Array.isArray(pr.excludeSids) && perf && pr.excludeSids.includes(perf.sid)) return false;
@@ -846,7 +850,7 @@ function renderSchedule(){
     const isPast = isEnded(p); // 종료(시작+러닝타임 경과)된 공연을 과거로 표시
     const cancelled = isCancelled(p);       // 취소된 공연 → 흐림 + 취소선
     const reschedList = reschedulesOf(p);   // 일정 변경 이력(있으면 표시)
-    const dcolor = dateColorOf(p.date); // 일/공휴일=빨강, 토=파랑
+    const dcolor = perfColorOf(p); // 일/공휴일=빨강, 토=파랑, 마티네=녹색
     const ticketType = p.ticketType || "";
     const ticketFee = !!p.ticketFee;
     const ticketTransferred = !!p.ticketTransferred; // 양도받은 티켓
@@ -863,7 +867,17 @@ function renderSchedule(){
     let ticketCell = "";
     if(showTicket){
       let inner;
-      if(!grade){
+      if(p.buyout){
+        // 전관(0056): 티켓 이름·할인율 대신 '전관'만 — 티켓 알약(트리거)과 같은 크기.
+        // 티켓이 있으면(종류 선택됨) 앞에 등급칩. 양도로 구한 티켓은 팝오버로 그대로
+        // 입력 가능하되 표시는 가격 열에만 반영된다.
+        const chip = (grade && ticketType)
+          ? `<span class="tk-grade" style="background:${gradeFillVar(gradeName)};">${gradeName[0]}</span>` : "";
+        const pill = `<span class="tk-buyout">전관</span>`;
+        inner = grade
+          ? `<button class="ticket-trigger tk-buyout-box" data-idx="${idx}" title="티켓 선택">${chip}${pill}</button>`
+          : `<span class="ticket-trigger tk-buyout-box tk-buyout-static">${pill}</span>`;
+      } else if(!grade){
         // 좌석 미입력/무효 → 등급을 알 수 없어 티켓 선택 불가
         inner = `<span class="tk-none">—</span>`;
       } else {
@@ -1355,6 +1369,10 @@ function dateColorOf(dateStr){
   if(dow===0 || holidaySet.has((dateStr||"").trim())) return "#e0594a";
   if(dow===6) return "#5b8fd6";
   return null;
+}
+// 회차 단위 색: 일/공휴일=빨강, 토=파랑에 더해 마티네(평일 낮공연)=녹색
+function perfColorOf(p){
+  return dateColorOf(p.date) || (isMatinee(p) ? "#4fae72" : null);
 }
 // "26/04/12 (일)" 형태 (요일 포함)
 function shortDateDow(dateStr){
@@ -2984,7 +3002,7 @@ function showSeatDetail(seatId){
             return `<span class="name ${cls}">${escHtml(n)}</span>`;
           }).join("")}</td>`;
         }).join("");
-        const dcolor = dateColorOf(p.date);
+        const dcolor = perfColorOf(p);
         const noteVal = (p.note || "").trim();
         const memoCell = noteVal
           ? `<button class="seat-memo-icon" data-note="${escHtml(noteVal)}" title="${escHtml(noteVal)}" style="background:none; border:none; cursor:pointer; padding:2px; color:var(--gold); display:inline-flex;">
