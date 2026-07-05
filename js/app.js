@@ -43,6 +43,22 @@ function dataUrl(p){
 window.dataUrl = dataUrl;   // finale.js 등에서 재사용 가능
 
 const LOCAL_HOSTS = new Set(["localhost", "127.0.0.1", "[::1]", ""]);
+
+// 숨김 기능(요청 0053): 주소에 ?equidist 를 붙였을 때만 켜진다.
+// 좌석맵에서 좌석을 선택하면 '무대에서 (초점까지 거리의 합이) 같은' 좌석들을 강조한다.
+// 좌석맵은 세로(무대→객석 깊이) 축이 공연장별로 '실제의 heightScale 배'로 눌려 그려져 있어,
+// 거리 계산 시 그 축을 복원해 안내용 타원(실제로는 세로로 눌린 타원)을 그린다.
+//   ?equidist            → center: 무대 중앙 한 점 초점(동심원)
+//   ?equidist=ends       → 무대 양 끝 두 점을 초점으로 하는 타원
+//   ?equidist=thirds     → 무대 1/3·2/3 두 점을 초점으로 하는 타원
+const EQUIDIST_ON = new URLSearchParams(location.search).has("equidist");
+const EQUIDIST_MODE = (()=>{
+  const v = (new URLSearchParams(location.search).get("equidist") || "").toLowerCase();
+  if(v === "ends" || v === "end") return "ends";
+  if(v === "thirds" || v === "third" || v === "3") return "thirds";
+  return "center"; // 빈 값·1·center 등은 무대 중앙(동심원)
+})();
+const EQUIDIST_TOL = 0.7; // 같은 거리로 볼 허용 오차(깊이 보정 후 좌표 단위 ≈ 좌석 폭 0.7배)
 async function resolveShowMeta(j){
   if(window.MAKOLLIM_SHOW_ID) return j("/shows/" + window.MAKOLLIM_SHOW_ID + ".json");
   const idx = await j("/shows/index.json");
@@ -2557,6 +2573,7 @@ function renderSeatMap(preserveZoom){
         selectSeatEl(mainSvg, el);
         showSeatDetail(id);
         selectedSeatId = id;
+        if(EQUIDIST_ON) showEquidistantSeats(mainSvg, id); // 숨김 기능: 같은 거리 좌석 강조
       }
     });
   });
@@ -2583,12 +2600,14 @@ function deselectSeat(mainSvg){
     if(b) b.remove();
   });
   selectedSeatId = null;
+  clearEquidistantSeats(mainSvg); // 숨김 기능: 같은 거리 강조도 해제
   const detail = document.getElementById("seatDetail");
   if(detail) detail.innerHTML = `<h3>좌석 정보</h3><p class="empty-msg">좌석을 선택해 주세요.</p>`;
 }
 
 // 선택한 좌석을 흰색 네모 박스로 감싼다 (이전 선택 박스는 제거).
 function selectSeatEl(mainSvg, el){
+  clearEquidistantSeats(mainSvg); // 이전 선택의 같은 거리 강조 제거
   mainSvg.querySelectorAll(".svg-seat.selected-seat").forEach(s=>{
     s.classList.remove("selected-seat");
     const old = s.querySelector(".seat-selbox");
@@ -2608,6 +2627,102 @@ function selectSeatEl(mainSvg, el){
   box.setAttribute("stroke-width", "0.16");
   box.setAttribute("pointer-events", "none");
   el.appendChild(box);
+}
+
+/* =========================================================
+   숨김 기능(요청 0053): 무대에서 같은 거리의 좌석 찾기
+   - 주소에 ?equidist 가 있을 때만 동작(EQUIDIST_ON).
+   - 무대 중앙(floorMeta[floor].stage.cx/cy)을 원점으로 동심원.
+   - 좌석맵 세로(깊이) 축이 공연장별로 '실제의 theatre.heightScale 배'로 눌려 그려져 있어,
+     복원계수 vScale = heightScale 로 세로를 되돌린 뒤 거리를 계산한다(예: 0.42 → svgY/0.42).
+   - 같은 층에서 실제 거리가 선택 좌석과 ±EQUIDIST_TOL 안이면 강조하고, 안내용 타원을 그린다.
+   ========================================================= */
+const SVG_NS = "http://www.w3.org/2000/svg";
+// 세로 축소 복원계수 vScale: 좌석맵 세로(깊이)가 '실제의 heightScale 배'로 그려짐.
+// 예: heightScale=0.42 → 실제 대비 42%로 눌림 → 실제 깊이는 svgY/0.42 로 복원.
+function seatDepthScale(){
+  const s = Number(seatmapData && seatmapData.heightScale);
+  return (Number.isFinite(s) && s > 0 && s < 1) ? s : 1; // 값이 없으면 보정 없음(정원)
+}
+// 모드별 초점(무대 위 x좌표 두 점, 둘 다 무대 y=cy). center는 두 초점이 같은 한 점.
+function equidistFoci(stage, mode){
+  const cy = stage.cy;
+  if(mode === "ends")   return [{x: stage.cx - stage.w/2, y: cy}, {x: stage.cx + stage.w/2, y: cy}];
+  if(mode === "thirds") return [{x: stage.cx - stage.w/6, y: cy}, {x: stage.cx + stage.w/6, y: cy}];
+  return [{x: stage.cx, y: cy}, {x: stage.cx, y: cy}]; // center: 동일 초점(→ 원)
+}
+// 초점까지 '실제 거리'의 평균(세로 축소 보정). center 모드면 단일 거리와 같다.
+// 이 값이 같은 좌석 = 두 초점까지 거리의 합이 같은 좌석 = 같은 타원 위.
+function focalMetric(seat, foci, vScale){
+  let sum = 0;
+  for(const f of foci){
+    const dx = seat.svgX - f.x;
+    const dy = (seat.svgY - f.y) / vScale; // 축소된 세로축 복원
+    sum += Math.hypot(dx, dy);
+  }
+  return sum / foci.length;
+}
+function clearEquidistantSeats(mainSvg){
+  if(!mainSvg) return;
+  mainSvg.querySelectorAll(".equidist-mark, .equidist-ring").forEach(e=>e.remove());
+}
+function showEquidistantSeats(mainSvg, seatId){
+  clearEquidistantSeats(mainSvg);
+  const sel = seatmapData.seats.find(s=>s.id===seatId);
+  if(!sel) return;
+  const meta = (seatmapData.floorMeta||{})[sel.floor];
+  const stage = meta && meta.stage;
+  if(!stage) return; // 무대 좌표가 없는 층(2·3층 등)은 계산 불가 — 조용히 종료
+  const vScale = seatDepthScale();
+  const foci = equidistFoci(stage, EQUIDIST_MODE);
+  const Msel = focalMetric(sel, foci, vScale);
+
+  // 같은 층에서 '초점 거리 합'이 같은(±허용오차) 좌석 강조
+  seatmapData.seats.forEach(s=>{
+    if(s.floor !== sel.floor || s.id === seatId) return;
+    if(Math.abs(focalMetric(s, foci, vScale) - Msel) > EQUIDIST_TOL) return;
+    const g = mainSvg.querySelector('.svg-seat[data-seat-id="'+s.id+'"]');
+    if(g) g.appendChild(equidistMarkRect());
+  });
+
+  // 안내용 타원: 두 초점(가로 정렬)·거리합 2·Msel 로 결정. 세로 축소를 반영해 그린다.
+  const grp = mainSvg.querySelector('.floor-group[data-floor="'+sel.floor+'"]');
+  if(grp){
+    const a = Msel;                                        // 실좌표 반장축(가로) = 거리합/2
+    const c = Math.abs(foci[0].x - foci[1].x) / 2;         // 초점 간 반거리(가로; 실=그린 동일)
+    const b = Math.sqrt(Math.max(0, a*a - c*c));           // 실좌표 반단축(세로)
+    const cx = (foci[0].x + foci[1].x) / 2;                // 두 초점 중점
+    const cy = stage.cy;
+    const ell = document.createElementNS(SVG_NS, "ellipse");
+    ell.setAttribute("class", "equidist-ring");
+    ell.setAttribute("cx", String(cx));
+    ell.setAttribute("cy", String(cy));
+    ell.setAttribute("rx", String(a));                     // 가로: 실=그린 동일
+    ell.setAttribute("ry", String(b * vScale));            // 세로: 축소 반영
+    ell.setAttribute("fill", "none");
+    ell.setAttribute("stroke", "#35d0e0");
+    ell.setAttribute("stroke-width", "0.08");
+    ell.setAttribute("stroke-dasharray", "0.35 0.22");
+    ell.setAttribute("opacity", "0.75");
+    ell.setAttribute("pointer-events", "none");
+    grp.insertBefore(ell, grp.firstChild); // 맨 앞(먼저 그림) = 좌석 뒤 레이어
+  }
+}
+// 같은 거리 좌석에 두를 청록 테두리(좌석 g의 로컬 좌표계)
+function equidistMarkRect(){
+  const HALF = 0.39, PAD = 0.18;
+  const r = document.createElementNS(SVG_NS, "rect");
+  r.setAttribute("class", "equidist-mark");
+  r.setAttribute("x", String(-HALF - PAD));
+  r.setAttribute("y", String(-HALF - PAD));
+  r.setAttribute("width", String(0.78 + PAD * 2));
+  r.setAttribute("height", String(0.78 + PAD * 2));
+  r.setAttribute("rx", "0.1");
+  r.setAttribute("fill", "none");
+  r.setAttribute("stroke", "#35d0e0");
+  r.setAttribute("stroke-width", "0.12");
+  r.setAttribute("pointer-events", "none");
+  return r;
 }
 
 // 층 토글 버튼을 공연장 데이터(좌석의 floor)로부터 생성한다. 층이 1개뿐이면 버튼을 두지 않는다
