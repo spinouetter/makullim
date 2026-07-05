@@ -577,11 +577,12 @@ function renderSchedule(){
   const table = document.getElementById("scheduleTable");
   table.classList.toggle("hl-mode", rowHighlightOn);  // 방법2(날짜 셀 클릭 가능)
   const allRoles = castRoleObjs().map(c=>c.role);
-  // 페어막이 켜지면: 선택 배역이 맨 앞으로 오고(선택 순서), 배역 숨김은 무시(전부 표시)
+  // 페어막이 켜지면: 선택 배역이 맨 앞으로 오고(선택 순서), 숨김 무시는 "선택 배역만" —
+  // 나머지 배역은 평소처럼 숨길 수 있다(요청 0051 후속).
   const pairActive = lastShowPairActive();
   const pairRoles = pairActive ? lastShowPairValidRoles() : [];
   const visibleRoles = pairActive
-    ? [...pairRoles, ...allRoles.filter(r=>!pairRoles.includes(r))]
+    ? [...pairRoles, ...allRoles.filter(r=>!pairRoles.includes(r) && !scheduleHiddenCols.has(r))]
     : allRoles.filter(r=>!scheduleHiddenCols.has(r));
   const lastShowMap = lastShowRoleOn ? buildLastShowMap() : null;
   const pairLastInfo = pairActive ? buildPairLastInfo(pairRoles) : null;
@@ -609,8 +610,8 @@ function renderSchedule(){
   if(nowBtnEl) nowBtnEl.style.display = showFin ? "none" : "";
 
   const hiddenBar = document.getElementById("scheduleHiddenBar");
-  // 페어막 중에는 배역 숨김이 무시되고(전 배역 표시) 숨김 기능도 잠기므로, 숨김 바에서 배역 항목 제외
-  const hiddenColsShown = [...scheduleHiddenCols].filter(c=>!(pairActive && allRoles.includes(c)));
+  // 페어막 중에는 '선택 배역'만 숨김이 무시(강제 표시)되므로, 숨김 바에서 그 배역들만 제외
+  const hiddenColsShown = [...scheduleHiddenCols].filter(c=>!(pairActive && pairRoles.includes(c)));
   if(hiddenColsShown.length===0){
     hiddenBar.innerHTML = "";
   } else {
@@ -705,7 +706,7 @@ function renderSchedule(){
                 <div class="role-dropdown-actions">
                   <button class="role-clear-btn" data-role="${role}">모두 해제</button>
                 </div>
-                ${pairActive ? "" : `
+                ${(pairActive && pairRoles.includes(role)) ? "" : `
                 <div class="role-dropdown-actions" style="border-top:none; margin-top:0; padding-top:0;">
                   <button class="role-hide-btn" data-role="${role}">숨기기</button>
                 </div>`}
