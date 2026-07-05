@@ -533,6 +533,12 @@
     background:#5b9bff; box-shadow:0 0 0 1px var(--panel);
   }
   .ticket-trigger{ position:relative; }
+  /* 전관(buyout) 회차 표시: 티켓 이름·할인율 대신 '전관' 알약 — 0056 */
+  .tk-buyout{
+    display:inline-block;
+    font-size:10px; font-weight:700; color:#9a8ec9;
+    background:color-mix(in srgb, #9a8ec9 15%, transparent); border-radius:4px; padding:1px 4px;
+  }
   .ticket-trigger .tk-icon + .tk-transfer-dot{ position:absolute; top:1px; right:1px; }
 
   /* 다중 티켓: 좌석칸 오른쪽 위 + 버튼(코너) / 개수 배지 / 모드 꺼졌을 때 점 */

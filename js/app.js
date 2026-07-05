@@ -134,6 +134,7 @@ async function loadData(){
     if(p.ticketExtra == null) p.ticketExtra = 0; // 기타 비용(취소 수수료 등, 원)
     if(p.ticketTransferred == null) p.ticketTransferred = false; // 양도받은 티켓 여부(없으면 내가 구매)
     if(!Array.isArray(p.extraTickets)) p.extraTickets = []; // 다중 티켓: 2번째 이후 티켓들(맨 위=평면 필드)
+    p.buyout = !!p.buyout;    // 전관(단체 대관) 회차 — 일반 예매 없음 (schedule.json 제공)
     if(p.match == null || typeof p.match !== "object") p.match = {}; // 매치명 -> {winner, note} (서버 제공)
   });
 }
@@ -863,7 +864,15 @@ function renderSchedule(){
     let ticketCell = "";
     if(showTicket){
       let inner;
-      if(!grade){
+      if(p.buyout){
+        // 전관(0056): 티켓 이름·할인율 대신 '등급+전관'만. 좌석이 없어도 '전관'은 표시.
+        // 양도로 구한 티켓은 팝오버로 그대로 입력 가능하되 표시는 가격 열에만 반영된다.
+        inner = grade
+          ? `<button class="ticket-trigger" data-idx="${idx}" title="티켓 선택">`
+            + `<span class="tk-grade" style="background:${gradeFillVar(gradeName)};">${gradeName[0]}</span>`
+            + `<span class="tk-buyout">전관</span></button>`
+          : `<span class="tk-buyout">전관</span>`;
+      } else if(!grade){
         // 좌석 미입력/무효 → 등급을 알 수 없어 티켓 선택 불가
         inner = `<span class="tk-none">—</span>`;
       } else {
