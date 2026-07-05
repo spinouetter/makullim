@@ -539,6 +539,9 @@
     font-size:10px; font-weight:800; color:#a78bfa;
     background:color-mix(in srgb, #a78bfa 16%, transparent); border-radius:4px; padding:1px 4px;
   }
+  /* 좌석(등급) 없는 전관: 클릭 불가지만 티켓 알약(트리거)과 같은 크기의 박스로 */
+  .ticket-trigger.tk-buyout-static{cursor:default;}
+  .ticket-trigger.tk-buyout-static:hover{border-color:var(--line);}
   .ticket-trigger .tk-icon + .tk-transfer-dot{ position:absolute; top:1px; right:1px; }
 
   /* 다중 티켓: 좌석칸 오른쪽 위 + 버튼(코너) / 개수 배지 / 모드 꺼졌을 때 점 */

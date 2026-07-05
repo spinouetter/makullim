@@ -868,13 +868,15 @@ function renderSchedule(){
     if(showTicket){
       let inner;
       if(p.buyout){
-        // 전관(0056): 티켓 이름·할인율 대신 '등급+전관'만. 좌석이 없어도 '전관'은 표시.
-        // 양도로 구한 티켓은 팝오버로 그대로 입력 가능하되 표시는 가격 열에만 반영된다.
+        // 전관(0056): 티켓 이름·할인율 대신 '전관'만 — 티켓 알약(트리거)과 같은 크기.
+        // 티켓이 있으면(종류 선택됨) 앞에 등급칩. 양도로 구한 티켓은 팝오버로 그대로
+        // 입력 가능하되 표시는 가격 열에만 반영된다.
+        const chip = (grade && ticketType)
+          ? `<span class="tk-grade" style="background:${gradeFillVar(gradeName)};">${gradeName[0]}</span>` : "";
+        const pill = `<span class="tk-buyout">전관</span>`;
         inner = grade
-          ? `<button class="ticket-trigger" data-idx="${idx}" title="티켓 선택">`
-            + `<span class="tk-grade" style="background:${gradeFillVar(gradeName)};">${gradeName[0]}</span>`
-            + `<span class="tk-buyout">전관</span></button>`
-          : `<span class="tk-buyout">전관</span>`;
+          ? `<button class="ticket-trigger" data-idx="${idx}" title="티켓 선택">${chip}${pill}</button>`
+          : `<span class="ticket-trigger tk-buyout-static">${pill}</span>`;
       } else if(!grade){
         // 좌석 미입력/무효 → 등급을 알 수 없어 티켓 선택 불가
         inner = `<span class="tk-none">—</span>`;
