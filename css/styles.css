@@ -540,6 +540,7 @@
   .ticket-trigger.tk-buyout-box{
     background:color-mix(in srgb, #a78bfa 18%, var(--panel2));
     border-color:color-mix(in srgb, #a78bfa 40%, var(--line));
+    box-sizing:border-box; min-width:74px; /* 일반 티켓 알약(V·이름·할인율)과 같은 폭 */
   }
   /* 좌석(등급) 없는 전관: 클릭 불가지만 같은 모양의 박스로 */
   .ticket-trigger.tk-buyout-static{cursor:default;}
