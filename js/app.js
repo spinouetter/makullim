@@ -45,10 +45,19 @@ window.dataUrl = dataUrl;   // finale.js 등에서 재사용 가능
 const LOCAL_HOSTS = new Set(["localhost", "127.0.0.1", "[::1]", ""]);
 
 // 숨김 기능(요청 0053): 주소에 ?equidist 를 붙였을 때만 켜진다.
-// 좌석맵에서 좌석을 선택하면 '무대에서 실제 거리가 같은' 좌석들을 강조한다.
+// 좌석맵에서 좌석을 선택하면 '무대에서 (초점까지 거리의 합이) 같은' 좌석들을 강조한다.
 // 좌석맵은 세로(무대→객석 깊이) 축이 공연장별로 축소돼 그려져 있어(heightReduction),
-// 거리 계산 시 그 축을 복원해 동심원(실제로는 세로로 눌린 타원)을 그린다.
+// 거리 계산 시 그 축을 복원해 안내용 타원(실제로는 세로로 눌린 타원)을 그린다.
+//   ?equidist            → center: 무대 중앙 한 점 초점(동심원)
+//   ?equidist=ends       → 무대 양 끝 두 점을 초점으로 하는 타원
+//   ?equidist=thirds     → 무대 1/3·2/3 두 점을 초점으로 하는 타원
 const EQUIDIST_ON = new URLSearchParams(location.search).has("equidist");
+const EQUIDIST_MODE = (()=>{
+  const v = (new URLSearchParams(location.search).get("equidist") || "").toLowerCase();
+  if(v === "ends" || v === "end") return "ends";
+  if(v === "thirds" || v === "third" || v === "3") return "thirds";
+  return "center"; // 빈 값·1·center 등은 무대 중앙(동심원)
+})();
 const EQUIDIST_TOL = 0.7; // 같은 거리로 볼 허용 오차(깊이 보정 후 좌표 단위 ≈ 좌석 폭 0.7배)
 async function resolveShowMeta(j){
   if(window.MAKOLLIM_SHOW_ID) return j("/shows/" + window.MAKOLLIM_SHOW_ID + ".json");
@@ -2634,11 +2643,23 @@ function seatDepthScale(){
   const r = Number(seatmapData && seatmapData.heightReduction);
   return (Number.isFinite(r) && r > 0 && r < 1) ? (1 - r) : 1; // 값이 없으면 보정 없음(정원)
 }
-// 무대 중앙 기준 실제 거리(세로 축소 보정). stage/vScale 는 호출부에서 넘긴다.
-function stageDistanceOf(seat, stage, vScale){
-  const dx = seat.svgX - stage.cx;
-  const dy = (seat.svgY - stage.cy) / vScale; // 축소된 세로축 복원
-  return Math.hypot(dx, dy);
+// 모드별 초점(무대 위 x좌표 두 점, 둘 다 무대 y=cy). center는 두 초점이 같은 한 점.
+function equidistFoci(stage, mode){
+  const cy = stage.cy;
+  if(mode === "ends")   return [{x: stage.cx - stage.w/2, y: cy}, {x: stage.cx + stage.w/2, y: cy}];
+  if(mode === "thirds") return [{x: stage.cx - stage.w/6, y: cy}, {x: stage.cx + stage.w/6, y: cy}];
+  return [{x: stage.cx, y: cy}, {x: stage.cx, y: cy}]; // center: 동일 초점(→ 원)
+}
+// 초점까지 '실제 거리'의 평균(세로 축소 보정). center 모드면 단일 거리와 같다.
+// 이 값이 같은 좌석 = 두 초점까지 거리의 합이 같은 좌석 = 같은 타원 위.
+function focalMetric(seat, foci, vScale){
+  let sum = 0;
+  for(const f of foci){
+    const dx = seat.svgX - f.x;
+    const dy = (seat.svgY - f.y) / vScale; // 축소된 세로축 복원
+    sum += Math.hypot(dx, dy);
+  }
+  return sum / foci.length;
 }
 function clearEquidistantSeats(mainSvg){
   if(!mainSvg) return;
@@ -2652,25 +2673,31 @@ function showEquidistantSeats(mainSvg, seatId){
   const stage = meta && meta.stage;
   if(!stage) return; // 무대 좌표가 없는 층(2·3층 등)은 계산 불가 — 조용히 종료
   const vScale = seatDepthScale();
-  const Dsel = stageDistanceOf(sel, stage, vScale);
+  const foci = equidistFoci(stage, EQUIDIST_MODE);
+  const Msel = focalMetric(sel, foci, vScale);
 
-  // 같은 층에서 무대 거리가 같은(±허용오차) 좌석 강조
+  // 같은 층에서 '초점 거리 합'이 같은(±허용오차) 좌석 강조
   seatmapData.seats.forEach(s=>{
     if(s.floor !== sel.floor || s.id === seatId) return;
-    if(Math.abs(stageDistanceOf(s, stage, vScale) - Dsel) > EQUIDIST_TOL) return;
+    if(Math.abs(focalMetric(s, foci, vScale) - Msel) > EQUIDIST_TOL) return;
     const g = mainSvg.querySelector('.svg-seat[data-seat-id="'+s.id+'"]');
     if(g) g.appendChild(equidistMarkRect());
   });
 
-  // 안내용 동심원: 세로 축소를 반영한 타원(rx=D, ry=D*vScale)을 좌석 뒤에 깐다.
+  // 안내용 타원: 두 초점(가로 정렬)·거리합 2·Msel 로 결정. 세로 축소를 반영해 그린다.
   const grp = mainSvg.querySelector('.floor-group[data-floor="'+sel.floor+'"]');
   if(grp){
+    const a = Msel;                                        // 실좌표 반장축(가로) = 거리합/2
+    const c = Math.abs(foci[0].x - foci[1].x) / 2;         // 초점 간 반거리(가로; 실=그린 동일)
+    const b = Math.sqrt(Math.max(0, a*a - c*c));           // 실좌표 반단축(세로)
+    const cx = (foci[0].x + foci[1].x) / 2;                // 두 초점 중점
+    const cy = stage.cy;
     const ell = document.createElementNS(SVG_NS, "ellipse");
     ell.setAttribute("class", "equidist-ring");
-    ell.setAttribute("cx", String(stage.cx));
-    ell.setAttribute("cy", String(stage.cy));
-    ell.setAttribute("rx", String(Dsel));
-    ell.setAttribute("ry", String(Dsel * vScale));
+    ell.setAttribute("cx", String(cx));
+    ell.setAttribute("cy", String(cy));
+    ell.setAttribute("rx", String(a));                     // 가로: 실=그린 동일
+    ell.setAttribute("ry", String(b * vScale));            // 세로: 축소 반영
     ell.setAttribute("fill", "none");
     ell.setAttribute("stroke", "#35d0e0");
     ell.setAttribute("stroke-width", "0.08");
