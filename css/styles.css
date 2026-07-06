@@ -432,6 +432,18 @@
     font-size:12px; font-weight:700; color:#5b8fd6;
     vertical-align:middle; cursor:help; text-decoration:none;
   }
+  /* 공연 번호(0063): 연번(취소 제외 회차)·자번(좌석 등록 순번). 10/50/100의 배수는 단계 강조 */
+  /* 고정 폭 2단(연번|자번, 각각 오른쪽 정렬) — 자릿수가 달라도 세로 열이 맞는다 */
+  .num-cell{white-space:nowrap; text-align:center; font-size:11px; font-variant-numeric:tabular-nums;}
+  .num-cell .perf-no{color:var(--ink-dim); display:inline-block; min-width:3ch; text-align:right;}
+  .num-cell .seat-no{color:var(--gold); display:inline-block; min-width:3ch; text-align:right; margin-left:6px;}
+  .num-cell .seat-no:first-child{margin-left:0;} /* '자번만' 모드: 한 단이면 간격 제거 */
+  .num-cell .m50, .num-cell .m100{box-sizing:border-box; text-align:center;} /* 알약은 숫자 가운데 */
+  .num-cell .m10{font-weight:700;}
+  .num-cell .perf-no.m10{color:var(--ink);}
+  .num-cell .m50{font-weight:700; padding:0 4px; border:1px solid currentColor; border-radius:8px;}
+  .num-cell .perf-no.m50{color:var(--ink);}
+  .num-cell .m100{font-weight:700; padding:0 5px; border-radius:8px; background:var(--gold); color:var(--bg); border:none;}
   .seat-cell{width:106px; min-width:106px; max-width:106px;}
   .note-input{ width:100%; padding:2px 6px; }
   .seat-input{

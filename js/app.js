@@ -196,6 +196,7 @@ window.addEventListener("popstate", (e)=>{
 let scheduleRoleFilter = {}; // role -> Set(선택된 배우 이름). 비어있으면 필터 없음(전체 표시)
 let scheduleMatchFilter = {}; // 대결명 -> Set(선택된 결과값: 배역명 | "무승부" | "__unknown__"(모름))
 let scheduleHiddenCols = new Set(); // 숨긴 컬럼(배역 이름 또는 COL_TICKET/COL_PRICE)
+let scheduleNumMode = "both";       // 순번 컬럼 표시 모드: both(연번+자번) | perf(연번만) | seat(자번만)
 let scheduleRoleOrder = []; // 배역 컬럼 사용자 지정 순서(요청 0057). 빈 배열이면 casts.json 순서
 let scheduleOpenDropdownRole = null; // 현재 열려있는 드롭다운의 컬럼 키(배역 이름 또는 COL_TICKET/COL_PRICE)
 let showCastHistory = false; // 켜면 비중 0인 배우도 취소선과 함께 표시
@@ -224,11 +225,12 @@ let multiTicketMode = false;    // 다중 티켓 관리 모드(기본 OFF)
 let finaleViewOn = false;       // Finale(인증 이미지) 탭 표시 (기본 OFF)
 
 // 숨길 수 있는 특수 컬럼 키 (배역 이름과 충돌하지 않는 토큰)
+const COL_NUM = "__num__";
 const COL_SEAT = "__seat__";
 const COL_TICKET = "__ticket__";
 const COL_PRICE = "__price__";
 const COL_MEMO = "__memo__";
-const COL_LABELS = { [COL_SEAT]:"좌석", [COL_TICKET]:"티켓", [COL_PRICE]:"가격", [COL_MEMO]:"메모" };
+const COL_LABELS = { [COL_NUM]:"순번", [COL_SEAT]:"좌석", [COL_TICKET]:"티켓", [COL_PRICE]:"가격", [COL_MEMO]:"메모" };
 const TICKET_FEE = 2000; // 선택 시 더해지는 수수료(원)
 function colLabel(id){ return COL_LABELS[id] || (id.indexOf("match:")===0 ? id.slice(6) : id); }
 // 캐스팅 대상(actors 보유) 역할만 — 스케줄/통계/좌석맵 컬럼용. group 참조전용(앙상블 등)은 제외.
@@ -700,11 +702,24 @@ function renderSchedule(){
   const lastShowMap = lastShowRoleOn ? buildLastShowMap() : null;
   const pairLastInfo = pairActive ? buildPairLastInfo(pairRoles) : null;
   const leadPairMap = leadRole ? buildLeadPairMap(leadRole) : null;
+  const showNum = !scheduleHiddenCols.has(COL_NUM);
   const showSeat = !scheduleHiddenCols.has(COL_SEAT);
   const showTicket = !scheduleHiddenCols.has(COL_TICKET);
   const showPrice = !scheduleHiddenCols.has(COL_PRICE);
   const showMemo = !scheduleHiddenCols.has(COL_MEMO);
   const visibleMatches = (performanceData.matches||[]).filter(m=>!scheduleHiddenCols.has("match:"+m.name));
+
+  // 공연 번호(0063): 연번 = 취소 제외 회차 순번, 자번 = 좌석 등록(취소 제외) 순번.
+  // 필터와 무관하게 전체 스케줄 기준으로 매기므로 필터를 걸어도 번호가 변하지 않는다.
+  const perfNoMap = new Map(), seatNoMap = new Map();
+  {
+    let pn = 0, sn = 0;
+    performanceData.performances.forEach((p, i)=>{
+      if(isCancelled(p)) return;
+      perfNoMap.set(i, ++pn);
+      if((p.seat||"").trim()) seatNoMap.set(i, ++sn);
+    });
+  }
 
   const castHistoryBtn = document.getElementById("castHistoryToggleBtn");
   castHistoryBtn.classList.toggle("active", showCastHistory);
@@ -747,7 +762,7 @@ function renderSchedule(){
     });
   }
 
-  const colHeadHtml = (colKey, label)=>{
+  const colHeadHtml = (colKey, label, extraHtml)=>{
     const isOpen = scheduleOpenDropdownRole===colKey;
     return `
       <th class="role-head">
@@ -757,7 +772,8 @@ function renderSchedule(){
           </button>
           ${isOpen ? `
             <div class="role-dropdown">
-              <div class="role-dropdown-actions" style="border-top:none; margin-top:0; padding-top:0;">
+              ${extraHtml || ""}
+              <div class="role-dropdown-actions"${extraHtml ? "" : ' style="border-top:none; margin-top:0; padding-top:0;"'}>
                 <button class="col-hide-btn" data-col="${colKey}">숨기기</button>
               </div>
             </div>
@@ -767,9 +783,18 @@ function renderSchedule(){
     `;
   };
 
+  // 순번 컬럼 드롭다운: 표시 모드 선택(연번+자번 / 연번만 / 자번만) — 0063
+  const numModeHtml = `
+    <div class="role-dropdown-title">표시</div>
+    ${[["both","연번+자번"],["perf","연번만"],["seat","자번만"]].map(([v,l])=>`
+      <label class="role-dropdown-item"><input type="radio" name="numModeOpt" value="${v}" ${scheduleNumMode===v?'checked':''}> ${l}</label>
+    `).join("")}
+  `;
+
   head.innerHTML = `
     ${floatDateOn ? '<th class="float-cell"></th>' : ''}
     <th>날짜</th><th>시간</th>
+    ${showNum ? colHeadHtml(COL_NUM, "순번", numModeHtml) : ""}
     ${showSeat ? colHeadHtml(COL_SEAT, "좌석") : ""}
     ${showTicket ? colHeadHtml(COL_TICKET, "티켓") : ""}
     ${showPrice ? colHeadHtml(COL_PRICE, "가격") : ""}
@@ -947,6 +972,15 @@ function renderSchedule(){
     });
   });
 
+  // 순번 표시 모드 라디오(드롭다운은 열린 채 유지 — 필터 체크박스와 동일한 UX)
+  head.querySelectorAll('input[name="numModeOpt"]').forEach(inp=>{
+    inp.addEventListener("change", ()=>{
+      scheduleNumMode = inp.value;
+      renderSchedule();
+      saveState();
+    });
+  });
+
 
   const filteredPerfs = performanceData.performances.filter(p=>{
     for(const role in scheduleRoleFilter){
@@ -989,6 +1023,19 @@ function renderSchedule(){
     const eyeColor = seatInvalid ? '#e0594a' : (seatVal ? 'var(--gold)' : 'var(--ink-dim)');
     const eyeOpacity = (seatVal || seatInvalid) ? 1 : 0.3;
     const tCount = ticketCount(p);                            // 다중 티켓 수
+
+    // 공연 번호 셀(0063): 연번(취소 제외)·자번(좌석 등록). 10·50·100의 배수는 단계적으로 강조.
+    let numCell = "";
+    if(showNum){
+      const msCls = n=> n%100===0 ? " m100" : (n%50===0 ? " m50" : (n%10===0 ? " m10" : ""));
+      const pn = perfNoMap.get(idx), sn = seatNoMap.get(idx);
+      // 자번이 없어도 빈 칸을 렌더해 두 숫자의 자리(고정 폭 2단)를 유지 — 행마다 정렬이 흔들리지 않게.
+      // 표시 모드(scheduleNumMode)에 따라 연번만/자번만 한 단으로도 표시.
+      const perfSpan = `<span class="perf-no${msCls(pn)}">${pn}</span>`;
+      const seatSpan = `<span class="seat-no${sn ? msCls(sn) : ''}">${sn || ""}</span>`;
+      const inner = !pn ? "" : (scheduleNumMode==="perf" ? perfSpan : (scheduleNumMode==="seat" ? seatSpan : perfSpan + seatSpan));
+      numCell = `<td class="num-cell">${inner}</td>`;
+    }
 
     let seatCell = "";
     if(showSeat){
@@ -1166,6 +1213,7 @@ function renderSchedule(){
         ${floatCell}
         <td class="date-cell"${dcolor?` style="color:${dcolor}"`:''}><span class="date-text">${shortDateDow(p.date)}</span>${cancelled?`<span class="cancel-mark">취소</span>`:""}${reschedList.length?`<span class="resched-mark" title="${escHtml(rescheduleSummary(p))}">&#8635;</span>`:""}</td>
         <td class="time-cell"${dcolor?` style="color:${dcolor}"`:''}>${p.time}</td>
+        ${numCell}
         ${seatCell}
         ${ticketCell}
         ${priceCell}
@@ -3973,6 +4021,7 @@ function buildStateSnapshot(){
       ? Object.fromEntries(performanceData.performances.map(p=>[p.sid, perfSnap(p)]))
       : performanceData.performances.map(perfSnap),
     scheduleHiddenCols: [...scheduleHiddenCols],
+    scheduleNumMode: scheduleNumMode,
     scheduleRoleOrder: [...scheduleRoleOrder],
     scheduleRoleFilter: Object.fromEntries(
       Object.entries(scheduleRoleFilter).map(([k,v])=>[k, [...v]])
@@ -4067,6 +4116,7 @@ function applyState(state){
   // 구버전 호환: scheduleHiddenRoles로 저장됐던 데이터도 그대로 복원
   scheduleHiddenCols = new Set(state.scheduleHiddenCols || state.scheduleHiddenRoles || []);
   scheduleRoleOrder = Array.isArray(state.scheduleRoleOrder) ? state.scheduleRoleOrder.slice() : [];
+  scheduleNumMode = ["both","perf","seat"].includes(state.scheduleNumMode) ? state.scheduleNumMode : "both";
 
   scheduleRoleFilter = {};
   if(state.scheduleRoleFilter){
