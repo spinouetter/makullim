@@ -15,7 +15,7 @@
 
 ### 단계
 1. **checkout** — 저장소 체크아웃.
-2. **공연 slug 스텁 생성 + 빌드 버전 주입** — `shows/index.json`의 각 공연 id에 대해 `shows/<id>.json`의 `slug`를 읽어 `/<slug>/index.html`을 만든다. `index.html`을 복사하며 `<!-- __SHOW__ -->` 마커를 `window.MAKOLLIM_SHOW_ID="<id>";window.MAKOLLIM_BUILD="<커밋 짧은 SHA>"`로 치환 → `/<slug>/` 접속 시 그 공연을 바로 로드. 루트 `index.html`의 마커에는 **빌드 버전만** 주입한다(스텁들이 원본 마커를 다 읽은 뒤 단계 마지막에 sed -i). **스텁은 배포물에만 있고 저장소엔 커밋하지 않는다.** slug가 예약 폴더명(css·js·data·fonts·shows·theatres·scripts·requests·images·json)과 겹치면 사고 방지를 위해 **실패** 처리.
+2. **공연 slug 스텁 생성 + 빌드 버전 주입** — `shows/index.json`의 각 공연 id에 대해 `shows/<id>.json`의 `slug`를 읽어 `/<slug>/index.html`을 만든다. `index.html`을 복사하며 `<!-- __SHOW__ -->` 마커를 `window.MAKULLIM_SHOW_ID="<id>";window.MAKULLIM_BUILD="<커밋 짧은 SHA>"`로 치환 → `/<slug>/` 접속 시 그 공연을 바로 로드. 루트 `index.html`의 마커에는 **빌드 버전만** 주입한다(스텁들이 원본 마커를 다 읽은 뒤 단계 마지막에 sed -i). **스텁은 배포물에만 있고 저장소엔 커밋하지 않는다.** slug가 예약 폴더명(css·js·data·fonts·shows·theatres·scripts·requests·images·json)과 겹치면 사고 방지를 위해 **실패** 처리.
    - **빌드 버전의 용도**: 앱(`js/app.js`의 `dataUrl()`)이 모든 데이터(JSON) 요청에 `?v=<빌드>`를 붙여 **브라우저 캐시를 활용**한다(요청 0042). 데이터는 커밋 시점에 확정되므로 배포가 바뀔 때만 URL이 바뀌면 항상 최신이 보장된다(`js?v=NN`과 같은 원리, 단 자동). 빌드 버전이 없으면(로컬 개발) 앱은 기존처럼 `cache:"no-store"`로 항상 새로 받는다. 매일 cron 재배포는 같은 커밋 SHA라 데이터 캐시가 유지된다(썸네일 이미지는 JSON 경로가 아니라 무관).
 3. **Dropbox 키 주입** — Secret `DROPBOX_APP_KEY`가 있으면 `js/config.js`의 `__DROPBOX_APP_KEY__` 자리표시자에 sed로 주입(없으면 백업 기능 비활성으로 배포).
 4. **피날레 썸네일 생성** — `scripts/gen-finale-preview.js`(playwright-core)로 각 공연의 '관극 인증 이미지' 미리보기를 랜덤 데이터로 렌더해 `shows/*/images/finale-preview.jpg` 생성(사진 많은 보드라 JPG로 용량↓). 러너의 시스템 Google Chrome을 재사용(없으면 playwright 크로미엄 설치로 폴백). **실패해도 배포는 계속**(앱이 라이브 보드로 폴백). 산출물도 배포물에만 포함(커밋 안 함).

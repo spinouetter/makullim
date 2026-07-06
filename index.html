@@ -6,9 +6,9 @@
 <!-- 앱이 다크/라이트 테마를 스스로 관리한다고 선언 → 브라우저의 '웹사이트 강제 다크(auto-dark)'가
      이미 어두운 테마를 더 눌러 대비를 뭉개는 것을 막는다. 실제 스킴은 CSS color-scheme(테마별)이 결정. -->
 <meta name="color-scheme" content="dark light">
-<title>막올림</title>
+<title>막울림</title>
 <!-- __SHOW__ --><!-- 배포 시 GitHub Action이 slug 스텁(<slug>/index.html)을 만들며 위 마커를
-     <script>window.MAKOLLIM_SHOW_ID="<id>";window.MAKOLLIM_BUILD="<커밋SHA>";</script> 로 치환한다.
+     <script>window.MAKULLIM_SHOW_ID="<id>";window.MAKULLIM_BUILD="<커밋SHA>";</script> 로 치환한다.
      루트는 빌드 버전만 주입. BUILD는 데이터(JSON) 요청의 캐시 버스터(?v=) — 로컬 개발(미주입)은 no-store로 항상 최신. -->
 <link rel="stylesheet" href="/css/styles.css?v=101">
 </head>
@@ -17,7 +17,7 @@
 <div id="appHeaderSticky">
 <header>
   <div class="title-block">
-    <h1><span class="curtain">&#9835;</span> <span id="appTitle">막올림</span></h1>
+    <h1><span class="curtain">&#9835;</span> <span id="appTitle">막울림</span></h1>
     <div class="sub" id="theaterName">Theater</div>
   </div>
 </header>
@@ -302,7 +302,7 @@
     <div class="stat-section" id="showSwitchSection" style="display:none;">
       <h2>다른 공연</h2>
       <label class="opt-row" style="justify-content:space-between;">
-        <span><b>공연 선택</b> — 다른 공연의 막올림으로 이동</span>
+        <span><b>공연 선택</b> — 다른 공연의 막울림으로 이동</span>
         <select id="showSelect" style="font:inherit;"></select>
       </label>
       <p style="color:var(--ink-dim); font-size:13px; margin:6px 0 0;">선택하면 그 공연 페이지로 이동합니다. 공연별로 좌석·메모는 따로 저장됩니다.</p>
@@ -412,9 +412,9 @@
   </div>
 </div>
 
-<script src="/js/config.js?v=1"></script>
-<script src="/js/app.js?v=145"></script>
-<script src="/js/dropbox.js?v=5"></script>
-<script src="/js/finale.js?v=44"></script>
+<script src="/js/config.js?v=2"></script>
+<script src="/js/app.js?v=146"></script>
+<script src="/js/dropbox.js?v=6"></script>
+<script src="/js/finale.js?v=45"></script>
 </body>
 </html>

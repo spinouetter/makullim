@@ -41,7 +41,7 @@ async function capture(page, port, id) {
       const pool = ended.length ? ended : ps;
       let last = "";
       pool.forEach(p => { const k = (p.date || "") + " " + (p.time || ""); if (k > last) last = k; });
-      return last.trim() || "makollim-finale";
+      return last.trim() || "makullim-finale";
     });
     console.log(`[${id}] 시드(마지막 공연 id):`, seed);
 

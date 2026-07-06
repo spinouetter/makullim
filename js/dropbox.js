@@ -1,4 +1,4 @@
-/* 막올림 Dropbox 백업/복원 (단계 1: 핵심 백업·복원)
+/* 막울림 Dropbox 백업/복원 (단계 1: 핵심 백업·복원)
    - 정적 사이트용 브라우저 OAuth2 PKCE(앱 시크릿 불필요, App key만 사용).
    - 백업 내용 = 데이터 내보내기와 동일(buildExportPayload). 파일명 <id>-YYMMDD-HHMM.json.
    - App key가 없으면 기능 비활성화.
@@ -16,7 +16,7 @@
   const TOKEN_URL = "https://api.dropboxapi.com/oauth2/token";
 
   function appKey(){
-    const c = (window.MAKOLLIM_CONFIG && window.MAKOLLIM_CONFIG.dropboxAppKey) || "";
+    const c = (window.MAKULLIM_CONFIG && window.MAKULLIM_CONFIG.dropboxAppKey) || "";
     const fromConfig = (c && c !== "__DROPBOX_APP_KEY__") ? c : "";
     return (fromConfig || localStorage.getItem("makollim:dropboxAppKey") || "").trim();
   }
@@ -172,7 +172,7 @@
   /* ── 동작 ── */
   async function doBackup(){
     if(typeof buildExportPayload !== "function"){ alert("앱이 아직 준비되지 않았습니다."); return; }
-    const name = ((typeof APP_ID!=="undefined"&&APP_ID)?APP_ID:"makollim") + "-" + stampDash() + ".json";
+    const name = ((typeof APP_ID!=="undefined"&&APP_ID)?APP_ID:"makullim") + "-" + stampDash() + ".json";
     const text = JSON.stringify(buildExportPayload());
     setStatus("백업 중…");
     try{ await dbxUpload(name, text); setStatus("백업 완료"); await loadList(); }
@@ -257,5 +257,5 @@
   else boot();
 
   // 디버그/테스트용 노출
-  window.makollimDropbox = { enabled, connected, relativeTime, stampDash, render };
+  window.makullimDropbox = { enabled, connected, relativeTime, stampDash, render };
 })();
