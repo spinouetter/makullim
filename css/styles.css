@@ -494,7 +494,7 @@
   }
   /* 주역 배우 자신: 같은 행에 막공 페어가 있으면 약간 더 두꺼운 동그라미 */
   .cast-cell .name.lead-self{
-    border:2.5px solid var(--gold); border-radius:11px;
+    border:1.5px solid var(--gold); border-radius:9px;
     padding:0 6px; width:fit-content; margin:0 auto; font-weight:700;
   }
   /* 페어막만 표시(0058): 접힌 구간 — 위아래 두 줄 사이에 숨긴 공연 개수, 클릭으로 펼침/접힘 */
