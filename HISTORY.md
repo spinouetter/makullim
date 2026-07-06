@@ -4,6 +4,7 @@
 
 | 날짜 | 요청 | 요약 |
 |------|------|------|
+| 2026-07-06 | [0062](0062.md) | 데이터베이스 버전(dbVersion) 도입 — 공연 정의에 `dbVersion`(기본 1): v1(빌리 2026, 배포분)=sid 순번 부여·localStorage 인덱스 기준(0061의 명시 sid는 되돌림), v2(빌리 2021·엘리자벳, 미배포)=schedule.json 명시 sid·localStorage도 sid 키 저장(중간 회차 추가에 안전). applyState는 배열/객체 형태로 v1/v2 자동 구분, 마이그레이션 없음 |
 | 2026-07-06 | [0061](0061.md) | 공연 sid를 schedule.json에 명시 — 로드 시 순번 암묵 부여(`s{i+1}`)를 데이터 명시 필드로 전환(값은 기존과 동일, 좌석 내보내기·grades `sids/excludeSids` 호환), app.js는 명시 sid 우선·없으면 순번 폴백·중복 경고. 중간 회차 추가 시 뒤 sid가 밀리지 않게 됨 |
 | 2026-07-06 | [0060](0060.md) | 스케줄 표 좌석·메모 컬럼 숨기기 — 티켓·가격과 같은 방식(헤더 ▾ 드롭다운 → 숨기기, 숨김 바 → 표시)으로 좌석·메모 컬럼도 숨김/복원, `scheduleHiddenCols`(`__seat__`/`__memo__`)로 저장 |
 | 2026-07-06 | [0059](0059.md) | 이름 변경: 막올림(makollim) → 막울림(makullim) — UI·탭 제목, 전역 변수(`MAKULLIM_SHOW_ID/BUILD/CONFIG`·`makullimDropbox`), 다운로드·백업 파일명, 문서(README·CLAUDE.md 등). 도메인 `makollim.com`·localStorage 키(`makollim:*`)·저장소 URL·과거 기록은 유지 |
