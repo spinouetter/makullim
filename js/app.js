@@ -237,6 +237,7 @@ let floatDateOn = false;        // 방법1: 날짜·시간·좌석을 왼쪽 고
 let rowHighlightOn = false;     // 방법2: 날짜 클릭으로 그 줄 하이라이트
 let rowHighlightSave = false;   // 방법2: 하이라이트를 새로고침 후에도 유지(저장)
 let lockVScrollOn = false;      // 방법3: 가로 드래그 스크롤 중 세로 스크롤 잠금
+let vscrollMomentum = false;    // (실험) 세로 잠금 시 관성 유지형 구현 사용 — preventDefault 대신 scrollTop 핀 고정
 let highlightedRows = new Set(); // 하이라이트된 공연 idx 집합
 let multiTicketMode = false;    // 다중 티켓 관리 모드(기본 OFF)
 let finaleViewOn = false;       // Finale(인증 이미지) 탭 표시 (기본 OFF)
@@ -4339,6 +4340,7 @@ function buildStateSnapshot(){
     rowHighlightOn: rowHighlightOn,
     rowHighlightSave: rowHighlightSave,
     lockVScrollOn: lockVScrollOn,
+    vscrollMomentum: vscrollMomentum,
     multiTicketMode: multiTicketMode,
     finaleViewOn: finaleViewOn,
     // 하이라이트는 '저장' 옵션이 켜졌을 때만 보존(꺼져 있으면 세션 한정)
@@ -4463,6 +4465,7 @@ function applyState(state){
   if(typeof state.rowHighlightOn === "boolean") rowHighlightOn = state.rowHighlightOn;
   if(typeof state.rowHighlightSave === "boolean") rowHighlightSave = state.rowHighlightSave;
   if(typeof state.lockVScrollOn === "boolean") lockVScrollOn = state.lockVScrollOn;
+  if(typeof state.vscrollMomentum === "boolean") vscrollMomentum = state.vscrollMomentum;
   if(typeof state.multiTicketMode === "boolean") multiTicketMode = state.multiTicketMode;
   if(typeof state.finaleViewOn === "boolean") finaleViewOn = state.finaleViewOn;
   highlightedRows = new Set(Array.isArray(state.highlightedRows) ? state.highlightedRows : []);
@@ -5337,6 +5340,7 @@ function setupScheduleOptions(){
   const rh = document.getElementById("optRowHighlight");
   const hs = document.getElementById("optHighlightSave");
   const lv = document.getElementById("optLockVScroll");
+  const vm = document.getElementById("optVScrollMomentum");
   const mt = document.getElementById("optMultiTicket");
   if(!fd) return;
 
@@ -5359,6 +5363,7 @@ function setupScheduleOptions(){
     saveState(); // 켜면 현재 하이라이트가 저장되고, 끄면 저장 목록이 비워짐
   });
   lv.addEventListener("change", ()=>{ lockVScrollOn = lv.checked; saveState(); });
+  if(vm){ vm.checked = vscrollMomentum; vm.addEventListener("change", ()=>{ vscrollMomentum = vm.checked; saveState(); }); }
   if(mt) mt.addEventListener("change", ()=>{
     if(!mt.checked){
       // 끄기: 여러 장 티켓이 있는 공연이 있으면 경고(데이터는 유지, UI만 바뀜)
@@ -5433,14 +5438,16 @@ function setupScheduleScrollLock(){
   wrap.addEventListener("scroll", ()=>{ updateFloatOverlay(); updateNowBtn(); }, { passive:true });
   const nowBtn = document.getElementById("nowBtn");
   if(nowBtn) nowBtn.onclick = goToNow;
-  let startX = 0, startY = 0, startLeft = 0, axis = null;
+  let startX = 0, startY = 0, startLeft = 0, startTop = 0, axis = null;
   wrap.addEventListener("touchstart", e=>{
     if(!lockVScrollOn || e.touches.length !== 1){ axis = null; return; }
     const t = e.touches[0];
-    startX = t.clientX; startY = t.clientY; startLeft = wrap.scrollLeft; axis = null;
+    startX = t.clientX; startY = t.clientY; startLeft = wrap.scrollLeft; startTop = wrap.scrollTop; axis = null;
   }, { passive:true });
+  // 클래식 잠금: 가로 제스처일 때 preventDefault + 직접 scrollLeft 이동.
+  // 관성 개선(실험) 모드에서는 preventDefault를 하지 않아 이 리스너가 momentum을 방해하지 않도록 조기 반환한다.
   wrap.addEventListener("touchmove", e=>{
-    if(!lockVScrollOn || e.touches.length !== 1) return;
+    if(!lockVScrollOn || vscrollMomentum || e.touches.length !== 1) return;
     const t = e.touches[0];
     const dx = t.clientX - startX, dy = t.clientY - startY;
     if(axis === null && (Math.abs(dx) > 6 || Math.abs(dy) > 6)){
@@ -5451,6 +5458,23 @@ function setupScheduleScrollLock(){
       wrap.scrollLeft = startLeft - dx; // 가로는 직접 이동
     }
   }, { passive:false });
+  // (실험) 관성 개선 모드: passive 리스너(=preventDefault 없음)라 세로 던지기(관성)가 유지된다.
+  //  - scrollTop 대입은 컴포지터 스크롤에 무시되므로, 가로 제스처로 판정되면 그 순간
+  //    overflow-y:hidden으로 세로 축을 브라우저 레벨에서 얼린다(가로는 네이티브 스크롤+관성 유지).
+  //  - 세로 제스처면 아무것도 하지 않아 네이티브 세로 스크롤+관성이 그대로 동작한다.
+  //  - 제스처가 끝나면 overflow-y를 원복한다.
+  const restoreOverflowY = ()=>{ if(wrap.style.overflowY) wrap.style.overflowY = ""; };
+  wrap.addEventListener("touchmove", e=>{
+    if(!lockVScrollOn || !vscrollMomentum || e.touches.length !== 1) return;
+    const t = e.touches[0];
+    const dx = t.clientX - startX, dy = t.clientY - startY;
+    if(axis === null && (Math.abs(dx) > 6 || Math.abs(dy) > 6)){
+      axis = Math.abs(dx) > Math.abs(dy) ? "h" : "v";
+    }
+    if(axis === "h" && wrap.style.overflowY !== "hidden") wrap.style.overflowY = "hidden"; // 세로만 잠금
+  }, { passive:true });
+  wrap.addEventListener("touchend", restoreOverflowY, { passive:true });
+  wrap.addEventListener("touchcancel", restoreOverflowY, { passive:true });
 
   // 데스크탑: 마우스로 표를 잡아끌어 스크롤(가로·세로). 입력/버튼/링크 위에서는 드래그 안 함.
   const INTERACTIVE = "input, textarea, select, button, a, [contenteditable], .role-dropdown, .ticket-popover";
