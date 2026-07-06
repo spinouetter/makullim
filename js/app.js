@@ -212,10 +212,13 @@ let multiTicketMode = false;    // 다중 티켓 관리 모드(기본 OFF)
 let finaleViewOn = false;       // Finale(인증 이미지) 탭 표시 (기본 OFF)
 
 // 숨길 수 있는 특수 컬럼 키 (배역 이름과 충돌하지 않는 토큰)
+const COL_SEAT = "__seat__";
 const COL_TICKET = "__ticket__";
 const COL_PRICE = "__price__";
+const COL_MEMO = "__memo__";
+const COL_LABELS = { [COL_SEAT]:"좌석", [COL_TICKET]:"티켓", [COL_PRICE]:"가격", [COL_MEMO]:"메모" };
 const TICKET_FEE = 2000; // 선택 시 더해지는 수수료(원)
-function colLabel(id){ return id===COL_TICKET ? "티켓" : (id===COL_PRICE ? "가격" : (id.indexOf("match:")===0 ? id.slice(6) : id)); }
+function colLabel(id){ return COL_LABELS[id] || (id.indexOf("match:")===0 ? id.slice(6) : id); }
 // 캐스팅 대상(actors 보유) 역할만 — 스케줄/통계/좌석맵 컬럼용. group 참조전용(앙상블 등)은 제외.
 function castRoleObjs(){ return performanceData.casts.filter(c=>Array.isArray(c.actors) && c.actors.length>0); }
 // 스케줄 표 헤더용 라벨: shortName 있으면 그걸, 없으면 role.
@@ -685,8 +688,10 @@ function renderSchedule(){
   const lastShowMap = lastShowRoleOn ? buildLastShowMap() : null;
   const pairLastInfo = pairActive ? buildPairLastInfo(pairRoles) : null;
   const leadPairMap = leadRole ? buildLeadPairMap(leadRole) : null;
+  const showSeat = !scheduleHiddenCols.has(COL_SEAT);
   const showTicket = !scheduleHiddenCols.has(COL_TICKET);
   const showPrice = !scheduleHiddenCols.has(COL_PRICE);
+  const showMemo = !scheduleHiddenCols.has(COL_MEMO);
   const visibleMatches = (performanceData.matches||[]).filter(m=>!scheduleHiddenCols.has("match:"+m.name));
 
   const castHistoryBtn = document.getElementById("castHistoryToggleBtn");
@@ -752,10 +757,11 @@ function renderSchedule(){
 
   head.innerHTML = `
     ${floatDateOn ? '<th class="float-cell"></th>' : ''}
-    <th>날짜</th><th>시간</th><th>좌석</th>
+    <th>날짜</th><th>시간</th>
+    ${showSeat ? colHeadHtml(COL_SEAT, "좌석") : ""}
     ${showTicket ? colHeadHtml(COL_TICKET, "티켓") : ""}
     ${showPrice ? colHeadHtml(COL_PRICE, "가격") : ""}
-    <th>메모</th>
+    ${showMemo ? colHeadHtml(COL_MEMO, "메모") : ""}
     ${visibleMatches.map(m=>{
       const sel = scheduleMatchFilter[m.name] || new Set();
       const isOpen = scheduleOpenDropdownRole === ("match:"+m.name);
@@ -972,6 +978,25 @@ function renderSchedule(){
     const eyeOpacity = (seatVal || seatInvalid) ? 1 : 0.3;
     const tCount = ticketCount(p);                            // 다중 티켓 수
 
+    let seatCell = "";
+    if(showSeat){
+      seatCell = `
+        <td class="seat-cell">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span class="seat-input-wrap" style="position:relative; display:inline-flex;">
+              <input class="seat-input${seatInvalid ? ' invalid-seat' : ''}" type="text" value="${escHtml(p.seat)}" placeholder="층-열-번" data-idx="${idx}" data-field="seat">
+              ${multiTicketMode
+                ? `<button class="ticket-add-corner" data-idx="${idx}" ${tCount<1?'disabled':''} title="티켓 관리">+${tCount>=2?`<span class="ticket-count-badge">${tCount}</span>`:""}</button>`
+                : (tCount>=2 ? `<button class="ticket-count-corner" data-idx="${idx}" title="티켓 ${tCount}장 관리">${tCount}</button>` : "")}
+            </span>
+            <button class="seat-eye-btn${seatInvalid ? ' invalid' : ''}" data-idx="${idx}" title="${seatInvalid ? '등록되지 않은 좌석입니다' : '좌석표에서 보기'}" style="flex-shrink:0; background:none; border:none; padding:2px 3px; display:flex; align-items:center; justify-content:center; line-height:0; position:relative; color:${eyeColor}; opacity:${eyeOpacity};">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>
+              ${seatInvalid ? `<span class="seat-eye-warn">!</span>` : ""}
+            </button>
+          </div>
+        </td>`;
+    }
+
     let ticketCell = "";
     if(showTicket){
       let inner;
@@ -1020,6 +1045,26 @@ function renderSchedule(){
     if(showPrice){
       const price = ticketPriceOf(p.seat, ticketType, ticketFee, ticketDiscount, p.ticketExtra);
       priceCell = `<td class="price-cell">${price!=null ? formatKRW(price) : '<span class="empty">—</span>'}</td>`;
+    }
+
+    let memoCell = "";
+    if(showMemo){
+      memoCell = `
+        <td class="memo-cell" style="position:relative;">
+          <button class="memo-icon-btn" data-idx="${idx}" title="메모" style="background:none; border:none; cursor:pointer; padding:4px; display:flex; align-items:center; justify-content:center; color:${p.note && p.note.trim() ? 'var(--gold)' : 'var(--ink-dim)'}; opacity:${p.note && p.note.trim() ? 1 : 0.4};">
+            <svg width="13" height="16" viewBox="0 0 16 20" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="1" y="1" width="14" height="18" rx="1.5"/><line x1="4" y1="6" x2="12" y2="6"/><line x1="4" y1="10" x2="12" y2="10"/><line x1="4" y1="14" x2="9" y2="14"/></svg>
+          </button>
+          ${memoPopoverIdx===idx ? `
+            <div class="memo-popover">
+              <div class="popover-date">${perfDateLabel(p)}</div>
+              <textarea class="memo-popover-input" rows="3" placeholder="메모 입력" data-idx="${idx}">${escHtml(p.note||"")}</textarea>
+              <div class="memo-popover-actions">
+                <button class="memo-cancel-btn" data-idx="${idx}">취소</button>
+                <button class="memo-confirm-btn" data-idx="${idx}">확인</button>
+              </div>
+            </div>
+          ` : ""}
+        </td>`;
     }
 
     // 페어막(0051): 이 행에 마지막 동반 출연(개별 조합)이 있으면 선택 배역 셀들을 묶는다.
@@ -1109,37 +1154,10 @@ function renderSchedule(){
         ${floatCell}
         <td class="date-cell"${dcolor?` style="color:${dcolor}"`:''}><span class="date-text">${shortDateDow(p.date)}</span>${cancelled?`<span class="cancel-mark">취소</span>`:""}${reschedList.length?`<span class="resched-mark" title="${escHtml(rescheduleSummary(p))}">&#8635;</span>`:""}</td>
         <td class="time-cell"${dcolor?` style="color:${dcolor}"`:''}>${p.time}</td>
-        <td class="seat-cell">
-          <div style="display:flex; align-items:center; gap:8px;">
-            <span class="seat-input-wrap" style="position:relative; display:inline-flex;">
-              <input class="seat-input${seatInvalid ? ' invalid-seat' : ''}" type="text" value="${escHtml(p.seat)}" placeholder="층-열-번" data-idx="${idx}" data-field="seat">
-              ${multiTicketMode
-                ? `<button class="ticket-add-corner" data-idx="${idx}" ${tCount<1?'disabled':''} title="티켓 관리">+${tCount>=2?`<span class="ticket-count-badge">${tCount}</span>`:""}</button>`
-                : (tCount>=2 ? `<button class="ticket-count-corner" data-idx="${idx}" title="티켓 ${tCount}장 관리">${tCount}</button>` : "")}
-            </span>
-            <button class="seat-eye-btn${seatInvalid ? ' invalid' : ''}" data-idx="${idx}" title="${seatInvalid ? '등록되지 않은 좌석입니다' : '좌석표에서 보기'}" style="flex-shrink:0; background:none; border:none; padding:2px 3px; display:flex; align-items:center; justify-content:center; line-height:0; position:relative; color:${eyeColor}; opacity:${eyeOpacity};">
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>
-              ${seatInvalid ? `<span class="seat-eye-warn">!</span>` : ""}
-            </button>
-          </div>
-        </td>
+        ${seatCell}
         ${ticketCell}
         ${priceCell}
-        <td class="memo-cell" style="position:relative;">
-          <button class="memo-icon-btn" data-idx="${idx}" title="메모" style="background:none; border:none; cursor:pointer; padding:4px; display:flex; align-items:center; justify-content:center; color:${p.note && p.note.trim() ? 'var(--gold)' : 'var(--ink-dim)'}; opacity:${p.note && p.note.trim() ? 1 : 0.4};">
-            <svg width="13" height="16" viewBox="0 0 16 20" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="1" y="1" width="14" height="18" rx="1.5"/><line x1="4" y1="6" x2="12" y2="6"/><line x1="4" y1="10" x2="12" y2="10"/><line x1="4" y1="14" x2="9" y2="14"/></svg>
-          </button>
-          ${memoPopoverIdx===idx ? `
-            <div class="memo-popover">
-              <div class="popover-date">${perfDateLabel(p)}</div>
-              <textarea class="memo-popover-input" rows="3" placeholder="메모 입력" data-idx="${idx}">${escHtml(p.note||"")}</textarea>
-              <div class="memo-popover-actions">
-                <button class="memo-cancel-btn" data-idx="${idx}">취소</button>
-                <button class="memo-confirm-btn" data-idx="${idx}">확인</button>
-              </div>
-            </div>
-          ` : ""}
-        </td>
+        ${memoCell}
         ${visibleMatches.map(m=>{
           const res = p.match && p.match[m.name];
           const w = (res && res.winner) ? res.winner : "";
