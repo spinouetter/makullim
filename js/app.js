@@ -114,6 +114,9 @@ async function loadData(){
   seatmapData = seatmap;
   performanceData = {
     title: meta.title,
+    // 데이터 스키마 버전(공연 정의, 기본 1) — v1: sid 순번 부여·저장 인덱스 기준(기존 배포분),
+    // v2: schedule.json에 sid 명시·저장도 sid 기준(중간 회차 추가에 안전)
+    dbVersion: (typeof meta.dbVersion === "number") ? meta.dbVersion : 1,
     startDate: meta.startDate || "",
     endDate: meta.endDate || "",
     runningtime: (typeof meta.runningtime === "number" && meta.runningtime > 0) ? meta.runningtime : 180, // 분
@@ -126,11 +129,17 @@ async function loadData(){
   performanceData.matches = Array.isArray(matchesRaw) ? matchesRaw : [];       // 대결(승부) 정의 — 결과는 schedule에
   performanceData.resellers = Array.isArray(resellersRaw) ? resellersRaw : []; // 좌석별 예매처(리셀러)
   SEAT_BBOX = computeSeatBBox();
-  const seenSids = new Set(); // sid 중복은 데이터 오류 — 좌석 가져오기·티켓 적용이 꼬이므로 경고
+  const dbV2 = performanceData.dbVersion >= 2;
+  const seenSids = new Set(); // sid 중복·누락은 데이터 오류 — 좌석 저장·티켓 적용이 꼬이므로 경고
   performanceData.performances.forEach((p,i)=>{
-    if(!p.sid) p.sid = "s"+(i+1); // 공연 ID: schedule.json의 명시 sid 우선, 없으면 순번(시간순)
-    if(seenSids.has(p.sid)) console.warn("schedule.json sid 중복:", p.sid);
-    seenSids.add(p.sid);
+    if(dbV2){
+      // v2: schedule.json의 명시 sid 사용(누락 시 순번 폴백 + 경고)
+      if(!p.sid){ console.warn("schedule.json sid 누락:", p.date, p.time); p.sid = "s"+(i+1); }
+      if(seenSids.has(p.sid)) console.warn("schedule.json sid 중복:", p.sid);
+      seenSids.add(p.sid);
+    } else {
+      p.sid = "s"+(i+1); // v1: 순번 부여 (공연 숨겨진 ID, 시간순)
+    }
     if(p.ticketType == null) p.ticketType = ""; // 티켓 종류(정가/할인). 빈 문자열 = 미선택
     if(p.ticketFee == null) p.ticketFee = false; // 수수료 포함 여부
     if(p.ticketDiscount == null) p.ticketDiscount = null; // 임의 할인권 할인율(없으면 null)
@@ -3957,8 +3966,12 @@ function normalizeHeatArr(arr){
 }
 
 function buildStateSnapshot(){
+  const perfSnap = p=>({seat:p.seat, note:p.note, ticketType:p.ticketType||"", ticketFee:!!p.ticketFee, ticketDiscount:(p.ticketDiscount!=null?p.ticketDiscount:null), ticketExtra:(p.ticketExtra||0), ticketTransferred:!!p.ticketTransferred, extraTickets:(Array.isArray(p.extraTickets)?p.extraTickets:[])});
   return {
-    performances: performanceData.performances.map(p=>({seat:p.seat, note:p.note, ticketType:p.ticketType||"", ticketFee:!!p.ticketFee, ticketDiscount:(p.ticketDiscount!=null?p.ticketDiscount:null), ticketExtra:(p.ticketExtra||0), ticketTransferred:!!p.ticketTransferred, extraTickets:(Array.isArray(p.extraTickets)?p.extraTickets:[])})),
+    // v2: sid 키 객체(스케줄 중간에 회차가 추가·삭제돼도 기록이 밀리지 않음), v1: 배열(인덱스 기준, 배포분 호환)
+    performances: performanceData.dbVersion >= 2
+      ? Object.fromEntries(performanceData.performances.map(p=>[p.sid, perfSnap(p)]))
+      : performanceData.performances.map(perfSnap),
     scheduleHiddenCols: [...scheduleHiddenCols],
     scheduleRoleOrder: [...scheduleRoleOrder],
     scheduleRoleFilter: Object.fromEntries(
@@ -4025,21 +4038,29 @@ function saveState(){
 function applyState(state){
   if(!state) return;
 
+  const applyPerfState = (pp, s)=>{
+    if(typeof s.seat === "string") pp.seat = s.seat;
+    if(typeof s.note === "string") pp.note = s.note;
+    if(typeof s.ticketType === "string") pp.ticketType = s.ticketType;
+    if(typeof s.ticketFee === "boolean") pp.ticketFee = s.ticketFee;
+    pp.ticketDiscount = (typeof s.ticketDiscount === "number") ? s.ticketDiscount : null;
+    pp.ticketExtra = (typeof s.ticketExtra === "number" && s.ticketExtra > 0) ? s.ticketExtra : 0;
+    pp.ticketTransferred = !!s.ticketTransferred;
+    pp.extraTickets = Array.isArray(s.extraTickets) ? s.extraTickets.map(t=>({seat:t.seat||"", ticketType:t.ticketType||"", ticketFee:!!t.ticketFee, ticketDiscount:(t.ticketDiscount!=null?t.ticketDiscount:null), ticketExtra:t.ticketExtra||0, ticketTransferred:!!t.ticketTransferred})) : [];
+    // 불변식 보정: 맨 위 좌석이 비었는데 추가 티켓이 있으면 첫 추가 티켓을 맨 위로 승격
+    if(!(pp.seat && pp.seat.trim()) && pp.extraTickets.length) setTickets(pp, pp.extraTickets);
+  };
   if(Array.isArray(state.performances)){
+    // v1 형식: 배열 — 스케줄 배열 인덱스 기준으로 매칭
     state.performances.forEach((s, i)=>{
-      if(performanceData.performances[i]){
-        if(typeof s.seat === "string") performanceData.performances[i].seat = s.seat;
-        if(typeof s.note === "string") performanceData.performances[i].note = s.note;
-        if(typeof s.ticketType === "string") performanceData.performances[i].ticketType = s.ticketType;
-        if(typeof s.ticketFee === "boolean") performanceData.performances[i].ticketFee = s.ticketFee;
-        performanceData.performances[i].ticketDiscount = (typeof s.ticketDiscount === "number") ? s.ticketDiscount : null;
-        performanceData.performances[i].ticketExtra = (typeof s.ticketExtra === "number" && s.ticketExtra > 0) ? s.ticketExtra : 0;
-        performanceData.performances[i].ticketTransferred = !!s.ticketTransferred;
-        performanceData.performances[i].extraTickets = Array.isArray(s.extraTickets) ? s.extraTickets.map(t=>({seat:t.seat||"", ticketType:t.ticketType||"", ticketFee:!!t.ticketFee, ticketDiscount:(t.ticketDiscount!=null?t.ticketDiscount:null), ticketExtra:t.ticketExtra||0, ticketTransferred:!!t.ticketTransferred})) : [];
-        // 불변식 보정: 맨 위 좌석이 비었는데 추가 티켓이 있으면 첫 추가 티켓을 맨 위로 승격
-        const pp = performanceData.performances[i];
-        if(!(pp.seat && pp.seat.trim()) && pp.extraTickets.length) setTickets(pp, pp.extraTickets);
-      }
+      if(performanceData.performances[i]) applyPerfState(performanceData.performances[i], s);
+    });
+  } else if(state.performances && typeof state.performances === "object"){
+    // v2 형식: sid 키 객체 — 회차 순서와 무관하게 sid로 매칭
+    const bySid = {};
+    performanceData.performances.forEach(p=>{ bySid[p.sid] = p; });
+    Object.entries(state.performances).forEach(([sid, s])=>{
+      if(bySid[sid]) applyPerfState(bySid[sid], s);
     });
   }
 
