@@ -24,6 +24,7 @@
       - 마이너한 버그 수정의 경우 기록하지 않는다.
       - 최근 3개 HISTORY 항목 중 이번 수정을 담을 수 있는 게 있으면 **새 줄을 추가하지 않는다**(생략).
 - **push는 요청할 때만.** ("커밋해줘"는 커밋만, "push해줘"는 push까지.)
+- **incremental 수정은 합쳐서(squash) push한다.** 같은 작업을 다듬는 연속 커밋(레이블 변경, 정렬 조정, 곧바로 이어지는 후속 수정 등)은 커밋을 쪼개 쌓지 말고, push 전에 아직 push하지 않은 로컬 커밋끼리 하나로 합쳐(amend / `git reset --soft` 후 재커밋) 최종 한 커밋으로 push한다. 이미 push된 커밋은 히스토리를 다시 쓰지 않는다.
 - git author는 로컬 설정된 `Spinouetter <297621346+spinouetter@users.noreply.github.com>`를 사용한다.
 - 커밋 메시지는 한국어 한 줄 요약 + `— NNNN`(요청번호), 본문에 상세를 적는다.
 
