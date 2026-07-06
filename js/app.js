@@ -745,8 +745,8 @@ function renderSchedule(){
                   const mi = movable.indexOf(role);
                   return `
                 <div class="role-dropdown-actions" style="border-top:none; margin-top:0; padding-top:0;">
-                  <button class="role-move-btn" data-role="${escHtml(role)}" data-dir="-1" ${mi>0?'':'disabled'}>&#9664; 왼쪽</button>
-                  <button class="role-move-btn" data-role="${escHtml(role)}" data-dir="1" ${(mi>=0 && mi<movable.length-1)?'':'disabled'}>오른쪽 &#9654;</button>
+                  <button class="role-move-btn" data-role="${escHtml(role)}" data-dir="-1" title="왼쪽으로 이동" ${mi>0?'':'disabled'}>&#9664;</button>
+                  <button class="role-move-btn" data-role="${escHtml(role)}" data-dir="1" title="오른쪽으로 이동" ${(mi>=0 && mi<movable.length-1)?'':'disabled'}>&#9654;</button>
                 </div>
                 <div class="role-dropdown-actions" style="border-top:none; margin-top:0; padding-top:0;">
                   <button class="role-hide-btn" data-role="${role}">숨기기</button>
