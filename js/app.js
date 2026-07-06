@@ -224,11 +224,12 @@ let multiTicketMode = false;    // 다중 티켓 관리 모드(기본 OFF)
 let finaleViewOn = false;       // Finale(인증 이미지) 탭 표시 (기본 OFF)
 
 // 숨길 수 있는 특수 컬럼 키 (배역 이름과 충돌하지 않는 토큰)
+const COL_NUM = "__num__";
 const COL_SEAT = "__seat__";
 const COL_TICKET = "__ticket__";
 const COL_PRICE = "__price__";
 const COL_MEMO = "__memo__";
-const COL_LABELS = { [COL_SEAT]:"좌석", [COL_TICKET]:"티켓", [COL_PRICE]:"가격", [COL_MEMO]:"메모" };
+const COL_LABELS = { [COL_NUM]:"번호", [COL_SEAT]:"좌석", [COL_TICKET]:"티켓", [COL_PRICE]:"가격", [COL_MEMO]:"메모" };
 const TICKET_FEE = 2000; // 선택 시 더해지는 수수료(원)
 function colLabel(id){ return COL_LABELS[id] || (id.indexOf("match:")===0 ? id.slice(6) : id); }
 // 캐스팅 대상(actors 보유) 역할만 — 스케줄/통계/좌석맵 컬럼용. group 참조전용(앙상블 등)은 제외.
@@ -700,11 +701,24 @@ function renderSchedule(){
   const lastShowMap = lastShowRoleOn ? buildLastShowMap() : null;
   const pairLastInfo = pairActive ? buildPairLastInfo(pairRoles) : null;
   const leadPairMap = leadRole ? buildLeadPairMap(leadRole) : null;
+  const showNum = !scheduleHiddenCols.has(COL_NUM);
   const showSeat = !scheduleHiddenCols.has(COL_SEAT);
   const showTicket = !scheduleHiddenCols.has(COL_TICKET);
   const showPrice = !scheduleHiddenCols.has(COL_PRICE);
   const showMemo = !scheduleHiddenCols.has(COL_MEMO);
   const visibleMatches = (performanceData.matches||[]).filter(m=>!scheduleHiddenCols.has("match:"+m.name));
+
+  // 공연 번호(0063): 연번 = 취소 제외 회차 순번, 자번 = 좌석 등록(취소 제외) 순번.
+  // 필터와 무관하게 전체 스케줄 기준으로 매기므로 필터를 걸어도 번호가 변하지 않는다.
+  const perfNoMap = new Map(), seatNoMap = new Map();
+  {
+    let pn = 0, sn = 0;
+    performanceData.performances.forEach((p, i)=>{
+      if(isCancelled(p)) return;
+      perfNoMap.set(i, ++pn);
+      if((p.seat||"").trim()) seatNoMap.set(i, ++sn);
+    });
+  }
 
   const castHistoryBtn = document.getElementById("castHistoryToggleBtn");
   castHistoryBtn.classList.toggle("active", showCastHistory);
@@ -770,6 +784,7 @@ function renderSchedule(){
   head.innerHTML = `
     ${floatDateOn ? '<th class="float-cell"></th>' : ''}
     <th>날짜</th><th>시간</th>
+    ${showNum ? colHeadHtml(COL_NUM, "번호") : ""}
     ${showSeat ? colHeadHtml(COL_SEAT, "좌석") : ""}
     ${showTicket ? colHeadHtml(COL_TICKET, "티켓") : ""}
     ${showPrice ? colHeadHtml(COL_PRICE, "가격") : ""}
@@ -990,6 +1005,17 @@ function renderSchedule(){
     const eyeOpacity = (seatVal || seatInvalid) ? 1 : 0.3;
     const tCount = ticketCount(p);                            // 다중 티켓 수
 
+    // 공연 번호 셀(0063): 연번(취소 제외)·자번(좌석 등록). 10·50·100의 배수는 단계적으로 강조.
+    let numCell = "";
+    if(showNum){
+      const msCls = n=> n%100===0 ? " m100" : (n%50===0 ? " m50" : (n%10===0 ? " m10" : ""));
+      const pn = perfNoMap.get(idx), sn = seatNoMap.get(idx);
+      numCell = `<td class="num-cell">`
+        + (pn ? `<span class="perf-no${msCls(pn)}">${pn}</span>` : "")
+        + (sn ? `<span class="seat-no${msCls(sn)}">${sn}</span>` : "")
+        + `</td>`;
+    }
+
     let seatCell = "";
     if(showSeat){
       seatCell = `
@@ -1166,6 +1192,7 @@ function renderSchedule(){
         ${floatCell}
         <td class="date-cell"${dcolor?` style="color:${dcolor}"`:''}><span class="date-text">${shortDateDow(p.date)}</span>${cancelled?`<span class="cancel-mark">취소</span>`:""}${reschedList.length?`<span class="resched-mark" title="${escHtml(rescheduleSummary(p))}">&#8635;</span>`:""}</td>
         <td class="time-cell"${dcolor?` style="color:${dcolor}"`:''}>${p.time}</td>
+        ${numCell}
         ${seatCell}
         ${ticketCell}
         ${priceCell}
