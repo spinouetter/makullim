@@ -1150,23 +1150,32 @@ function renderSchedule(){
         ${castCells}
       </tr>
     `;
-    return { idx, keep: !!pairInfo || !!rowLeadActors, html: rowHtml };
+    return { idx, keep: !!pairInfo || !!rowLeadActors, html: rowHtml, date: p.date };
   });
 
   // 페어막만 표시(0058): 페어막·주역 페어막 표시가 있는 회차만 남기고, 사이 구간은
   // 위아래 두 줄 사이에 숨긴 공연 개수를 표시(클릭하면 펼치고 다시 누르면 접힘).
   const pairOnlyMode = lastShowPairOnlyOn && (pairActive || !!leadRole);
   if(pairOnlyMode){
+    // 숨긴 일수: 이전(표시) 공연 ~ 다음(표시) 공연 전날의 날짜 차이. 음수면 0일.
+    // 경계에 표시 공연이 없으면 구간 자체의 첫/마지막 날짜로 대신 계산한다.
+    const dayDiff = (a,b)=>Math.round((new Date(b+"T00:00:00") - new Date(a+"T00:00:00"))/86400000);
     const parts = [];
-    let i = 0;
+    let i = 0, prevDate = null;
     while(i < rowInfos.length){
-      if(rowInfos[i].keep){ parts.push(rowInfos[i].html); i++; continue; }
+      if(rowInfos[i].keep){ prevDate = rowInfos[i].date; parts.push(rowInfos[i].html); i++; continue; }
       let j = i;
       while(j < rowInfos.length && !rowInfos[j].keep) j++;
       const run = rowInfos.slice(i, j);
+      const nextDate = j < rowInfos.length ? rowInfos[j].date : null;
+      const y = Math.max(0,
+        (prevDate && nextDate) ? dayDiff(prevDate, nextDate) - 1
+        : nextDate ? dayDiff(run[0].date, nextDate)
+        : prevDate ? dayDiff(prevDate, run[run.length-1].date)
+        : dayDiff(run[0].date, run[run.length-1].date) + 1);
       const key = "r" + run[0].idx;
       const expanded = pairOnlyExpanded.has(key);
-      parts.push(`<tr class="pair-collapse" data-runkey="${key}" title="${expanded?'접기':'펼치기'}"><td colspan="99"><span class="pair-collapse-label">${expanded ? `공연 ${run.length}개 접기 &#9652;` : `숨긴 공연 ${run.length}개 &#9662;`}</span></td></tr>`);
+      parts.push(`<tr class="pair-collapse" data-runkey="${key}" title="${expanded?'접기':'펼치기'}"><td colspan="99"><span class="pair-collapse-label">${expanded ? `공연 ${run.length}개 / ${y}일 접기 &#9652;` : `숨긴 공연 ${run.length}개 / ${y}일 &#9662;`}</span></td></tr>`);
       if(expanded) parts.push(...run.map(r=>r.html));
       i = j;
     }
