@@ -145,6 +145,8 @@ async function loadData(){
     if(p.ticketDiscount == null) p.ticketDiscount = null; // 임의 할인권 할인율(없으면 null)
     if(p.ticketExtra == null) p.ticketExtra = 0; // 기타 비용(취소 수수료 등, 원)
     if(p.ticketTransferred == null) p.ticketTransferred = false; // 양도받은 티켓 여부(없으면 내가 구매)
+    if(p.ticketHidden == null) p.ticketHidden = false; // 숨김 티켓: 자번 제외·좌석 취소선(기록은 유지) — 0064
+    if(!Array.isArray(p.ticketHistory)) p.ticketHistory = []; // 취소·양도 이력 [{kind,seat,grade,cost,note}] — 0064
     if(!Array.isArray(p.extraTickets)) p.extraTickets = []; // 다중 티켓: 2번째 이후 티켓들(맨 위=평면 필드)
     p.buyout = !!p.buyout;    // 전관(단체 대관) 회차 — 일반 예매 없음 (schedule.json 제공)
     if(p.match == null || typeof p.match !== "object") p.match = {}; // 매치명 -> {winner, note} (서버 제공)
@@ -211,6 +213,8 @@ let lastShowPairOnlyOn = false; // 페어막만 표시(0058): 페어막 표시�
 let pairOnlyExpanded = new Set(); // 접힌 구간 중 펼친 것(구간 첫 회차 인덱스 키, 저장 안 함)
 let scheduleAutoScrolled = false; // 현재 공연으로의 자동 스크롤을 한 번만 수행
 let ticketPopoverIdx = null; // 현재 열려있는 티켓 선택 팝오버의 공연 인덱스
+let tkLifeForm = null;       // 티켓 취소·양도 입력 폼 상태 {idx, kind:"cancel"|"transfer"} — 0064
+let thIdx = -1;              // 티켓 이력 창의 공연 인덱스(-1=닫힘) — 0064
 let tmIdx = -1;              // 티켓 관리 모달의 공연 인덱스
 let tmTickets = [];          // 티켓 관리 모달의 작업 목록(복사본)
 let tmEditTi = -1;           // 모달에서 팝오버가 열린 티켓 인덱스(-1=없음)
@@ -409,11 +413,40 @@ function buildTicketPopover(idx, grade, tk, opts){
         <label class="tk-fee-label"><input type="checkbox" class="tk-transfer" data-idx="${idx}" ${tk.ticketTransferred?'checked':''}> 양도받음</label>
         <span class="tk-extra-group">기타 <input type="text" inputmode="numeric" class="tk-extra" data-idx="${idx}" value="${tk.ticketExtra ? tk.ticketExtra : ''}" placeholder="0">원</span>
       </div>
+      ${opts.lifecycle ? buildTicketLifeRow(idx, perf) : ""}
       <div class="ticket-popover-actions">
         <button class="tk-clear" data-idx="${idx}" style="border-color:#a85a44; color:#e08a73;">삭제</button>
         <button class="tk-cancel" data-idx="${idx}">취소</button>
         <button class="tk-save" data-idx="${idx}">저장</button>
       </div>
+    </div>`;
+}
+
+// 티켓 라이프사이클(숨김/취소/양도/이력) 버튼 행 + 취소·양도 입력 폼 — 요청 0064.
+// 스케줄 행의 티켓 선택 팝오버에서만 노출(다중 티켓 관리 창 안 팝오버에는 없음).
+function buildTicketLifeRow(idx, perf){
+  const histN = (perf.ticketHistory||[]).length;
+  // 취소·양도 폼이 열려 있으면 버튼 행 대신 입력 폼을 그린다
+  if(tkLifeForm && tkLifeForm.idx===idx){
+    const isCancel = tkLifeForm.kind==="cancel";
+    return `
+      <div class="tk-life-form" data-idx="${idx}">
+        <div class="tk-life-form-title">${isCancel ? "티켓 취소" : "티켓 양도"} — ${escHtml((perf.seat||"").trim())}</div>
+        <input type="text" class="tk-life-note" data-idx="${idx}" placeholder="${isCancel ? "취소 사유" : "양수인"}">
+        <span class="tk-life-cost-group">${isCancel ? "취소 수수료" : "자체 할인"}
+          <input type="text" inputmode="numeric" class="tk-life-cost" data-idx="${idx}" placeholder="0">원</span>
+        <div class="ticket-popover-actions" style="margin-top:8px;">
+          <button class="tk-life-back" data-idx="${idx}">돌아가기</button>
+          <button class="tk-life-ok" data-idx="${idx}">확인</button>
+        </div>
+      </div>`;
+  }
+  return `
+    <div class="ticket-popover-actions tk-life-row">
+      <button class="tk-hide-btn" data-idx="${idx}">${perf.ticketHidden ? "보이기" : "숨김"}</button>
+      <button class="tk-cancel-out" data-idx="${idx}">취소</button>
+      <button class="tk-transfer-out" data-idx="${idx}">양도하기</button>
+      <button class="tk-history-btn" data-idx="${idx}" ${histN ? "" : "disabled"}>이력${histN ? ` <span class="tk-hist-count">${histN}</span>` : ""}</button>
     </div>`;
 }
 
@@ -717,7 +750,7 @@ function renderSchedule(){
     performanceData.performances.forEach((p, i)=>{
       if(isCancelled(p)) return;
       perfNoMap.set(i, ++pn);
-      if((p.seat||"").trim()) seatNoMap.set(i, ++sn);
+      if((p.seat||"").trim() && !p.ticketHidden) seatNoMap.set(i, ++sn); // 숨김 티켓은 자번 제외(0064)
     });
   }
 
@@ -1043,7 +1076,7 @@ function renderSchedule(){
         <td class="seat-cell">
           <div style="display:flex; align-items:center; gap:8px;">
             <span class="seat-input-wrap" style="position:relative; display:inline-flex;">
-              <input class="seat-input${seatInvalid ? ' invalid-seat' : ''}" type="text" value="${escHtml(p.seat)}" placeholder="층-열-번" data-idx="${idx}" data-field="seat">
+              <input class="seat-input${seatInvalid ? ' invalid-seat' : ''}${p.ticketHidden ? ' tk-hidden-seat' : ''}" type="text" value="${escHtml(p.seat)}" placeholder="층-열-번" data-idx="${idx}" data-field="seat">
               ${multiTicketMode
                 ? `<button class="ticket-add-corner" data-idx="${idx}" ${tCount<1?'disabled':''} title="티켓 관리">+${tCount>=2?`<span class="ticket-count-badge">${tCount}</span>`:""}</button>`
                 : (tCount>=2 ? `<button class="ticket-count-corner" data-idx="${idx}" title="티켓 ${tCount}장 관리">${tCount}</button>` : "")}
@@ -1072,8 +1105,11 @@ function renderSchedule(){
           ? `<button class="ticket-trigger tk-buyout-box" data-idx="${idx}" title="티켓 선택">${chip}${pill}</button>`
           : `<span class="ticket-trigger tk-buyout-box tk-buyout-static">${chip}${pill}</span>`;
       } else if(!grade){
-        // 좌석 미입력/무효 → 등급을 알 수 없어 티켓 선택 불가
-        inner = `<span class="tk-none">—</span>`;
+        // 좌석 미입력/무효 → 등급을 알 수 없어 티켓 선택 불가.
+        // 취소·양도 이력만 남은 공연이면 "이력 (N)" 칩으로 이력 창 진입(0064).
+        inner = (p.ticketHistory||[]).length
+          ? `<button class="tk-hist-chip" data-idx="${idx}" title="취소·양도 이력 보기">이력 (${p.ticketHistory.length})</button>`
+          : `<span class="tk-none">—</span>`;
       } else {
         const gradeChip = `<span class="tk-grade" style="background:${gradeFillVar(gradeName)};">${gradeName[0]}</span>`;
         const sel = resolveTicketEntry(grade, ticketType);
@@ -1096,7 +1132,7 @@ function renderSchedule(){
         }
       }
       // 다중 티켓 모드 OFF일 때만 팝오버에 '티켓 추가하기' 노출(ON이면 좌석칸 + 버튼 사용)
-      const popover = (ticketPopoverIdx===idx && grade) ? buildTicketPopover(idx, grade, topTicketObj(p), { showAddTicket: !multiTicketMode }) : "";
+      const popover = (ticketPopoverIdx===idx && grade) ? buildTicketPopover(idx, grade, topTicketObj(p), { showAddTicket: !multiTicketMode, lifecycle: true }) : "";
       ticketCell = `<td class="ticket-cell" style="position:relative;">${inner}${popover}</td>`;
     }
 
@@ -1280,6 +1316,7 @@ function renderSchedule(){
       e.stopPropagation();
       const idx = +btn.dataset.idx;
       ticketPopoverIdx = ticketPopoverIdx===idx ? null : idx;
+      tkLifeForm = null;
       memoPopoverIdx = null;
       renderSchedule();
     });
@@ -1337,6 +1374,7 @@ function renderSchedule(){
     btn.addEventListener("click", e=>{
       e.stopPropagation();
       ticketPopoverIdx = null;
+      tkLifeForm = null;
       renderSchedule();
     });
   });
@@ -1352,10 +1390,86 @@ function renderSchedule(){
       performanceData.performances[idx].ticketExtra = 0;
       performanceData.performances[idx].ticketTransferred = false;
       ticketPopoverIdx = null;
+      tkLifeForm = null;
       renderSchedule();
       renderStats();   // 티켓 해제 → 통계(티켓 금액) 갱신
       renderSeatMap(true); // 시트맵 갱신(사용자 줌/위치 유지)
       saveState();
+    });
+  });
+
+  /* === 티켓 라이프사이클(숨김/취소/양도/이력) — 요청 0064 === */
+  // 숨김/보이기 토글: 티켓은 그대로 두고 자번 제외 + 좌석 취소선. 팝오버는 열어둬 버튼 변화를 보여준다.
+  body.querySelectorAll(".tk-hide-btn").forEach(btn=>{
+    btn.addEventListener("click", e=>{
+      e.stopPropagation();
+      const idx = +btn.dataset.idx;
+      const p = performanceData.performances[idx];
+      p.ticketHidden = !p.ticketHidden;
+      renderSchedule();
+      saveState();
+    });
+  });
+
+  // 취소/양도하기: 입력 폼 열기
+  body.querySelectorAll(".tk-cancel-out, .tk-transfer-out").forEach(btn=>{
+    btn.addEventListener("click", e=>{
+      e.stopPropagation();
+      tkLifeForm = { idx: +btn.dataset.idx, kind: btn.classList.contains("tk-cancel-out") ? "cancel" : "transfer" };
+      renderSchedule();
+      const inp = body.querySelector(".tk-life-note");
+      if(inp) inp.focus({ preventScroll: true });
+    });
+  });
+
+  body.querySelectorAll(".tk-life-back").forEach(btn=>{
+    btn.addEventListener("click", e=>{
+      e.stopPropagation();
+      tkLifeForm = null;
+      renderSchedule();
+    });
+  });
+
+  // 확인: 현재 맨 위 티켓을 이력으로 옮기고 좌석을 비운다(다중 티켓이 있으면 다음 티켓 승격)
+  body.querySelectorAll(".tk-life-ok").forEach(btn=>{
+    btn.addEventListener("click", e=>{
+      e.stopPropagation();
+      const idx = +btn.dataset.idx;
+      const p = performanceData.performances[idx];
+      const kind = tkLifeForm && tkLifeForm.kind==="transfer" ? "transfer" : "cancel";
+      const note = (body.querySelector(`.tk-life-note[data-idx="${idx}"]`)||{}).value || "";
+      const costRaw = (body.querySelector(`.tk-life-cost[data-idx="${idx}"]`)||{}).value || "";
+      const cost = Math.max(0, parseInt(String(costRaw).replace(/[^\d]/g,""),10) || 0);
+      const seat = (p.seat||"").trim();
+      p.ticketHistory.push({ kind, seat, grade: gradeOf(seat)||"", cost, note: note.trim() });
+      // 맨 위 티켓 제거: 추가 티켓이 있으면 승격, 없으면 좌석·티켓 초기화
+      if(Array.isArray(p.extraTickets) && p.extraTickets.length){
+        setTickets(p, p.extraTickets);
+      } else {
+        p.seat=""; p.ticketType=""; p.ticketFee=false; p.ticketDiscount=null; p.ticketExtra=0; p.ticketTransferred=false;
+      }
+      p.ticketHidden = false;
+      tkLifeForm = null;
+      ticketPopoverIdx = null;
+      renderSchedule();
+      renderStats();
+      renderSeatMap(true);
+      saveState();
+    });
+  });
+
+  body.querySelectorAll(".tk-life-note, .tk-life-cost").forEach(inp=>{
+    inp.addEventListener("click", e=>e.stopPropagation());
+  });
+
+  // 이력 창 열기(팝오버의 이력 버튼 + 이력만 남은 행의 "이력 (N)" 칩)
+  body.querySelectorAll(".tk-history-btn, .tk-hist-chip").forEach(btn=>{
+    btn.addEventListener("click", e=>{
+      e.stopPropagation();
+      ticketPopoverIdx = null;
+      tkLifeForm = null;
+      openTicketHistory(+btn.dataset.idx);
+      renderSchedule();
     });
   });
 
@@ -4014,7 +4128,7 @@ function normalizeHeatArr(arr){
 }
 
 function buildStateSnapshot(){
-  const perfSnap = p=>({seat:p.seat, note:p.note, ticketType:p.ticketType||"", ticketFee:!!p.ticketFee, ticketDiscount:(p.ticketDiscount!=null?p.ticketDiscount:null), ticketExtra:(p.ticketExtra||0), ticketTransferred:!!p.ticketTransferred, extraTickets:(Array.isArray(p.extraTickets)?p.extraTickets:[])});
+  const perfSnap = p=>({seat:p.seat, note:p.note, ticketType:p.ticketType||"", ticketFee:!!p.ticketFee, ticketDiscount:(p.ticketDiscount!=null?p.ticketDiscount:null), ticketExtra:(p.ticketExtra||0), ticketTransferred:!!p.ticketTransferred, ticketHidden:!!p.ticketHidden, ticketHistory:(Array.isArray(p.ticketHistory)?p.ticketHistory:[]), extraTickets:(Array.isArray(p.extraTickets)?p.extraTickets:[])});
   return {
     // v2: sid 키 객체(스케줄 중간에 회차가 추가·삭제돼도 기록이 밀리지 않음), v1: 배열(인덱스 기준, 배포분 호환)
     performances: performanceData.dbVersion >= 2
@@ -4095,6 +4209,8 @@ function applyState(state){
     pp.ticketDiscount = (typeof s.ticketDiscount === "number") ? s.ticketDiscount : null;
     pp.ticketExtra = (typeof s.ticketExtra === "number" && s.ticketExtra > 0) ? s.ticketExtra : 0;
     pp.ticketTransferred = !!s.ticketTransferred;
+    pp.ticketHidden = !!s.ticketHidden;
+    pp.ticketHistory = Array.isArray(s.ticketHistory) ? s.ticketHistory.map(h=>({kind:h.kind==="transfer"?"transfer":"cancel", seat:h.seat||"", grade:h.grade||"", cost:(typeof h.cost==="number"&&h.cost>0?h.cost:0), note:h.note||""})) : [];
     pp.extraTickets = Array.isArray(s.extraTickets) ? s.extraTickets.map(t=>({seat:t.seat||"", ticketType:t.ticketType||"", ticketFee:!!t.ticketFee, ticketDiscount:(t.ticketDiscount!=null?t.ticketDiscount:null), ticketExtra:t.ticketExtra||0, ticketTransferred:!!t.ticketTransferred})) : [];
     // 불변식 보정: 맨 위 좌석이 비었는데 추가 티켓이 있으면 첫 추가 티켓을 맨 위로 승격
     if(!(pp.seat && pp.seat.trim()) && pp.extraTickets.length) setTickets(pp, pp.extraTickets);
@@ -4251,11 +4367,36 @@ function applyExtraTicketsData(map){
   });
 }
 
+// 티켓 라이프사이클(숨김·취소/양도 이력) 내보내기: sid 기준 — 요청 0064
+function buildTicketLifeExport(){
+  const result = {};
+  performanceData.performances.forEach(p=>{
+    const hist = Array.isArray(p.ticketHistory) ? p.ticketHistory : [];
+    if(p.ticketHidden || hist.length) result[p.sid] = { hidden: !!p.ticketHidden, history: hist };
+  });
+  return result;
+}
+// 가져오기: sid별 숨김·이력 복원
+function applyTicketLifeData(map){
+  if(!map || typeof map !== "object" || Array.isArray(map)) return;
+  const sidMap = {};
+  performanceData.performances.forEach(p=>{ sidMap[p.sid] = p; });
+  Object.entries(map).forEach(([sid, v])=>{
+    const perf = sidMap[sid];
+    if(!perf || !v || typeof v !== "object") return;
+    perf.ticketHidden = !!v.hidden;
+    perf.ticketHistory = Array.isArray(v.history) ? v.history.map(h=>({
+      kind:h.kind==="transfer"?"transfer":"cancel", seat:h.seat||"", grade:h.grade||"",
+      cost:(typeof h.cost==="number"&&h.cost>0?h.cost:0), note:h.note||""
+    })) : [];
+  });
+}
+
 // 데이터 내보내기 payload(파일·Dropbox 백업 공용). 전체 공연 목록은 서버에서 받으므로 제외.
 function buildExportPayload(){
   const snap = buildStateSnapshot();
   delete snap.performances;
-  return { id: APP_ID, ...snap, seats: buildSeatExportJSON(), extraTickets: buildExtraTicketsExport() };
+  return { id: APP_ID, ...snap, seats: buildSeatExportJSON(), extraTickets: buildExtraTicketsExport(), ticketLife: buildTicketLifeExport() };
 }
 
 // 가져온 state 객체 적용(파일·Dropbox 공용).
@@ -4266,6 +4407,7 @@ function applyImportedState(state, includeSettings){
   if(state.seats && typeof state.seats === "object" && !Array.isArray(state.seats)){
     applySeatJSONData(state.seats);            // 맨 위 티켓(평면 필드) 복원 — extraTickets 비움
     applyExtraTicketsData(state.extraTickets); // 다중 티켓(2번째 이후) 복원
+    applyTicketLifeData(state.ticketLife);     // 숨김·취소/양도 이력 복원(0064)
   }
   saveState();
   renderSchedule(); renderStats(); renderSeatMap(); renderComboPicker(); renderComboResults();
@@ -4373,7 +4515,7 @@ function exportSeatJSON(){
 function applySeatJSONData(data){
   if(!data || typeof data !== "object") throw new Error("올바른 형식이 아닙니다.");
 
-  performanceData.performances.forEach(p=>{ p.seat = ""; p.ticketType = ""; p.ticketFee = false; p.note = ""; p.ticketDiscount = null; p.ticketExtra = 0; p.ticketTransferred = false; p.extraTickets = []; });
+  performanceData.performances.forEach(p=>{ p.seat = ""; p.ticketType = ""; p.ticketFee = false; p.note = ""; p.ticketDiscount = null; p.ticketExtra = 0; p.ticketTransferred = false; p.extraTickets = []; p.ticketHidden = false; p.ticketHistory = []; });
 
   const sidMap = {};
   performanceData.performances.forEach(p=>{ sidMap[p.sid] = p; });
@@ -4580,6 +4722,49 @@ function tmCommit(){
   renderStats();    // 맨 위 티켓이 통계/좌석맵에 반영되므로 함께 갱신(좌석 변경·순서변경·삭제 시)
   renderSeatMap(true); // 좌석맵 줌/위치 유지
 }
+/* === 티켓 취소·양도 이력 창 — 요청 0064 ===
+   행: 좌석번호·등급 / [취소|양도 배지] / 비용 / 내용 / 삭제 */
+let thWired = false;
+function openTicketHistory(idx){
+  thIdx = idx;
+  const ov = document.getElementById("ticketHistoryOverlay");
+  ov.style.display = "flex";
+  if(!thWired){
+    thWired = true;
+    document.getElementById("thClose").addEventListener("click", closeTicketHistory);
+    ov.addEventListener("click", e=>{ if(e.target===ov) closeTicketHistory(); });
+  }
+  renderTicketHistory();
+}
+function closeTicketHistory(){
+  document.getElementById("ticketHistoryOverlay").style.display = "none";
+  thIdx = -1;
+}
+function renderTicketHistory(){
+  if(thIdx<0) return;
+  const p = performanceData.performances[thIdx];
+  document.getElementById("thTitle").textContent = perfDateLabel(p) + " · 티켓 이력";
+  const bodyEl = document.getElementById("thBody");
+  const hist = p.ticketHistory || [];
+  bodyEl.innerHTML = hist.length ? hist.map((h,hi)=>`
+    <div class="th-row">
+      <span class="th-seat">${escHtml(h.seat)}${h.grade ? ` <span class="tk-grade" style="background:${gradeFillVar(h.grade)};">${escHtml(h.grade[0])}</span>` : ""}</span>
+      <span class="th-kind ${h.kind==='transfer'?'th-transfer':'th-cancel'}">${h.kind==='transfer' ? '양도' : '취소'}</span>
+      <span class="th-cost">${h.cost ? formatKRW(h.cost) : '—'}</span>
+      <span class="th-note" title="${escHtml(h.note||'')}">${escHtml(h.note||'')}</span>
+      <button class="th-del" data-hi="${hi}" title="이 기록 삭제">삭제</button>
+    </div>
+  `).join("") : `<p style="color:var(--ink-dim); font-size:13px; margin:0;">기록이 없습니다.</p>`;
+  bodyEl.querySelectorAll(".th-del").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      p.ticketHistory.splice(+btn.dataset.hi, 1);
+      renderTicketHistory();
+      renderSchedule(); // 이력 수가 티켓 셀 칩·팝오버 버튼에 반영됨
+      saveState();
+    });
+  });
+}
+
 function openTicketManager(idx){
   tmIdx = idx; tmEditTi = -1;
   const p = performanceData.performances[idx];
@@ -4829,6 +5014,7 @@ document.addEventListener("click", e=>{
   }
   if(ticketPopoverIdx!==null && !e.target.closest(".ticket-cell")){
     ticketPopoverIdx = null;
+    tkLifeForm = null;
     renderSchedule();
   }
 });
@@ -4911,6 +5097,7 @@ document.getElementById("deleteSeatDataBtn").addEventListener("click", ()=>{
   performanceData.performances.forEach(p=>{
     p.seat = ""; p.ticketType = ""; p.ticketFee = false; p.ticketDiscount = null; p.ticketExtra = 0; p.note = "";
     p.ticketTransferred = false; p.extraTickets = []; // 다중 티켓·양도 정보도 함께 삭제(안 지우면 재로드 시 추가 티켓이 맨 위로 승격됨)
+    p.ticketHidden = false; p.ticketHistory = [];     // 숨김·취소/양도 이력도 함께 삭제(0064)
   });
   saveState();
   location.reload();
