@@ -678,9 +678,10 @@ function renderSchedule(){
   const leadRole = lastShowLeadActive() ? lastShowLeadValidRole() : null;
   const pairRoles = effectivePairRoles();       // 주역 페어막이 켜져 있으면 주역 제외(0058)
   const pairActive = pairRoles.length>0;
+  // 주역 페어막이 켜져 있으면 주역 컬럼은 숨김 무시(강제 표시) — 페어 선택 배역과 같은 잠금
   const visibleRoles = pairActive
-    ? [...pairRoles, ...allRoles.filter(r=>!pairRoles.includes(r) && !scheduleHiddenCols.has(r))]
-    : allRoles.filter(r=>!scheduleHiddenCols.has(r));
+    ? [...pairRoles, ...allRoles.filter(r=>!pairRoles.includes(r) && (r===leadRole || !scheduleHiddenCols.has(r)))]
+    : allRoles.filter(r=>r===leadRole || !scheduleHiddenCols.has(r));
   const lastShowMap = lastShowRoleOn ? buildLastShowMap() : null;
   const pairLastInfo = pairActive ? buildPairLastInfo(pairRoles) : null;
   const leadPairMap = leadRole ? buildLeadPairMap(leadRole) : null;
@@ -709,7 +710,7 @@ function renderSchedule(){
 
   const hiddenBar = document.getElementById("scheduleHiddenBar");
   // 페어막 중에는 '선택 배역'만 숨김이 무시(강제 표시)되므로, 숨김 바에서 그 배역들만 제외
-  const hiddenColsShown = [...scheduleHiddenCols].filter(c=>!(pairActive && pairRoles.includes(c)));
+  const hiddenColsShown = [...scheduleHiddenCols].filter(c=>!(pairActive && pairRoles.includes(c)) && c!==leadRole);
   if(hiddenColsShown.length===0){
     hiddenBar.innerHTML = "";
   } else {
@@ -813,9 +814,10 @@ function renderSchedule(){
                   <button class="role-move-btn" data-role="${escHtml(role)}" data-dir="-1" title="왼쪽으로 이동" ${mi>0?'':'disabled'}>&#9664;</button>
                   <button class="role-move-btn" data-role="${escHtml(role)}" data-dir="1" title="오른쪽으로 이동" ${(mi>=0 && mi<movable.length-1)?'':'disabled'}>&#9654;</button>
                 </div>
+                ${role===leadRole ? "" : `
                 <div class="role-dropdown-actions" style="border-top:none; margin-top:0; padding-top:0;">
                   <button class="role-hide-btn" data-role="${role}">숨기기</button>
-                </div>`;})()}
+                </div>`}`;})()}
               </div>
             ` : ""}
           </div>
