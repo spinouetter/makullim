@@ -184,6 +184,7 @@ window.addEventListener("popstate", (e)=>{
 let scheduleRoleFilter = {}; // role -> Set(선택된 배우 이름). 비어있으면 필터 없음(전체 표시)
 let scheduleMatchFilter = {}; // 대결명 -> Set(선택된 결과값: 배역명 | "무승부" | "__unknown__"(모름))
 let scheduleHiddenCols = new Set(); // 숨긴 컬럼(배역 이름 또는 COL_TICKET/COL_PRICE)
+let scheduleRoleOrder = []; // 배역 컬럼 사용자 지정 순서(요청 0057). 빈 배열이면 casts.json 순서
 let scheduleOpenDropdownRole = null; // 현재 열려있는 드롭다운의 컬럼 키(배역 이름 또는 COL_TICKET/COL_PRICE)
 let showCastHistory = false; // 켜면 비중 0인 배우도 취소선과 함께 표시
 let memoPopoverIdx = null; // 현재 열려있는 메모 팝오버의 공연 인덱스
@@ -579,12 +580,36 @@ function setupLastShowModal(){
   });
 }
 
+// 배역 컬럼의 유효 순서: 사용자 지정 순서(scheduleRoleOrder)를 앞에, 없는 배역은 casts 순서로 뒤에.
+// 공연 데이터에 배역이 추가·삭제돼도 자연히 맞춰진다(요청 0057).
+function orderedScheduleRoles(){
+  const base = castRoleObjs().map(c=>c.role);
+  if(!Array.isArray(scheduleRoleOrder) || !scheduleRoleOrder.length) return base;
+  const custom = scheduleRoleOrder.filter(r=>base.includes(r));
+  return [...custom, ...base.filter(r=>!custom.includes(r))];
+}
+// 배역 컬럼을 좌우로 한 칸 이동(dir: -1 왼쪽 / +1 오른쪽). 보이는 컬럼 기준으로 이동하므로
+// 숨긴 컬럼은 건너뛴다. 페어막 선택 배역은 페어 순서가 우선이라 이동 대상에서 제외.
+function moveScheduleRole(role, dir){
+  const order = orderedScheduleRoles();
+  const pairRoles = lastShowPairActive() ? lastShowPairValidRoles() : [];
+  const vis = order.filter(r=>!scheduleHiddenCols.has(r) && !pairRoles.includes(r));
+  const vi = vis.indexOf(role), ti = vi + dir;
+  if(vi<0 || ti<0 || ti>=vis.length) return;
+  const target = vis[ti];
+  const arr = order.filter(r=>r!==role);
+  arr.splice(arr.indexOf(target) + (dir>0 ? 1 : 0), 0, role);
+  scheduleRoleOrder = arr;
+  renderSchedule();
+  saveState();
+}
+
 function renderSchedule(){
   const head = document.getElementById("scheduleHead");
   const body = document.getElementById("scheduleBody");
   const table = document.getElementById("scheduleTable");
   table.classList.toggle("hl-mode", rowHighlightOn);  // 방법2(날짜 셀 클릭 가능)
-  const allRoles = castRoleObjs().map(c=>c.role);
+  const allRoles = orderedScheduleRoles();
   // 페어막이 켜지면: 선택 배역이 맨 앞으로 오고(선택 순서), 숨김 무시는 "선택 배역만" —
   // 나머지 배역은 평소처럼 숨길 수 있다(요청 0051 후속).
   const pairActive = lastShowPairActive();
@@ -714,10 +739,18 @@ function renderSchedule(){
                 <div class="role-dropdown-actions">
                   <button class="role-clear-btn" data-role="${role}">모두 해제</button>
                 </div>
-                ${(pairActive && pairRoles.includes(role)) ? "" : `
+                ${(pairActive && pairRoles.includes(role)) ? "" : (()=>{
+                  // 좌우 이동(0057): 보이는(숨기지 않은, 페어 선택 아닌) 컬럼 안에서 한 칸씩
+                  const movable = visibleRoles.filter(r=>!pairRoles.includes(r));
+                  const mi = movable.indexOf(role);
+                  return `
+                <div class="role-dropdown-actions" style="border-top:none; margin-top:0; padding-top:0;">
+                  <button class="role-move-btn" data-role="${escHtml(role)}" data-dir="-1" ${mi>0?'':'disabled'}>&#9664; 왼쪽</button>
+                  <button class="role-move-btn" data-role="${escHtml(role)}" data-dir="1" ${(mi>=0 && mi<movable.length-1)?'':'disabled'}>오른쪽 &#9654;</button>
+                </div>
                 <div class="role-dropdown-actions" style="border-top:none; margin-top:0; padding-top:0;">
                   <button class="role-hide-btn" data-role="${role}">숨기기</button>
-                </div>`}
+                </div>`;})()}
               </div>
             ` : ""}
           </div>
@@ -763,6 +796,14 @@ function renderSchedule(){
       scheduleOpenDropdownRole = null;
       renderSchedule();
       saveState();
+    });
+  });
+
+  // 배역 컬럼 좌우 이동(0057) — 드롭다운은 열린 채 유지되어 연속 이동 가능
+  head.querySelectorAll(".role-move-btn").forEach(btn=>{
+    btn.addEventListener("click", e=>{
+      e.stopPropagation();
+      moveScheduleRole(btn.dataset.role, Number(btn.dataset.dir));
     });
   });
 
@@ -3759,6 +3800,7 @@ function buildStateSnapshot(){
   return {
     performances: performanceData.performances.map(p=>({seat:p.seat, note:p.note, ticketType:p.ticketType||"", ticketFee:!!p.ticketFee, ticketDiscount:(p.ticketDiscount!=null?p.ticketDiscount:null), ticketExtra:(p.ticketExtra||0), ticketTransferred:!!p.ticketTransferred, extraTickets:(Array.isArray(p.extraTickets)?p.extraTickets:[])})),
     scheduleHiddenCols: [...scheduleHiddenCols],
+    scheduleRoleOrder: [...scheduleRoleOrder],
     scheduleRoleFilter: Object.fromEntries(
       Object.entries(scheduleRoleFilter).map(([k,v])=>[k, [...v]])
     ),
@@ -3840,6 +3882,7 @@ function applyState(state){
 
   // 구버전 호환: scheduleHiddenRoles로 저장됐던 데이터도 그대로 복원
   scheduleHiddenCols = new Set(state.scheduleHiddenCols || state.scheduleHiddenRoles || []);
+  scheduleRoleOrder = Array.isArray(state.scheduleRoleOrder) ? state.scheduleRoleOrder.slice() : [];
 
   scheduleRoleFilter = {};
   if(state.scheduleRoleFilter){
