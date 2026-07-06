@@ -126,8 +126,11 @@ async function loadData(){
   performanceData.matches = Array.isArray(matchesRaw) ? matchesRaw : [];       // 대결(승부) 정의 — 결과는 schedule에
   performanceData.resellers = Array.isArray(resellersRaw) ? resellersRaw : []; // 좌석별 예매처(리셀러)
   SEAT_BBOX = computeSeatBBox();
+  const seenSids = new Set(); // sid 중복은 데이터 오류 — 좌석 가져오기·티켓 적용이 꼬이므로 경고
   performanceData.performances.forEach((p,i)=>{
-    p.sid = "s"+(i+1);        // 공연 숨겨진 ID (시간순)
+    if(!p.sid) p.sid = "s"+(i+1); // 공연 ID: schedule.json의 명시 sid 우선, 없으면 순번(시간순)
+    if(seenSids.has(p.sid)) console.warn("schedule.json sid 중복:", p.sid);
+    seenSids.add(p.sid);
     if(p.ticketType == null) p.ticketType = ""; // 티켓 종류(정가/할인). 빈 문자열 = 미선택
     if(p.ticketFee == null) p.ticketFee = false; // 수수료 포함 여부
     if(p.ticketDiscount == null) p.ticketDiscount = null; // 임의 할인권 할인율(없으면 null)
