@@ -619,23 +619,41 @@
     display:flex; flex-direction:column;
     max-height: calc(var(--app-height, 100vh) - 180px);
   }
+  /* 제목: 등급칩 + 라벨 + 예매처(오른쪽) — 0066 */
   .ticket-popover-title{
-    font-size:11px; color:var(--ink-dim); margin-bottom:6px;
-    text-transform:uppercase; letter-spacing:0.4px;
+    display:flex; align-items:center; gap:7px; margin-bottom:6px;
   }
-  /* 옵션 목록: 내용만큼 늘되 화면(가시영역)의 1/3을 넘지 않음(넘으면 스크롤). 일반 화면에선 5개 이상 보임. */
-  .ticket-options{display:flex; flex-direction:column; gap:1px; flex:1 1 auto; min-height:0; max-height:calc(var(--app-height, 100vh) / 3); overflow-y:auto;}
+  .tk-title-grade{
+    font-size:10px; font-weight:800; color:var(--bg);
+    border-radius:5px; padding:1px 6px; line-height:1.5; flex-shrink:0;
+  }
+  .tk-title-label{font-size:12px; font-weight:700; color:var(--ink);}
+  .tk-title-reseller{margin-left:auto; font-size:10.5px; color:var(--ink-dim);}
+  /* 옵션 목록: 4.5장만 보이고 넘으면 스크롤(더 있음을 알리고 모바일에서 컨트롤과 겹치지 않게) — 0066 */
+  .ticket-options{display:flex; flex-direction:column; gap:1px; flex:0 1 auto; min-height:0; max-height:min(108px, calc(var(--app-height, 100vh) / 3)); overflow-y:auto;}
   .ticket-option{
     display:flex; align-items:center; gap:8px;
-    padding:3px 6px; border-radius:6px; cursor:pointer; font-size:12px;
+    padding:2px 7px; border-radius:6px; cursor:pointer; font-size:12px;
+    border:1px solid transparent;
   }
   .ticket-option:hover{background:rgba(255,255,255,0.04);}
-  .ticket-option input{margin:0; cursor:pointer;}
+  .ticket-option.sel{background:color-mix(in srgb, var(--gold) 14%, transparent); border-color:var(--gold-dim);}
+  .ticket-option input{margin:0; cursor:pointer; accent-color:var(--gold);}
   .ticket-option .to-name{font-weight:700; color:var(--ink);}
   .ticket-option .to-disc{font-size:11px; color:var(--gold);}
   .ticket-option .to-price{margin-left:auto; font-variant-numeric:tabular-nums; color:var(--ink-dim); white-space:nowrap;}
+  /* 가격 구성 요약 — 0066 */
+  .tk-cost{
+    margin:6px 0 2px; padding:8px 10px; border-radius:6px; background:var(--panel);
+    display:flex; flex-direction:column; gap:4px; font-size:12px;
+  }
+  .tk-cost-row{display:flex; justify-content:space-between; align-items:center; color:var(--ink-dim);}
+  .tk-cost-row .v{font-variant-numeric:tabular-nums; color:var(--ink);}
+  .tk-cost-row .v.minus{color:#5fb08a;}
+  .tk-cost-row.total{border-top:1px dashed var(--line); margin-top:1px; padding-top:6px; color:var(--ink); font-weight:700;}
+  .tk-cost-row.total .v{color:var(--gold); font-size:13.5px;}
   /* 직접 입력(임의 할인권) 행 */
-  .ticket-option.ticket-custom{ border-top:1px solid var(--line); margin-top:3px; padding-top:5px; }
+  .ticket-option.ticket-custom{ border-top:1px solid var(--line); margin-top:2px; padding-top:3px; }
   .ticket-option .tk-custom-name{ flex:none; width:110px; padding:2px 6px; font-size:12px; } /* 한글 8자 폭 */
   .ticket-option .tk-custom-rate{ width:50px; padding:2px 6px; font-size:12px; margin-left:auto; }
   .ticket-option .tk-pct{ color:var(--ink-dim); font-size:12px; }
@@ -648,11 +666,20 @@
   .tk-fee-label{display:inline-flex; align-items:center; gap:6px; cursor:pointer;}
   .ticket-fee-row input[type=checkbox]{margin:0; cursor:pointer;}
   .tk-extra-group{display:inline-flex; align-items:center; gap:4px; white-space:nowrap;}
-  .tk-extra-group input{width:72px; padding:4px 6px; font-size:12px;}
+  .tk-extra-group input{width:84px; padding:4px 6px; font-size:12px; text-align:right;}
+  .tk-extra-group input::placeholder{color:var(--ink-dim); text-align:right;}
   .ticket-popover-actions{display:flex; gap:6px; margin-top:8px;}
-  .ticket-popover-actions button{font-size:11px; padding:5px 8px; flex:1;}
+  .ticket-popover-actions button{font-size:11px; padding:5px 8px; flex:1; cursor:pointer; background:var(--panel); border:1px solid var(--line); color:var(--ink); border-radius:6px; font-family:inherit;}
+  .ticket-popover-actions button:hover{border-color:var(--gold-dim);}
+  /* 주요 액션 위계(0066): 저장=골드 채움, 삭제=위험, 닫기=조용 */
+  .tk-main-actions .tk-save{background:var(--gold); border-color:var(--gold); color:var(--bg); font-weight:700;}
+  .tk-main-actions .tk-save:hover{filter:brightness(1.06);}
+  .tk-main-actions .tk-clear{flex:0 0 auto; padding:5px 12px; background:none; border-color:#a85a44; color:#e08a73;}
+  /* 티켓 관리 그룹 라벨 — 0066 */
+  .tk-life-wrap{border-top:1px solid var(--line); margin-top:8px; padding-top:8px;}
+  .tk-life-cap{font-size:10px; letter-spacing:.12em; text-transform:uppercase; color:var(--ink-dim); font-weight:700; margin-bottom:6px;}
   /* 티켓 라이프사이클(숨김/취소/양도/이력) — 요청 0064 */
-  .tk-life-row{border-top:1px solid var(--line); padding-top:8px;}
+  .tk-life-row{margin-top:0;}
   .tk-life-row button{white-space:nowrap; padding:5px 4px;}
   .tk-life-row button:disabled{opacity:0.45; cursor:default;}
   .tk-hist-count{
@@ -914,6 +941,7 @@
   .floor-toggle-btn:disabled{ opacity:0.4; cursor:default; }
   /* 스케줄 컬럼 표시 토글(설정) — 공통 토글 버튼을 줄바꿈 배치 */
   .col-toggle-group{ display:flex; flex-wrap:wrap; gap:8px; }
+  .col-toggle-sub{ font-size:11px; color:var(--ink-dim); font-weight:700; margin:12px 0 7px; letter-spacing:0.04em; }
   /* 스케줄 옵션 버튼: 모바일에서 잘리지 않도록 작게 */
   #page-schedule .floor-toggle-bar .floor-toggle-btn{ padding:3px 8px; font-size:11px; }
   #page-schedule .hidden-roles-bar select,

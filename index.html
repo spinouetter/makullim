@@ -10,7 +10,7 @@
 <!-- __SHOW__ --><!-- 배포 시 GitHub Action이 slug 스텁(<slug>/index.html)을 만들며 위 마커를
      <script>window.MAKULLIM_SHOW_ID="<id>";window.MAKULLIM_BUILD="<커밋SHA>";</script> 로 치환한다.
      루트는 빌드 버전만 주입. BUILD는 데이터(JSON) 요청의 캐시 버스터(?v=) — 로컬 개발(미주입)은 no-store로 항상 최신. -->
-<link rel="stylesheet" href="/css/styles.css?v=110">
+<link rel="stylesheet" href="/css/styles.css?v=113">
 </head>
 <body>
 
@@ -240,6 +240,8 @@
         <button type="button" class="floor-toggle-btn" id="optExtraCost">기타 비용</button>
         <button type="button" class="floor-toggle-btn col-toggle" data-col="__memo__">메모</button>
       </div>
+      <div class="col-toggle-sub">배역</div>
+      <div class="col-toggle-group" id="roleColToggles"></div>
     </div>
     <div class="stat-section">
       <h2>기능 표시</h2>
@@ -435,7 +437,7 @@
 </div>
 
 <script src="/js/config.js?v=2"></script>
-<script src="/js/app.js?v=161"></script>
+<script src="/js/app.js?v=167"></script>
 <script src="/js/dropbox.js?v=6"></script>
 <script src="/js/finale.js?v=45"></script>
 </body>
