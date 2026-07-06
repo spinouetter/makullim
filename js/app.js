@@ -1010,9 +1010,9 @@ function renderSchedule(){
     if(showNum){
       const msCls = n=> n%100===0 ? " m100" : (n%50===0 ? " m50" : (n%10===0 ? " m10" : ""));
       const pn = perfNoMap.get(idx), sn = seatNoMap.get(idx);
+      // 자번이 없어도 빈 칸을 렌더해 두 숫자의 자리(고정 폭 2단)를 유지 — 행마다 정렬이 흔들리지 않게
       numCell = `<td class="num-cell">`
-        + (pn ? `<span class="perf-no${msCls(pn)}">${pn}</span>` : "")
-        + (sn ? `<span class="seat-no${msCls(sn)}">${sn}</span>` : "")
+        + (pn ? `<span class="perf-no${msCls(pn)}">${pn}</span><span class="seat-no${sn ? msCls(sn) : ''}">${sn || ""}</span>` : "")
         + `</td>`;
     }
 
