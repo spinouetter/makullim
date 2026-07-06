@@ -1028,6 +1028,7 @@ function renderSchedule(){
     const pairInfo = pairLastInfo ? pairLastInfo.get(idx) : null;
     // 주역 페어막(0058): 이 행에서 막공 페어에 참여하는 그날 주역 배우들(없으면 null).
     // 행 필터(페어막만 표시)와 주역 배우 동그라미(lead-self) 표시에 쓴다.
+    // 숨긴 배역 컬럼은 제외 — 배역을 숨겨서 보이는 막공 페어가 없으면 행도 접힌다(후속).
     let rowLeadActors = null;
     if(leadPairMap){
       const leads = castVisibleNamesOf(p.cast[leadRole]);
@@ -1035,7 +1036,7 @@ function renderSchedule(){
         const hit = new Set();
         castRoleObjs().forEach(c=>{
           const role = c.role;
-          if(role===leadRole) return;
+          if(role===leadRole || !visibleRoles.includes(role)) return;
           const lk = {}; c.actors.forEach(a=>lk[a.name]=a.role);
           castVisibleNamesOf(p.cast[role]).forEach(n=>{
             if(lk[n]!=="cast") return;
