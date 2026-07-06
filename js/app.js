@@ -192,6 +192,10 @@ let memoPopoverIdx = null; // 현재 열려있는 메모 팝오버의 공연 인
 let lastShowRoleOn = false;   // 배역별 막공: 각 배우가 그 배역에서 마지막으로 서는 회차 강조
 let lastShowPairOn = false;   // 페어막: 선택 배역 조합이 마지막으로 함께 서는 회차 강조
 let lastShowPairRoles = [];   // 페어막 배역 선택(선택 순서 유지 — 토글 on/off와 무관하게 보존)
+let lastShowLeadOn = false;   // 주역 페어막(0058): 주역 배우와의 페어가 마지막인 배우에 둥근 테두리
+let lastShowLeadRole = null;  // 주역 배역(예: 빌리 엘리엇의 빌리). 선택은 토글 off에도 유지
+let lastShowPairOnlyOn = false; // 페어막만 표시(0058): 페어막 표시가 있는 회차만 남기고 사이는 접기
+let pairOnlyExpanded = new Set(); // 접힌 구간 중 펼친 것(구간 첫 회차 인덱스 키, 저장 안 함)
 let scheduleAutoScrolled = false; // 현재 공연으로의 자동 스크롤을 한 번만 수행
 let ticketPopoverIdx = null; // 현재 열려있는 티켓 선택 팝오버의 공연 인덱스
 let tmIdx = -1;              // 티켓 관리 모달의 공연 인덱스
@@ -425,6 +429,24 @@ function buildLastShowMap(){
      · 일부만 막공이면 조합별로 배우마다 점선 상자 + 같은 조합끼리 점선 연결선("combos")
        — (A,D)·(B,C)처럼 교차하는 조합도 각각 따로 묶인다. 연결선은 SVG 오버레이
        (drawPairComboOverlay)가 렌더 후 실제 위치를 재서 그린다. */
+/* 주역 페어막(요청 0058): 주역 배역(예: 빌리)의 배우 × 다른 배역 배우 — 개별 페어가
+   마지막으로 함께 서는 회차를 계산한다. key "주역배우|배역|배우" -> 회차 인덱스 */
+function buildLeadPairMap(leadRole){
+  const perfs = performanceData.performances;
+  const roles = castRoleObjs().map(c=>c.role).filter(r=>r!==leadRole);
+  const map = new Map();
+  perfs.forEach((p,i)=>{
+    const leads = castVisibleNamesOf(p.cast[leadRole]);
+    if(!leads.length) return;
+    roles.forEach(role=>{
+      castVisibleNamesOf(p.cast[role]).forEach(n=>{
+        leads.forEach(l=>map.set(l+"|"+role+"|"+n, i));
+      });
+    });
+  });
+  return map;
+}
+
 function buildPairLastInfo(pairRoles){
   const perfs = performanceData.performances;
   const namesAt = perfs.map(p=>pairRoles.map(r=>castVisibleNamesOf(p.cast[r])));
@@ -523,6 +545,19 @@ function lastShowPairValidRoles(){
   return lastShowPairRoles.filter(r=>roles.includes(r));
 }
 function lastShowPairActive(){ return lastShowPairOn && lastShowPairValidRoles().length>0; }
+function lastShowLeadValidRole(){
+  const roles = castRoleObjs().map(c=>c.role);
+  return (lastShowLeadRole && roles.includes(lastShowLeadRole)) ? lastShowLeadRole : null;
+}
+function lastShowLeadActive(){ return lastShowLeadOn && !!lastShowLeadValidRole(); }
+// 화면에 적용되는 페어막 배역: 주역 페어막이 함께 켜져 있으면 주역을 제외한
+// 나머지 배역만 하나로 묶는다(요청 0058).
+function effectivePairRoles(){
+  if(!lastShowPairActive()) return [];
+  let rs = lastShowPairValidRoles();
+  if(lastShowLeadActive()) rs = rs.filter(r=>r!==lastShowLeadValidRole());
+  return rs;
+}
 
 // 막공 설정 오버레이(시트맵 필터와 같은 방식). 토글·배역 선택은 즉시 반영·저장.
 // 페어막 배역 선택 순서(chip 번호)는 '배역 통계 추가'와 같은 클릭 순서 방식이며,
@@ -530,11 +565,31 @@ function lastShowPairActive(){ return lastShowPairOn && lastShowPairValidRoles()
 function renderLastShowModalBody(){
   const roleToggle = document.getElementById("lastShowRoleToggle");
   const pairToggle = document.getElementById("lastShowPairToggle");
+  const leadToggle = document.getElementById("lastShowLeadToggle");
+  const pairOnlyToggle = document.getElementById("lastShowPairOnlyToggle");
   if(roleToggle) roleToggle.checked = lastShowRoleOn;
   if(pairToggle) pairToggle.checked = lastShowPairOn;
+  if(leadToggle) leadToggle.checked = lastShowLeadOn;
+  if(pairOnlyToggle) pairOnlyToggle.checked = lastShowPairOnlyOn;
+  const roles = castRoleObjs().map(c=>c.role);
+  // 주역 페어막(0058): 주역 배역 하나만 선택(다시 누르면 해제)
+  const leadPicker = document.getElementById("lastShowLeadPicker");
+  if(leadPicker){
+    leadPicker.innerHTML = `
+      <div class="combo-actor-chips">
+        ${roles.map(role=>`<div class="combo-chip ${lastShowLeadRole===role?'selected':''}" data-lead="${escHtml(role)}">${escHtml(role)}</div>`).join("")}
+      </div>`;
+    leadPicker.querySelectorAll(".combo-chip").forEach(chip=>{
+      chip.addEventListener("click", ()=>{
+        lastShowLeadRole = (lastShowLeadRole===chip.dataset.lead) ? null : chip.dataset.lead;
+        renderLastShowModalBody();
+        renderSchedule();
+        saveState();
+      });
+    });
+  }
   const picker = document.getElementById("lastShowPairPicker");
   if(!picker) return;
-  const roles = castRoleObjs().map(c=>c.role);
   picker.innerHTML = `
     <div class="combo-actor-chips">
       ${roles.map(role=>{
@@ -567,6 +622,8 @@ function setupLastShowModal(){
   document.getElementById("lastShowApplyBtn")?.addEventListener("click", closeLastShowModal);
   document.getElementById("lastShowResetBtn")?.addEventListener("click", ()=>{
     lastShowRoleOn = false; lastShowPairOn = false; lastShowPairRoles = [];
+    lastShowLeadOn = false; lastShowLeadRole = null;
+    lastShowPairOnlyOn = false; pairOnlyExpanded.clear();
     renderLastShowModalBody(); renderSchedule(); saveState();
   });
   document.getElementById("lastShowRoleToggle")?.addEventListener("change", e=>{
@@ -574,6 +631,12 @@ function setupLastShowModal(){
   });
   document.getElementById("lastShowPairToggle")?.addEventListener("change", e=>{
     lastShowPairOn = e.target.checked; renderSchedule(); saveState();
+  });
+  document.getElementById("lastShowLeadToggle")?.addEventListener("change", e=>{
+    lastShowLeadOn = e.target.checked; renderSchedule(); saveState();
+  });
+  document.getElementById("lastShowPairOnlyToggle")?.addEventListener("change", e=>{
+    lastShowPairOnlyOn = e.target.checked; pairOnlyExpanded.clear(); renderSchedule(); saveState();
   });
   document.getElementById("lastShowModal")?.addEventListener("click", e=>{
     if(e.target.id === "lastShowModal") closeLastShowModal();   // 바깥 클릭 닫기
@@ -592,7 +655,7 @@ function orderedScheduleRoles(){
 // 숨긴 컬럼은 건너뛴다. 페어막 선택 배역은 페어 순서가 우선이라 이동 대상에서 제외.
 function moveScheduleRole(role, dir){
   const order = orderedScheduleRoles();
-  const pairRoles = lastShowPairActive() ? lastShowPairValidRoles() : [];
+  const pairRoles = effectivePairRoles();
   const vis = order.filter(r=>!scheduleHiddenCols.has(r) && !pairRoles.includes(r));
   const vi = vis.indexOf(role), ti = vi + dir;
   if(vi<0 || ti<0 || ti>=vis.length) return;
@@ -612,13 +675,15 @@ function renderSchedule(){
   const allRoles = orderedScheduleRoles();
   // 페어막이 켜지면: 선택 배역이 맨 앞으로 오고(선택 순서), 숨김 무시는 "선택 배역만" —
   // 나머지 배역은 평소처럼 숨길 수 있다(요청 0051 후속).
-  const pairActive = lastShowPairActive();
-  const pairRoles = pairActive ? lastShowPairValidRoles() : [];
+  const leadRole = lastShowLeadActive() ? lastShowLeadValidRole() : null;
+  const pairRoles = effectivePairRoles();       // 주역 페어막이 켜져 있으면 주역 제외(0058)
+  const pairActive = pairRoles.length>0;
   const visibleRoles = pairActive
     ? [...pairRoles, ...allRoles.filter(r=>!pairRoles.includes(r) && !scheduleHiddenCols.has(r))]
     : allRoles.filter(r=>!scheduleHiddenCols.has(r));
   const lastShowMap = lastShowRoleOn ? buildLastShowMap() : null;
   const pairLastInfo = pairActive ? buildPairLastInfo(pairRoles) : null;
+  const leadPairMap = leadRole ? buildLeadPairMap(leadRole) : null;
   const showTicket = !scheduleHiddenCols.has(COL_TICKET);
   const showPrice = !scheduleHiddenCols.has(COL_PRICE);
   const visibleMatches = (performanceData.matches||[]).filter(m=>!scheduleHiddenCols.has("match:"+m.name));
@@ -633,7 +698,7 @@ function renderSchedule(){
 
   const lastShowBtn = document.getElementById("lastShowBtn");
   if(lastShowBtn){
-    lastShowBtn.classList.toggle("active", lastShowRoleOn || pairActive);
+    lastShowBtn.classList.toggle("active", lastShowRoleOn || pairActive || !!leadRole);
     lastShowBtn.onclick = openLastShowModal;
   }
 
@@ -886,7 +951,7 @@ function renderSchedule(){
   // 종료되지 않은 첫 공연 = 현재 관극 중 또는 바로 다음 공연 (시간순). 취소된 공연은 제외.
   const currentIdx = performanceData.performances.findIndex(pp=>!isEnded(pp) && !isCancelled(pp));
 
-  body.innerHTML = filteredPerfs.map(p=>{
+  const rowInfos = filteredPerfs.map(p=>{
     const idx = performanceData.performances.indexOf(p);
     const isPast = isEnded(p); // 종료(시작+러닝타임 경과)된 공연을 과거로 표시
     const cancelled = isCancelled(p);       // 취소된 공연 → 흐림 + 취소선
@@ -961,6 +1026,7 @@ function renderSchedule(){
     //  - combos: 다중 배우 행에서 일부 조합만 막공 → 조합별 배우 점선 상자+연결선
     //            (출연 순서 유지 — 표시는 drawPairComboOverlay가 그림, 여기선 표식만)
     const pairInfo = pairLastInfo ? pairLastInfo.get(idx) : null;
+    let rowLeadMark = false;   // 이 행에 주역 페어막 해당 배우가 있는지(페어막만 표시 필터용)
     const castCells = visibleRoles.map(role=>{
       let tdCls = "cast-cell";
       const inPair = !!(pairInfo && pairRoles.includes(role));
@@ -988,13 +1054,24 @@ function renderSchedule(){
         // 배역별 막공: 이 배우(캐스트만)가 이 배역으로 서는 마지막 회차면 강조(둥근 배경 사각형)
         const lastCls = (lastShowMap && it.weight>0 && lookup[n]==="cast" && lastShowMap.get(role+"|"+n)===idx) ? "last-show" : "";
         if(lastCls) hasLast = true;
+        // 주역 페어막(0058): 이 배우와 오늘 주역 배우의 페어가 마지막이면 둥근 테두리.
+        // 배역별 막공 강조가 있으면 그게 우선(배역 막공은 무조건 페어막이므로 테두리 생략).
+        let leadCls = "";
+        if(leadPairMap && role!==leadRole && it.weight>0 && lookup[n]==="cast"){
+          const leads = castVisibleNamesOf(p.cast[leadRole]);
+          if(leads.some(l=>leadPairMap.get(l+"|"+role+"|"+n)===idx)){
+            rowLeadMark = true;                  // 강조가 pill에 가려져도 '페어막 회차'로 취급
+            if(!lastCls) leadCls = " lead-pair";
+          }
+        }
+        if(leadCls) hasLast = true;
         // combos 모드: 이 배우가 속한 막공 조합 번호들을 표식으로 남김(오버레이가 상자·연결선을 그림)
         let mateAttr = "";
         if(inPair && pairInfo.mode==="combos" && it.weight>0){
           const ks = pairInfo.combos.map((t,k)=>t[rIdx]===n ? k : -1).filter(k=>k>=0);
           if(ks.length) mateAttr = ` data-pairc="${ks.join(" ")}"`;
         }
-        return `<span class="name ${baseCls} ${zeroCls} ${lastCls}${mateAttr?' pair-mate':''}"${mateAttr}>${escHtml(n)}</span>`;
+        return `<span class="name ${baseCls} ${zeroCls} ${lastCls}${leadCls}${mateAttr?' pair-mate':''}"${mateAttr}>${escHtml(n)}</span>`;
       }).join("");
       return `<td class="${tdCls}${hasLast?' has-last':''}">${namesHtml}</td>`;
     }).join("");
@@ -1005,7 +1082,7 @@ function renderSchedule(){
       ? `<td class="float-cell"><div class="float-label"${dcolor?` style="color:${dcolor}"`:''}>${floatLabelText(p)}<span class="float-tk${grade?' on':''}" aria-hidden="true">&#127903;</span></div></td>`
       : "";
 
-    return `
+    const rowHtml = `
       <tr class="${(isPast && !showFin)?'past':''} ${idx===currentIdx?'current-perf':''} ${highlightedRows.has(idx)?'row-highlight':''} ${cancelled?'perf-cancelled':''} ${reschedList.length?'perf-rescheduled':''}" data-idx="${idx}">
         ${floatCell}
         <td class="date-cell"${dcolor?` style="color:${dcolor}"`:''}><span class="date-text">${shortDateDow(p.date)}</span>${cancelled?`<span class="cancel-mark">취소</span>`:""}${reschedList.length?`<span class="resched-mark" title="${escHtml(rescheduleSummary(p))}">&#8635;</span>`:""}</td>
@@ -1054,7 +1131,38 @@ function renderSchedule(){
         ${castCells}
       </tr>
     `;
-  }).join("");
+    return { idx, keep: !!pairInfo || rowLeadMark, html: rowHtml };
+  });
+
+  // 페어막만 표시(0058): 페어막·주역 페어막 표시가 있는 회차만 남기고, 사이 구간은
+  // 위아래 두 줄 사이에 숨긴 공연 개수를 표시(클릭하면 펼치고 다시 누르면 접힘).
+  const pairOnlyMode = lastShowPairOnlyOn && (pairActive || !!leadRole);
+  if(pairOnlyMode){
+    const parts = [];
+    let i = 0;
+    while(i < rowInfos.length){
+      if(rowInfos[i].keep){ parts.push(rowInfos[i].html); i++; continue; }
+      let j = i;
+      while(j < rowInfos.length && !rowInfos[j].keep) j++;
+      const run = rowInfos.slice(i, j);
+      const key = "r" + run[0].idx;
+      const expanded = pairOnlyExpanded.has(key);
+      parts.push(`<tr class="pair-collapse" data-runkey="${key}" title="${expanded?'접기':'펼치기'}"><td colspan="99">${expanded ? `공연 ${run.length}개 접기 &#9652;` : `숨긴 공연 ${run.length}개 &#9662;`}</td></tr>`);
+      if(expanded) parts.push(...run.map(r=>r.html));
+      i = j;
+    }
+    body.innerHTML = parts.join("");
+  } else {
+    body.innerHTML = rowInfos.map(r=>r.html).join("");
+  }
+
+  body.querySelectorAll("tr.pair-collapse").forEach(tr=>{
+    tr.addEventListener("click", ()=>{
+      const k = tr.dataset.runkey;
+      if(pairOnlyExpanded.has(k)) pairOnlyExpanded.delete(k); else pairOnlyExpanded.add(k);
+      renderSchedule();
+    });
+  });
 
   drawPairComboOverlay();   // 페어막 combos 모드 상자·연결선(렌더된 위치 기준)
 
@@ -3830,6 +3938,9 @@ function buildStateSnapshot(){
     lastShowRoleOn: lastShowRoleOn,
     lastShowPairOn: lastShowPairOn,
     lastShowPairRoles: [...lastShowPairRoles],
+    lastShowLeadOn: lastShowLeadOn,
+    lastShowLeadRole: lastShowLeadRole,
+    lastShowPairOnlyOn: lastShowPairOnlyOn,
     seatShowWatched: seatShowWatched,
     seatShowBooked: seatShowBooked,
     seatMapFilterActive: seatMapFilterActive,
@@ -3935,6 +4046,9 @@ function applyState(state){
     const lsValid = castRoleObjs().map(c=>c.role);
     lastShowPairRoles = state.lastShowPairRoles.filter(r=>lsValid.includes(r));
   }
+  if(typeof state.lastShowLeadOn === "boolean") lastShowLeadOn = state.lastShowLeadOn;
+  lastShowLeadRole = (typeof state.lastShowLeadRole === "string" && state.lastShowLeadRole) ? state.lastShowLeadRole : null;
+  if(typeof state.lastShowPairOnlyOn === "boolean") lastShowPairOnlyOn = state.lastShowPairOnlyOn;
 
   if(typeof state.seatShowWatched === "boolean") seatShowWatched = state.seatShowWatched;
   if(typeof state.seatShowBooked === "boolean") seatShowBooked = state.seatShowBooked;
