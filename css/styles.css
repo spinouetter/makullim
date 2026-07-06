@@ -437,6 +437,7 @@
   .num-cell{white-space:nowrap; text-align:center; font-size:11px; font-variant-numeric:tabular-nums;}
   .num-cell .perf-no{color:var(--ink-dim); display:inline-block; min-width:3ch; text-align:right;}
   .num-cell .seat-no{color:var(--gold); display:inline-block; min-width:3ch; text-align:right; margin-left:6px;}
+  .num-cell .seat-no:first-child{margin-left:0;} /* '자번만' 모드: 한 단이면 간격 제거 */
   .num-cell .m50, .num-cell .m100{box-sizing:border-box; text-align:center;} /* 알약은 숫자 가운데 */
   .num-cell .m10{font-weight:700;}
   .num-cell .perf-no.m10{color:var(--ink);}

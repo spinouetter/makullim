@@ -196,6 +196,7 @@ window.addEventListener("popstate", (e)=>{
 let scheduleRoleFilter = {}; // role -> Set(선택된 배우 이름). 비어있으면 필터 없음(전체 표시)
 let scheduleMatchFilter = {}; // 대결명 -> Set(선택된 결과값: 배역명 | "무승부" | "__unknown__"(모름))
 let scheduleHiddenCols = new Set(); // 숨긴 컬럼(배역 이름 또는 COL_TICKET/COL_PRICE)
+let scheduleNumMode = "both";       // 순번 컬럼 표시 모드: both(연번+자번) | perf(연번만) | seat(자번만)
 let scheduleRoleOrder = []; // 배역 컬럼 사용자 지정 순서(요청 0057). 빈 배열이면 casts.json 순서
 let scheduleOpenDropdownRole = null; // 현재 열려있는 드롭다운의 컬럼 키(배역 이름 또는 COL_TICKET/COL_PRICE)
 let showCastHistory = false; // 켜면 비중 0인 배우도 취소선과 함께 표시
@@ -761,7 +762,7 @@ function renderSchedule(){
     });
   }
 
-  const colHeadHtml = (colKey, label)=>{
+  const colHeadHtml = (colKey, label, extraHtml)=>{
     const isOpen = scheduleOpenDropdownRole===colKey;
     return `
       <th class="role-head">
@@ -771,7 +772,8 @@ function renderSchedule(){
           </button>
           ${isOpen ? `
             <div class="role-dropdown">
-              <div class="role-dropdown-actions" style="border-top:none; margin-top:0; padding-top:0;">
+              ${extraHtml || ""}
+              <div class="role-dropdown-actions"${extraHtml ? "" : ' style="border-top:none; margin-top:0; padding-top:0;"'}>
                 <button class="col-hide-btn" data-col="${colKey}">숨기기</button>
               </div>
             </div>
@@ -781,10 +783,18 @@ function renderSchedule(){
     `;
   };
 
+  // 순번 컬럼 드롭다운: 표시 모드 선택(연번+자번 / 연번만 / 자번만) — 0063
+  const numModeHtml = `
+    <div class="role-dropdown-title">표시</div>
+    ${[["both","연번+자번"],["perf","연번만"],["seat","자번만"]].map(([v,l])=>`
+      <label class="role-dropdown-item"><input type="radio" name="numModeOpt" value="${v}" ${scheduleNumMode===v?'checked':''}> ${l}</label>
+    `).join("")}
+  `;
+
   head.innerHTML = `
     ${floatDateOn ? '<th class="float-cell"></th>' : ''}
     <th>날짜</th><th>시간</th>
-    ${showNum ? colHeadHtml(COL_NUM, "순번") : ""}
+    ${showNum ? colHeadHtml(COL_NUM, "순번", numModeHtml) : ""}
     ${showSeat ? colHeadHtml(COL_SEAT, "좌석") : ""}
     ${showTicket ? colHeadHtml(COL_TICKET, "티켓") : ""}
     ${showPrice ? colHeadHtml(COL_PRICE, "가격") : ""}
@@ -962,6 +972,15 @@ function renderSchedule(){
     });
   });
 
+  // 순번 표시 모드 라디오(드롭다운은 열린 채 유지 — 필터 체크박스와 동일한 UX)
+  head.querySelectorAll('input[name="numModeOpt"]').forEach(inp=>{
+    inp.addEventListener("change", ()=>{
+      scheduleNumMode = inp.value;
+      renderSchedule();
+      saveState();
+    });
+  });
+
 
   const filteredPerfs = performanceData.performances.filter(p=>{
     for(const role in scheduleRoleFilter){
@@ -1010,10 +1029,12 @@ function renderSchedule(){
     if(showNum){
       const msCls = n=> n%100===0 ? " m100" : (n%50===0 ? " m50" : (n%10===0 ? " m10" : ""));
       const pn = perfNoMap.get(idx), sn = seatNoMap.get(idx);
-      // 자번이 없어도 빈 칸을 렌더해 두 숫자의 자리(고정 폭 2단)를 유지 — 행마다 정렬이 흔들리지 않게
-      numCell = `<td class="num-cell">`
-        + (pn ? `<span class="perf-no${msCls(pn)}">${pn}</span><span class="seat-no${sn ? msCls(sn) : ''}">${sn || ""}</span>` : "")
-        + `</td>`;
+      // 자번이 없어도 빈 칸을 렌더해 두 숫자의 자리(고정 폭 2단)를 유지 — 행마다 정렬이 흔들리지 않게.
+      // 표시 모드(scheduleNumMode)에 따라 연번만/자번만 한 단으로도 표시.
+      const perfSpan = `<span class="perf-no${msCls(pn)}">${pn}</span>`;
+      const seatSpan = `<span class="seat-no${sn ? msCls(sn) : ''}">${sn || ""}</span>`;
+      const inner = !pn ? "" : (scheduleNumMode==="perf" ? perfSpan : (scheduleNumMode==="seat" ? seatSpan : perfSpan + seatSpan));
+      numCell = `<td class="num-cell">${inner}</td>`;
     }
 
     let seatCell = "";
@@ -4000,6 +4021,7 @@ function buildStateSnapshot(){
       ? Object.fromEntries(performanceData.performances.map(p=>[p.sid, perfSnap(p)]))
       : performanceData.performances.map(perfSnap),
     scheduleHiddenCols: [...scheduleHiddenCols],
+    scheduleNumMode: scheduleNumMode,
     scheduleRoleOrder: [...scheduleRoleOrder],
     scheduleRoleFilter: Object.fromEntries(
       Object.entries(scheduleRoleFilter).map(([k,v])=>[k, [...v]])
@@ -4094,6 +4116,7 @@ function applyState(state){
   // 구버전 호환: scheduleHiddenRoles로 저장됐던 데이터도 그대로 복원
   scheduleHiddenCols = new Set(state.scheduleHiddenCols || state.scheduleHiddenRoles || []);
   scheduleRoleOrder = Array.isArray(state.scheduleRoleOrder) ? state.scheduleRoleOrder.slice() : [];
+  scheduleNumMode = ["both","perf","seat"].includes(state.scheduleNumMode) ? state.scheduleNumMode : "both";
 
   scheduleRoleFilter = {};
   if(state.scheduleRoleFilter){
