@@ -651,6 +651,45 @@
   .tk-extra-group input{width:72px; padding:4px 6px; font-size:12px;}
   .ticket-popover-actions{display:flex; gap:6px; margin-top:8px;}
   .ticket-popover-actions button{font-size:11px; padding:5px 8px; flex:1;}
+  /* 티켓 라이프사이클(숨김/취소/양도/이력) — 요청 0064 */
+  .tk-life-row{border-top:1px solid var(--line); padding-top:8px;}
+  .tk-life-row button{white-space:nowrap; padding:5px 4px;}
+  .tk-life-row button:disabled{opacity:0.45; cursor:default;}
+  .tk-hist-count{
+    display:inline-block; min-width:14px; padding:0 3px; margin-left:2px;
+    font-size:10px; font-weight:700; line-height:1.5; text-align:center;
+    background:var(--gold); color:var(--bg); border-radius:8px;
+  }
+  .tk-life-form{border-top:1px solid var(--line); margin-top:8px; padding-top:8px; font-size:12px;}
+  .tk-life-form-title{font-weight:700; color:var(--gold); margin-bottom:6px;}
+  .tk-life-note{width:100%; box-sizing:border-box; padding:5px 8px; font-size:12px; margin-bottom:6px;}
+  .tk-life-cost-group{display:inline-flex; align-items:center; gap:4px; color:var(--ink-dim); white-space:nowrap;}
+  .tk-life-cost-group input{width:80px; padding:4px 6px; font-size:12px;}
+  /* 숨김 티켓: 좌석번호 취소선(자번 제외는 renderSchedule에서) */
+  .seat-input.tk-hidden-seat{text-decoration:line-through; color:var(--ink-dim);}
+  /* 이력만 남은 회차의 티켓 셀 칩 */
+  .tk-hist-chip{
+    font-size:11px; padding:3px 8px; white-space:nowrap;
+    color:var(--ink-dim); border:1px solid var(--line); border-radius:10px;
+    background:none; cursor:pointer;
+  }
+  .tk-hist-chip:hover{color:var(--gold); border-color:var(--gold);}
+  /* 이력 창 행: 좌석·등급 / 배지 / 비용 / 내용 / 삭제 */
+  .th-row{
+    display:flex; align-items:center; gap:10px;
+    padding:7px 2px; border-bottom:1px solid var(--line); font-size:12px;
+  }
+  .th-row:last-child{border-bottom:none;}
+  .th-seat{display:inline-flex; align-items:center; gap:5px; min-width:96px; font-weight:600; white-space:nowrap;}
+  .th-kind{
+    flex-shrink:0; padding:0 5px; font-size:10px; font-weight:700; line-height:1.6;
+    border-radius:4px; border:1px solid currentColor;
+  }
+  .th-cancel{color:#e0594a;}
+  .th-transfer{color:#5b8fd6;}
+  .th-cost{min-width:70px; text-align:right; color:var(--gold); font-variant-numeric:tabular-nums; white-space:nowrap;}
+  .th-note{flex:1; color:var(--ink-dim); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .th-del{font-size:11px; padding:3px 8px; flex-shrink:0; border-color:#a85a44; color:#e08a73;}
   .price-cell{
     white-space:nowrap; text-align:right;
     font-variant-numeric:tabular-nums;
