@@ -1026,7 +1026,25 @@ function renderSchedule(){
     //  - combos: 다중 배우 행에서 일부 조합만 막공 → 조합별 배우 점선 상자+연결선
     //            (출연 순서 유지 — 표시는 drawPairComboOverlay가 그림, 여기선 표식만)
     const pairInfo = pairLastInfo ? pairLastInfo.get(idx) : null;
-    let rowLeadMark = false;   // 이 행에 주역 페어막 해당 배우가 있는지(페어막만 표시 필터용)
+    // 주역 페어막(0058): 이 행에서 막공 페어에 참여하는 그날 주역 배우들(없으면 null).
+    // 행 필터(페어막만 표시)와 주역 배우 동그라미(lead-self) 표시에 쓴다.
+    let rowLeadActors = null;
+    if(leadPairMap){
+      const leads = castVisibleNamesOf(p.cast[leadRole]);
+      if(leads.length){
+        const hit = new Set();
+        castRoleObjs().forEach(c=>{
+          const role = c.role;
+          if(role===leadRole) return;
+          const lk = {}; c.actors.forEach(a=>lk[a.name]=a.role);
+          castVisibleNamesOf(p.cast[role]).forEach(n=>{
+            if(lk[n]!=="cast") return;
+            leads.forEach(l=>{ if(leadPairMap.get(l+"|"+role+"|"+n)===idx) hit.add(l); });
+          });
+        });
+        if(hit.size) rowLeadActors = hit;
+      }
+    }
     const castCells = visibleRoles.map(role=>{
       let tdCls = "cast-cell";
       const inPair = !!(pairInfo && pairRoles.includes(role));
@@ -1057,12 +1075,13 @@ function renderSchedule(){
         // 주역 페어막(0058): 이 배우와 오늘 주역 배우의 페어가 마지막이면 둥근 테두리.
         // 배역별 막공 강조가 있으면 그게 우선(배역 막공은 무조건 페어막이므로 테두리 생략).
         let leadCls = "";
-        if(leadPairMap && role!==leadRole && it.weight>0 && lookup[n]==="cast"){
+        if(leadPairMap && role!==leadRole && !lastCls && it.weight>0 && lookup[n]==="cast"){
           const leads = castVisibleNamesOf(p.cast[leadRole]);
-          if(leads.some(l=>leadPairMap.get(l+"|"+role+"|"+n)===idx)){
-            rowLeadMark = true;                  // 강조가 pill에 가려져도 '페어막 회차'로 취급
-            if(!lastCls) leadCls = " lead-pair";
-          }
+          if(leads.some(l=>leadPairMap.get(l+"|"+role+"|"+n)===idx)) leadCls = " lead-pair";
+        }
+        // 주역 배우 자신: 이 행에 막공 페어가 있으면 약간 더 두꺼운 동그라미(lead-self)
+        if(rowLeadActors && role===leadRole && !lastCls && it.weight>0 && lookup[n]==="cast" && rowLeadActors.has(n)){
+          leadCls = " lead-self";
         }
         if(leadCls) hasLast = true;
         // combos 모드: 이 배우가 속한 막공 조합 번호들을 표식으로 남김(오버레이가 상자·연결선을 그림)
@@ -1131,7 +1150,7 @@ function renderSchedule(){
         ${castCells}
       </tr>
     `;
-    return { idx, keep: !!pairInfo || rowLeadMark, html: rowHtml };
+    return { idx, keep: !!pairInfo || !!rowLeadActors, html: rowHtml };
   });
 
   // 페어막만 표시(0058): 페어막·주역 페어막 표시가 있는 회차만 남기고, 사이 구간은
