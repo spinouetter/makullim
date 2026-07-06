@@ -433,7 +433,7 @@
     vertical-align:middle; cursor:help; text-decoration:none;
   }
   /* 공연 번호(0063): 연번(취소 제외 회차)·자번(좌석 등록 순번). 10/50/100의 배수는 단계 강조 */
-  .num-cell{white-space:nowrap; text-align:right; font-size:11px; font-variant-numeric:tabular-nums;}
+  .num-cell{white-space:nowrap; text-align:center; font-size:11px; font-variant-numeric:tabular-nums;}
   .num-cell .perf-no{color:var(--ink-dim);}
   .num-cell .seat-no{color:var(--gold); margin-left:6px;}
   .num-cell .seat-no::before{content:"·"; margin-right:2px; color:var(--ink-dim);}

@@ -229,7 +229,7 @@ const COL_SEAT = "__seat__";
 const COL_TICKET = "__ticket__";
 const COL_PRICE = "__price__";
 const COL_MEMO = "__memo__";
-const COL_LABELS = { [COL_NUM]:"번호", [COL_SEAT]:"좌석", [COL_TICKET]:"티켓", [COL_PRICE]:"가격", [COL_MEMO]:"메모" };
+const COL_LABELS = { [COL_NUM]:"횟수", [COL_SEAT]:"좌석", [COL_TICKET]:"티켓", [COL_PRICE]:"가격", [COL_MEMO]:"메모" };
 const TICKET_FEE = 2000; // 선택 시 더해지는 수수료(원)
 function colLabel(id){ return COL_LABELS[id] || (id.indexOf("match:")===0 ? id.slice(6) : id); }
 // 캐스팅 대상(actors 보유) 역할만 — 스케줄/통계/좌석맵 컬럼용. group 참조전용(앙상블 등)은 제외.
@@ -784,7 +784,7 @@ function renderSchedule(){
   head.innerHTML = `
     ${floatDateOn ? '<th class="float-cell"></th>' : ''}
     <th>날짜</th><th>시간</th>
-    ${showNum ? colHeadHtml(COL_NUM, "번호") : ""}
+    ${showNum ? colHeadHtml(COL_NUM, "횟수") : ""}
     ${showSeat ? colHeadHtml(COL_SEAT, "좌석") : ""}
     ${showTicket ? colHeadHtml(COL_TICKET, "티켓") : ""}
     ${showPrice ? colHeadHtml(COL_PRICE, "가격") : ""}
