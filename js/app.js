@@ -22,7 +22,7 @@ function computeSeatBBox(){
    데이터는 shows/<id>/ 폴더 단위로 분리되고, 공연 정의는 shows/<id>.json(slug 포함),
    레지스트리는 shows/index.json({ default, shows:[id…] })이다.
    접속 경로:
-   - /<slug>/ : 배포 시 GitHub Action이 만든 스텁이 window.MAKOLLIM_SHOW_ID를 주입 → 그 공연 로드
+   - /<slug>/ : 배포 시 GitHub Action이 만든 스텁이 window.MAKULLIM_SHOW_ID를 주입 → 그 공연 로드
    - /        : default 공연 — 배포 도메인이면 그 공연의 /<slug>/ 로 리다이렉트,
                 로컬 개발(localhost 등, 스텁 없음)이면 리다이렉트 없이 그대로 렌더
    - ?show=<id|slug> : 로컬 개발에서 다른 공연 선택용
@@ -34,10 +34,10 @@ window.showUrl = showUrl;   // finale.js 등에서 사용
 
 /* 데이터(JSON) URL에 배포 빌드 버전을 붙인다 — js?v=NN과 같은 캐시 버스팅.
    데이터 파일은 커밋 시점에 확정되므로, 배포 시 Action이 주입하는 커밋 버전
-   (window.MAKOLLIM_BUILD) 하나면 충분하다. 배포가 새로 되면 URL이 바뀌어 항상 최신,
+   (window.MAKULLIM_BUILD) 하나면 충분하다. 배포가 새로 되면 URL이 바뀌어 항상 최신,
    같은 배포 안에서는 브라우저 캐시가 그대로 쓰인다. 로컬 개발(미주입)은 원경로 유지. */
 function dataUrl(p){
-  const v = window.MAKOLLIM_BUILD;
+  const v = window.MAKULLIM_BUILD;
   return v ? p + (p.includes("?") ? "&" : "?") + "v=" + encodeURIComponent(v) : p;
 }
 window.dataUrl = dataUrl;   // finale.js 등에서 재사용 가능
@@ -60,7 +60,7 @@ const EQUIDIST_MODE = (()=>{
 })();
 const EQUIDIST_TOL = 0.7; // 같은 거리로 볼 허용 오차(깊이 보정 후 좌표 단위 ≈ 좌석 폭 0.7배)
 async function resolveShowMeta(j){
-  if(window.MAKOLLIM_SHOW_ID) return j("/shows/" + window.MAKOLLIM_SHOW_ID + ".json");
+  if(window.MAKULLIM_SHOW_ID) return j("/shows/" + window.MAKULLIM_SHOW_ID + ".json");
   const idx = await j("/shows/index.json");
   const ids = Array.isArray(idx.shows) ? idx.shows : [];
   const param = new URLSearchParams(location.search).get("show");
@@ -90,7 +90,7 @@ async function loadData(){
   const j = async (path)=>{
     // 배포본(빌드 버전 주입): ?v=<빌드>가 붙은 URL이라 브라우저 캐시를 그대로 활용한다.
     // 로컬 개발(미주입): cache:"no-store"로 항상 최신을 받아온다(브라우저 캐시 무시).
-    const res = await fetch(dataUrl(path), window.MAKOLLIM_BUILD ? undefined : { cache: "no-store" });
+    const res = await fetch(dataUrl(path), window.MAKULLIM_BUILD ? undefined : { cache: "no-store" });
     if(!res.ok) throw new Error(path + " 로드 실패 (" + res.status + ")");
     return res.json();
   };
@@ -98,7 +98,7 @@ async function loadData(){
   const meta = await resolveShowMeta(j);
   SHOW_BASE = "/shows/" + meta.id + "/";
   currentShowId = meta.id;
-  setupStorageNamespace(meta.id); // 막올림별 localStorage 네임스페이스 설정
+  setupStorageNamespace(meta.id); // 막울림별 localStorage 네임스페이스 설정
   const theatrePath = meta.theatre || "/theatres/default.json";
   // 데이터 파일은 전부 한 번에 병렬로 받는다(요청 워터폴 단축 — 요청 0042).
   // holidays(공용)·matches·resellers는 없어도 동작하도록 비-치명적으로 로드.
@@ -3609,7 +3609,7 @@ document.getElementById("comboCreateBtn").addEventListener("click", ()=>{
 /* =========================================================
    PERSISTENCE (localStorage)
    ========================================================= */
-// 한 도메인에서 여러 막올림(공연)을 구분: meta.json의 id로 localStorage 네임스페이스
+// 한 도메인에서 여러 막울림(공연)을 구분: meta.json의 id로 localStorage 네임스페이스
 let APP_ID = "default";
 let STORAGE_KEY = "makollim:state:v1:" + APP_ID;
 // id는 영소문자·숫자·_·- 만 허용
@@ -4180,7 +4180,7 @@ function applyImportedState(state, includeSettings){
 }
 
 function exportStateToFile(){
-  downloadJSON(buildExportPayload(), `makollim-settings-seats-${kstStamp()}.json`);
+  downloadJSON(buildExportPayload(), `makullim-settings-seats-${kstStamp()}.json`);
 }
 
 function importStateFromFile(file){
@@ -4188,9 +4188,9 @@ function importStateFromFile(file){
   reader.onload = ()=>{
     try{
       const state = JSON.parse(reader.result);
-      // 다른 막올림(id)의 설정이면 확인 후 진행
+      // 다른 막울림(id)의 설정이면 확인 후 진행
       if(state && state.id && state.id !== APP_ID){
-        if(!confirm(`다른 막올림의 설정 파일입니다.\n파일 id: ${state.id}\n현재 막올림: ${APP_ID}\n그래도 현재 막올림에 불러올까요?`)) return;
+        if(!confirm(`다른 막울림의 설정 파일입니다.\n파일 id: ${state.id}\n현재 막울림: ${APP_ID}\n그래도 현재 막울림에 불러올까요?`)) return;
       }
       applyImportedState(state, true); // 파일 가져오기는 설정까지 전체 적용
       alert("설정과 좌석을 불러왔습니다.");
@@ -4272,7 +4272,7 @@ function buildSeatOnlyJSON(){
 }
 
 function exportSeatJSON(){
-  downloadJSON(buildSeatOnlyJSON(), `makollim-seats-${kstStamp()}.json`);
+  downloadJSON(buildSeatOnlyJSON(), `makullim-seats-${kstStamp()}.json`);
 }
 
 // 가져올 때는 항상 기존 좌석/티켓/메모를 모두 지운 뒤 새로 채운다.
@@ -4741,7 +4741,7 @@ document.addEventListener("click", e=>{
   }
 });
 
-// 헤더 제목("막올림 · <공연 제목>")이 길면(특히 모바일) 두 줄로 줄바꿈된다.
+// 헤더 제목("막울림 · <공연 제목>")이 길면(특히 모바일) 두 줄로 줄바꿈된다.
 // 한 줄에 들어갈 때까지 글자 크기를 자동으로 줄여(fit-to-width) 한 줄로 맞춘다.
 // 공연마다 제목 길이가 다르므로 폭을 실측해 조절한다(하드코딩 없음).
 function fitHeaderTitle(){
@@ -4853,7 +4853,7 @@ async function setupShowSwitcher(){
   const sel = document.getElementById("showSelect");
   const section = document.getElementById("showSwitchSection");
   if(!sel || !section) return;
-  const j = async (path)=>{ const r = await fetch(dataUrl(path), window.MAKOLLIM_BUILD ? undefined : { cache:"no-store" }); if(!r.ok) throw new Error(path); return r.json(); };
+  const j = async (path)=>{ const r = await fetch(dataUrl(path), window.MAKULLIM_BUILD ? undefined : { cache:"no-store" }); if(!r.ok) throw new Error(path); return r.json(); };
   let shows = [];
   try{
     const idx = await j("/shows/index.json");
@@ -5016,8 +5016,8 @@ async function init(){
 
   roleStatsOrder = castRoleObjs().map(c=>c.role);
 
-  // 타이틀: "막올림 · {공연 제목}" (헤더 H1 + 브라우저 탭)
-  const fullTitle = ("막올림 · " + (performanceData.title || "").trim()).trim();
+  // 타이틀: "막울림 · {공연 제목}" (헤더 H1 + 브라우저 탭)
+  const fullTitle = ("막울림 · " + (performanceData.title || "").trim()).trim();
   const titleEl = document.getElementById("appTitle");
   if(titleEl) titleEl.textContent = fullTitle;
   document.title = fullTitle;

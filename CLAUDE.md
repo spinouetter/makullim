@@ -1,7 +1,7 @@
-# CLAUDE.md — 막올림(makollim) 작업 가이드
+# CLAUDE.md — 막울림(makullim) 작업 가이드
 
 ## 프로젝트
-- **막올림(makollim)** = 뮤지컬 관극 트래커. **바닐라 JS/HTML/CSS 정적 웹앱**(빌드 프레임워크 없음), **GitHub Pages** 배포(커스텀 도메인 `makollim.com`).
+- **막울림(makullim)** = 뮤지컬 관극 트래커. **바닐라 JS/HTML/CSS 정적 웹앱**(빌드 프레임워크 없음), **GitHub Pages** 배포(커스텀 도메인 `makollim.com`).
 - 데이터는 **로컬 저장소 파일 + 브라우저 localStorage**(관극 기록·설정)만 사용. 서버 없음. Dropbox 백업은 선택 기능.
 - 화면: **Schedule / Statistics / Seat map / Finale / Settings** 탭.
 
@@ -49,7 +49,7 @@ requests/  HISTORY.md  README.md  KNOWN_ISSUES.md
 ## 멀티 공연 규칙 (요청 0038)
 - 공연은 `shows/<id>/`에 데이터, `shows/<id>.json`에 정의(+`slug`). 목록·기본값은 `shows/index.json`.
 - 접속 경로 `/<slug>/` = 그 공연. 루트 `/`는 기본 공연으로 리다이렉트(로컬 제외). `?show=<id>`도 지원.
-- 배포 시 Action이 `index.html`을 복사하며 `<!-- __SHOW__ -->` 마커를 `window.MAKOLLIM_SHOW_ID="<id>"`로 치환해 슬러그 스텁을 만든다(저장소엔 커밋 안 함).
+- 배포 시 Action이 `index.html`을 복사하며 `<!-- __SHOW__ -->` 마커를 `window.MAKULLIM_SHOW_ID="<id>"`로 치환해 슬러그 스텁을 만든다(저장소엔 커밋 안 함).
 - **경로 규칙**: 공연별 자원은 **공연 폴더 상대 경로**, 공유 자원은 **루트 절대 경로**(`/css`, `/js`…)로 참조.
 - **공연 id는 불변**(localStorage 키 `makollim:state:v1:<id>`·Dropbox 백업이 id 기준). slug만 바꿔도 됨.
 
