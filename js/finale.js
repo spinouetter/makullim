@@ -869,7 +869,7 @@
   }
   async function exportRaster(type, ext, quality){
     const blob=await rasterize(type,quality);
-    if(blob) triggerDownload(blob, `makollim-finale-${stamp()}.${ext}`); else alert("이미지를 만들지 못했습니다.");
+    if(blob) triggerDownload(blob, `makullim-finale-${stamp()}.${ext}`); else alert("이미지를 만들지 못했습니다.");
   }
   function loadScript(src){ return new Promise((res,rej)=>{ const s=document.createElement("script"); s.src=src; s.onload=res; s.onerror=()=>rej(new Error("스크립트 로드 실패")); document.head.appendChild(s); }); }
   const fontB64Cache=new Map();
@@ -933,14 +933,14 @@
       await inlinePhotos(svgForPdf, true);                           // 사진 임베드+슬롯 비율 크롭
       if(typeof doc.svg==="function") await doc.svg(svgForPdf,{x:0,y:0,width:VB_W,height:VB_H});
       else await window.svg2pdf(svgForPdf,doc,{x:0,y:0,width:VB_W,height:VB_H});
-      doc.save(`makollim-finale-${stamp()}.pdf`);
+      doc.save(`makullim-finale-${stamp()}.pdf`);
     }catch(err){
       try{ // 벡터 변환 실패 시에만 고해상도 이미지 PDF로 폴백
         const { jsPDF }=window.jspdf;
         const blob=await rasterize("image/png");
         const dataUrl=await new Promise(res=>{ const fr=new FileReader(); fr.onload=()=>res(fr.result); fr.readAsDataURL(blob); });
         const doc=new jsPDF({ orientation: VB_W>VB_H?"l":"p", unit:"pt", format:[VB_W,VB_H] });
-        doc.addImage(dataUrl,"PNG",0,0,VB_W,VB_H); doc.save(`makollim-finale-${stamp()}.pdf`);
+        doc.addImage(dataUrl,"PNG",0,0,VB_W,VB_H); doc.save(`makullim-finale-${stamp()}.pdf`);
         alert("한글 벡터 변환에 실패하여 고해상도 이미지 PDF로 저장했습니다.");
       }catch(e2){ alert("PDF를 만들지 못했습니다: "+err.message); }
     }finally{ if(btn){ btn.disabled=false; btn.textContent=label; } }
