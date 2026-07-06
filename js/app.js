@@ -1147,7 +1147,7 @@ function renderSchedule(){
       const run = rowInfos.slice(i, j);
       const key = "r" + run[0].idx;
       const expanded = pairOnlyExpanded.has(key);
-      parts.push(`<tr class="pair-collapse" data-runkey="${key}" title="${expanded?'접기':'펼치기'}"><td colspan="99">${expanded ? `공연 ${run.length}개 접기 &#9652;` : `숨긴 공연 ${run.length}개 &#9662;`}</td></tr>`);
+      parts.push(`<tr class="pair-collapse" data-runkey="${key}" title="${expanded?'접기':'펼치기'}"><td colspan="99"><span class="pair-collapse-label">${expanded ? `공연 ${run.length}개 접기 &#9652;` : `숨긴 공연 ${run.length}개 &#9662;`}</span></td></tr>`);
       if(expanded) parts.push(...run.map(r=>r.html));
       i = j;
     }
