@@ -507,12 +507,13 @@ function ticketCostSummaryHtml(perf, t){
   const extra = (typeof t.ticketExtra === "number" && isFinite(t.ticketExtra)) ? Math.round(t.ticketExtra) : 0;
   const base = ticketPriceOf(seat, type, false, disc, 0);   // 티켓가(수수료·기타 제외)
   const total = ticketPriceOf(seat, type, !!t.ticketFee, disc, extra); // 총금액
-  if(base == null){
-    return `<div class="tk-cost-row"><span>티켓을 선택하세요</span><span class="v">—</span></div>`;
-  }
-  const rows = [`<div class="tk-cost-row"><span>티켓가</span><span class="v">${formatKRW(base)}</span></div>`];
-  if(t.ticketFee) rows.push(`<div class="tk-cost-row"><span>수수료</span><span class="v">+${formatKRW(TICKET_FEE)}</span></div>`);
-  if(extra) rows.push(`<div class="tk-cost-row"><span>${extra<0 ? "자체할인" : "기타"}</span><span class="v ${extra<0?'minus':''}">${extra<0 ? "−"+formatKRW(-extra) : "+"+formatKRW(extra)}</span></div>`);
+  // 미선택(base==null)이어도 4행 골격을 그대로 그려 팝오버 높이를 고정 — 티켓가·총금액만 '—'.
+  // 수수료·기타 행은 0이어도 항상 표시 → 선택/토글 시 행 수가 변하지 않아 높이 불변(모바일 UX) — 0068
+  const feeVal = t.ticketFee ? "+"+formatKRW(TICKET_FEE) : formatKRW(0);
+  const extraVal = extra<0 ? "−"+formatKRW(-extra) : (extra>0 ? "+"+formatKRW(extra) : formatKRW(0));
+  const rows = [`<div class="tk-cost-row"><span>티켓가</span><span class="v">${base!=null ? formatKRW(base) : '—'}</span></div>`];
+  rows.push(`<div class="tk-cost-row"><span>수수료</span><span class="v">${feeVal}</span></div>`);
+  rows.push(`<div class="tk-cost-row"><span>${extra<0 ? "자체할인" : "기타"}</span><span class="v ${extra<0?'minus':''}">${extraVal}</span></div>`);
   rows.push(`<div class="tk-cost-row total"><span>총금액</span><span class="v">${total!=null ? formatKRW(total) : '—'}</span></div>`);
   return rows.join("");
 }
