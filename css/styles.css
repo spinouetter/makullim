@@ -629,11 +629,11 @@
   }
   .tk-title-label{font-size:12px; font-weight:700; color:var(--ink);}
   .tk-title-reseller{margin-left:auto; font-size:10.5px; color:var(--ink-dim);}
-  /* 옵션 목록: 내용만큼 늘되 화면(가시영역)의 1/3을 넘지 않음(넘으면 스크롤). 일반 화면에선 5개 이상 보임. */
-  .ticket-options{display:flex; flex-direction:column; gap:1px; flex:1 1 auto; min-height:0; max-height:calc(var(--app-height, 100vh) / 3); overflow-y:auto;}
+  /* 옵션 목록: 최대 5장까지만 보이고 넘으면 스크롤(모바일에서 팝오버가 컨트롤과 겹치지 않게) — 0066 */
+  .ticket-options{display:flex; flex-direction:column; gap:1px; flex:0 1 auto; min-height:0; max-height:min(150px, calc(var(--app-height, 100vh) / 3)); overflow-y:auto;}
   .ticket-option{
     display:flex; align-items:center; gap:8px;
-    padding:5px 7px; border-radius:6px; cursor:pointer; font-size:12px;
+    padding:3px 7px; border-radius:6px; cursor:pointer; font-size:12px;
     border:1px solid transparent;
   }
   .ticket-option:hover{background:rgba(255,255,255,0.04);}
@@ -941,6 +941,7 @@
   .floor-toggle-btn:disabled{ opacity:0.4; cursor:default; }
   /* 스케줄 컬럼 표시 토글(설정) — 공통 토글 버튼을 줄바꿈 배치 */
   .col-toggle-group{ display:flex; flex-wrap:wrap; gap:8px; }
+  .col-toggle-sub{ font-size:11px; color:var(--ink-dim); font-weight:700; margin:12px 0 7px; letter-spacing:0.04em; }
   /* 스케줄 옵션 버튼: 모바일에서 잘리지 않도록 작게 */
   #page-schedule .floor-toggle-bar .floor-toggle-btn{ padding:3px 8px; font-size:11px; }
   #page-schedule .hidden-roles-bar select,

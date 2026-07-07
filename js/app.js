@@ -821,9 +821,8 @@ function renderSchedule(){
 
   const hiddenBar = document.getElementById("scheduleHiddenBar");
   // 페어막 중에는 '선택 배역'만 숨김이 무시(강제 표시)되므로, 숨김 바에서 그 배역들만 제외
-  // 특수 컬럼(순번·좌석·티켓·가격·기타비용·메모)은 Settings에서 전역 제어하므로 표시 드롭박스(숨김 바)에는 넣지 않는다(0066).
-  // 숨김 바에는 배역·대결 컬럼만 남긴다.
-  const hiddenColsShown = [...scheduleHiddenCols].filter(c=>!(pairActive && pairRoles.includes(c)) && c!==leadRole && !SPECIAL_COLS.includes(c));
+  // 특수 컬럼·배역 모두 Settings에서 전역 제어하므로 표시 드롭박스(숨김 바)에는 대결(match) 컬럼만 남긴다(0066).
+  const hiddenColsShown = [...scheduleHiddenCols].filter(c=>c.indexOf("match:")===0);
   if(hiddenColsShown.length===0){
     hiddenBar.innerHTML = "";
   } else {
@@ -994,6 +993,7 @@ function renderSchedule(){
       e.stopPropagation();
       scheduleHiddenCols.add(btn.dataset.role);
       scheduleOpenDropdownRole = null;
+      refreshColumnSettings(); // Settings 배역 토글 동기화(0066)
       renderSchedule();
       saveState();
     });
@@ -5345,6 +5345,14 @@ function setupScheduleOptions(){
   if(ec){
     ec.addEventListener("click", ()=>{ showExtraCost = !showExtraCost; refreshColumnSettings(); saveState(); renderSchedule(); });
   }
+  // 배역 컬럼 토글(0066): 공연 배역을 컬럼 표시 옵션에 동적으로 추가(기본 모두 ON)
+  const roleBox = document.getElementById("roleColToggles");
+  if(roleBox){
+    roleBox.innerHTML = orderedScheduleRoles().map(role=>
+      `<button type="button" class="floor-toggle-btn col-toggle" data-col="${escHtml(role)}">${escHtml(scheduleRoleLabel(role))}</button>`
+    ).join("");
+  }
+  // 특수 컬럼 + 배역 토글 공통 처리 — scheduleHiddenCols와 연동
   document.querySelectorAll(".col-toggle[data-col]").forEach(btn=>{
     btn.addEventListener("click", ()=>{
       const col = btn.dataset.col;
