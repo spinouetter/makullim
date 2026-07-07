@@ -5389,6 +5389,12 @@ function applyFinaleVisibility(){
 function setupScheduleScrollLock(){
   const wrap = document.querySelector("#page-schedule .table-scroll-wrap");
   if(!wrap) return;
+  // 티켓/메모 팝오버가 열려 있으면 뒤 스케줄 표 스크롤을 막는다(팝오버 내부 스크롤은 허용) — 0066
+  const popoverOpen = ()=> ticketPopoverIdx!==null || memoPopoverIdx!==null;
+  const inPopover = e => e.target.closest && e.target.closest(".ticket-popover, .memo-popover");
+  const lockBgScroll = e => { if(popoverOpen() && !inPopover(e)) e.preventDefault(); };
+  wrap.addEventListener("wheel", lockBgScroll, { passive:false });
+  wrap.addEventListener("touchmove", lockBgScroll, { passive:false });
   // 방법1: 가로 스크롤 시 플로팅 오버레이 표시/숨김 + '지금' 버튼 활성 상태 갱신
   wrap.addEventListener("scroll", ()=>{ updateFloatOverlay(); updateNowBtn(); }, { passive:true });
   const nowBtn = document.getElementById("nowBtn");
@@ -5417,6 +5423,7 @@ function setupScheduleScrollLock(){
   let mDown=false, mMoved=false, mx=0, my=0, ml=0, mt=0, mAxis=null, suppressClick=false;
   wrap.addEventListener("pointerdown", e=>{
     if(e.pointerType!=="mouse" || e.button!==0) return;
+    if(popoverOpen()) return;                         // 팝오버 열려 있으면 배경 드래그 스크롤 금지(0066)
     if(e.target.closest(INTERACTIVE)) return;       // 클릭 가능한 요소는 그대로 동작
     mDown=true; mMoved=false; mAxis=null; mx=e.clientX; my=e.clientY; ml=wrap.scrollLeft; mt=wrap.scrollTop;
   });
