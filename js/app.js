@@ -5459,8 +5459,11 @@ function setupScheduleScrollLock(){
     }
   }, { passive:false });
   // (실험) 관성 개선 모드: passive 리스너(=preventDefault 없음)라 세로 던지기(관성)가 유지된다.
-  //  - 가로 제스처면 세로를 scrollTop 핀 고정으로 막고, 가로는 네이티브 스크롤(관성 포함)에 맡긴다.
+  //  - scrollTop 대입은 컴포지터 스크롤에 무시되므로, 가로 제스처로 판정되면 그 순간
+  //    overflow-y:hidden으로 세로 축을 브라우저 레벨에서 얼린다(가로는 네이티브 스크롤+관성 유지).
   //  - 세로 제스처면 아무것도 하지 않아 네이티브 세로 스크롤+관성이 그대로 동작한다.
+  //  - 제스처가 끝나면 overflow-y를 원복한다.
+  const restoreOverflowY = ()=>{ if(wrap.style.overflowY) wrap.style.overflowY = ""; };
   wrap.addEventListener("touchmove", e=>{
     if(!lockVScrollOn || !vscrollMomentum || e.touches.length !== 1) return;
     const t = e.touches[0];
@@ -5468,8 +5471,10 @@ function setupScheduleScrollLock(){
     if(axis === null && (Math.abs(dx) > 6 || Math.abs(dy) > 6)){
       axis = Math.abs(dx) > Math.abs(dy) ? "h" : "v";
     }
-    if(axis === "h") wrap.scrollTop = startTop; // 세로 드리프트만 상쇄(가로는 네이티브+관성 유지)
+    if(axis === "h" && wrap.style.overflowY !== "hidden") wrap.style.overflowY = "hidden"; // 세로만 잠금
   }, { passive:true });
+  wrap.addEventListener("touchend", restoreOverflowY, { passive:true });
+  wrap.addEventListener("touchcancel", restoreOverflowY, { passive:true });
 
   // 데스크탑: 마우스로 표를 잡아끌어 스크롤(가로·세로). 입력/버튼/링크 위에서는 드래그 안 함.
   const INTERACTIVE = "input, textarea, select, button, a, [contenteditable], .role-dropdown, .ticket-popover";
