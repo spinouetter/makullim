@@ -629,11 +629,11 @@
   }
   .tk-title-label{font-size:12px; font-weight:700; color:var(--ink);}
   .tk-title-reseller{margin-left:auto; font-size:10.5px; color:var(--ink-dim);}
-  /* 옵션 목록: 최대 5장까지만 보이고 넘으면 스크롤(모바일에서 팝오버가 컨트롤과 겹치지 않게) — 0066 */
-  .ticket-options{display:flex; flex-direction:column; gap:1px; flex:0 1 auto; min-height:0; max-height:min(150px, calc(var(--app-height, 100vh) / 3)); overflow-y:auto;}
+  /* 옵션 목록: 4.5장만 보이고 넘으면 스크롤(더 있음을 알리고 모바일에서 컨트롤과 겹치지 않게) — 0066 */
+  .ticket-options{display:flex; flex-direction:column; gap:1px; flex:0 1 auto; min-height:0; max-height:min(108px, calc(var(--app-height, 100vh) / 3)); overflow-y:auto;}
   .ticket-option{
     display:flex; align-items:center; gap:8px;
-    padding:3px 7px; border-radius:6px; cursor:pointer; font-size:12px;
+    padding:2px 7px; border-radius:6px; cursor:pointer; font-size:12px;
     border:1px solid transparent;
   }
   .ticket-option:hover{background:rgba(255,255,255,0.04);}
@@ -653,7 +653,7 @@
   .tk-cost-row.total{border-top:1px dashed var(--line); margin-top:1px; padding-top:6px; color:var(--ink); font-weight:700;}
   .tk-cost-row.total .v{color:var(--gold); font-size:13.5px;}
   /* 직접 입력(임의 할인권) 행 */
-  .ticket-option.ticket-custom{ border-top:1px solid var(--line); margin-top:3px; padding-top:5px; }
+  .ticket-option.ticket-custom{ border-top:1px solid var(--line); margin-top:2px; padding-top:3px; }
   .ticket-option .tk-custom-name{ flex:none; width:110px; padding:2px 6px; font-size:12px; } /* 한글 8자 폭 */
   .ticket-option .tk-custom-rate{ width:50px; padding:2px 6px; font-size:12px; margin-left:auto; }
   .ticket-option .tk-pct{ color:var(--ink-dim); font-size:12px; }
