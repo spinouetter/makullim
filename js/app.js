@@ -394,40 +394,74 @@ function buildTicketPopover(idx, grade, tk, opts){
   const prices = [...topG, ...midG, ...botG];
   const selEntry = isCustom ? null : resolveTicketEntry(grade, ticketType); // 옛 이름(alias)도 해당 타입으로 선택 표시
   const reseller = resellerOf(perf.seat); // 좌석의 예매처(리셀러). 없으면 괄호 표기 생략
+  const gname = grade.name;
   return `
     <div class="ticket-popover" data-idx="${idx}">
       <div class="ticket-popover-head">
         <span class="popover-date">${perfDateLabel(perf)}</span>
-        ${opts.showAddTicket ? `<button class="tk-add-multi" data-idx="${idx}" title="현재 티켓 저장 후 좌석 추가">좌석 추가하기</button>` : ""}
+        ${opts.showAddTicket ? `<button class="tk-add-multi" data-idx="${idx}" title="현재 티켓 저장 후 좌석 추가">＋ 좌석 추가</button>` : ""}
       </div>
-      <div class="ticket-popover-title">${grade.name}석 티켓 선택${reseller ? ` (${escHtml(reseller)} 예매)` : ""}</div>
+      <div class="ticket-popover-title">
+        <span class="tk-title-grade" style="background:${gradeFillVar(gname)};">${escHtml(gname[0])}</span>
+        <span class="tk-title-label">${escHtml(gname)}석 티켓 선택</span>
+        ${reseller ? `<span class="tk-title-reseller">${escHtml(reseller)} 예매</span>` : ""}
+      </div>
       <div class="ticket-options">
         ${prices.map(pr=>`
-          <label class="ticket-option">
+          <label class="ticket-option${selEntry===pr?' sel':''}">
             <input type="radio" name="tkopt-${idx}" value="${escHtml(pr.name)}" ${(selEntry===pr)?'checked':''}>
             <span class="to-name">${escHtml(pr.name)}</span>
-            <span class="to-disc">${pr.discount ? pr.discount+'% 할인' : '정가'}</span>
+            <span class="to-disc">${pr.discount ? pr.discount+'%' : '정가'}</span>
             <span class="to-price">${formatKRW(pr.price)}</span>
           </label>
         `).join("")}
-        <label class="ticket-option ticket-custom">
+        <label class="ticket-option ticket-custom${isCustom?' sel':''}">
           <input type="radio" name="tkopt-${idx}" value="__custom__" ${isCustom?'checked':''}>
-          <input type="text" class="tk-custom-name" data-idx="${idx}" placeholder="할인권 이름" value="${customName}">
+          <input type="text" class="tk-custom-name" data-idx="${idx}" placeholder="새 할인권 이름" value="${customName}">
           <input type="number" class="tk-custom-rate" data-idx="${idx}" placeholder="0" min="0" max="100" value="${customRate}"><span class="tk-pct">%</span>
         </label>
       </div>
+      <div class="tk-cost" data-idx="${idx}">${ticketCostSummaryHtml(perf, tk)}</div>
       <div class="ticket-fee-row">
         <label class="tk-fee-label"><input type="checkbox" class="tk-fee" data-idx="${idx}" ${ticketFee?'checked':''}> 수수료</label>
         <label class="tk-fee-label"><input type="checkbox" class="tk-transfer" data-idx="${idx}" ${tk.ticketTransferred?'checked':''}> 양도받음</label>
-        <span class="tk-extra-group">기타 <input type="text" inputmode="numeric" class="tk-extra" data-idx="${idx}" value="${tk.ticketExtra ? tk.ticketExtra : ''}" placeholder="0">원</span>
+        <span class="tk-extra-group">기타 <input type="text" inputmode="numeric" class="tk-extra" data-idx="${idx}" value="${tk.ticketExtra ? tk.ticketExtra : ''}" placeholder="할인 −">원</span>
       </div>
       ${opts.lifecycle ? buildTicketLifeRow(idx, perf) : ""}
-      <div class="ticket-popover-actions">
-        <button class="tk-clear" data-idx="${idx}" style="border-color:#a85a44; color:#e08a73;">삭제</button>
-        <button class="tk-cancel" data-idx="${idx}">취소</button>
+      <div class="ticket-popover-actions tk-main-actions">
+        <button class="tk-clear" data-idx="${idx}">삭제</button>
+        <button class="tk-cancel" data-idx="${idx}">닫기</button>
         <button class="tk-save" data-idx="${idx}">저장</button>
       </div>
     </div>`;
+}
+
+// 티켓 가격 구성 요약(티켓가·수수료·자체할인·총금액) — 요청 0066.
+// tkLike = {ticketType, ticketFee, ticketDiscount, ticketExtra}. 팝오버에서 선택이 바뀌면 갱신된다.
+function ticketCostSummaryHtml(perf, t){
+  const seat = (t && t.seat != null) ? t.seat : perf.seat; // 관리창은 티켓별 좌석이 다를 수 있어 t.seat 우선
+  const type = t.ticketType || "";
+  const disc = (t.ticketDiscount != null) ? t.ticketDiscount : null;
+  const extra = (typeof t.ticketExtra === "number" && isFinite(t.ticketExtra)) ? Math.round(t.ticketExtra) : 0;
+  const base = ticketPriceOf(seat, type, false, disc, 0);   // 티켓가(수수료·기타 제외)
+  const total = ticketPriceOf(seat, type, !!t.ticketFee, disc, extra); // 총금액
+  if(base == null){
+    return `<div class="tk-cost-row"><span>티켓을 선택하세요</span><span class="v">—</span></div>`;
+  }
+  const rows = [`<div class="tk-cost-row"><span>티켓가</span><span class="v">${formatKRW(base)}</span></div>`];
+  if(t.ticketFee) rows.push(`<div class="tk-cost-row"><span>수수료</span><span class="v">+${formatKRW(TICKET_FEE)}</span></div>`);
+  if(extra) rows.push(`<div class="tk-cost-row"><span>${extra<0 ? "자체할인" : "기타"}</span><span class="v ${extra<0?'minus':''}">${extra<0 ? "−"+formatKRW(-extra) : "+"+formatKRW(extra)}</span></div>`);
+  rows.push(`<div class="tk-cost-row total"><span>총금액</span><span class="v">${total!=null ? formatKRW(total) : '—'}</span></div>`);
+  return rows.join("");
+}
+// 팝오버 내 선택 변경 시 가격 요약을 다시 계산해 반영
+function refreshTicketCostSummary(scope, idx){
+  const box = scope.querySelector(`.tk-cost[data-idx="${idx}"]`);
+  const perf = performanceData.performances[idx];
+  if(!box || !perf) return;
+  const f = parseTicketPopover(scope, idx);
+  f.seat = perf.seat; // 스케줄 팝오버: 좌석 = 맨 위 티켓(=perf.seat)
+  box.innerHTML = ticketCostSummaryHtml(perf, f);
 }
 
 // 티켓 라이프사이클(숨김/취소/양도/이력) 버튼 행 + 취소·양도 입력 폼 — 요청 0064.
@@ -450,11 +484,14 @@ function buildTicketLifeRow(idx, perf){
       </div>`;
   }
   return `
-    <div class="ticket-popover-actions tk-life-row">
-      <button class="tk-hide-btn" data-idx="${idx}">${perf.ticketHidden ? "보이기" : "숨김"}</button>
-      <button class="tk-cancel-out" data-idx="${idx}">취소</button>
-      <button class="tk-transfer-out" data-idx="${idx}">양도하기</button>
-      <button class="tk-history-btn" data-idx="${idx}" ${histN ? "" : "disabled"}>이력${histN ? ` <span class="tk-hist-count">${histN}</span>` : ""}</button>
+    <div class="tk-life-wrap">
+      <div class="tk-life-cap">티켓 관리</div>
+      <div class="ticket-popover-actions tk-life-row">
+        <button class="tk-hide-btn" data-idx="${idx}">${perf.ticketHidden ? "보이기" : "숨김"}</button>
+        <button class="tk-cancel-out" data-idx="${idx}">취소</button>
+        <button class="tk-transfer-out" data-idx="${idx}">양도하기</button>
+        <button class="tk-history-btn" data-idx="${idx}" ${histN ? "" : "disabled"}>이력${histN ? ` <span class="tk-hist-count">${histN}</span>` : ""}</button>
+      </div>
     </div>`;
 }
 
@@ -1373,6 +1410,22 @@ function renderSchedule(){
       const idx = inp.dataset.idx;
       const radio = body.querySelector(`input[name="tkopt-${idx}"][value="__custom__"]`);
       if(radio) radio.checked = true;
+    });
+  });
+
+  // 선택·수수료·기타·직접입력이 바뀌면 가격 구성 요약을 즉시 갱신 + 선택 하이라이트(0066)
+  body.querySelectorAll(".ticket-popover").forEach(pop=>{
+    const idx = +pop.dataset.idx;
+    const sync = ()=>{
+      refreshTicketCostSummary(pop, idx);
+      pop.querySelectorAll(".ticket-option").forEach(opt=>{
+        const r = opt.querySelector('input[type="radio"]');
+        opt.classList.toggle("sel", !!(r && r.checked));
+      });
+    };
+    pop.querySelectorAll(`input[name="tkopt-${idx}"], .tk-fee, .tk-extra, .tk-custom-name, .tk-custom-rate`).forEach(inp=>{
+      inp.addEventListener("input", sync);
+      inp.addEventListener("change", sync);
     });
   });
 
@@ -4952,6 +5005,15 @@ function wireTicketManager(bodyEl){
     pop.addEventListener("click", e=>e.stopPropagation());
     pop.querySelectorAll(".tk-custom-name, .tk-custom-rate").forEach(inp=>{
       inp.addEventListener("focus", ()=>{ const r=pop.querySelector(`input[name="tkopt-${tmIdx}"][value="__custom__"]`); if(r) r.checked=true; });
+    });
+    // 선택 변경 시 가격 요약·선택 하이라이트 갱신(0066) — 관리창 팝오버는 tmTickets[tmEditTi] 기준
+    const tmSync = ()=>{
+      const box = pop.querySelector(`.tk-cost[data-idx="${tmIdx}"]`);
+      if(box){ const f = parseTicketPopover(pop, tmIdx); f.seat = (tmTickets[tmEditTi]||{}).seat; box.innerHTML = ticketCostSummaryHtml(performanceData.performances[tmIdx], f); }
+      pop.querySelectorAll(".ticket-option").forEach(opt=>{ const r=opt.querySelector('input[type="radio"]'); opt.classList.toggle("sel", !!(r&&r.checked)); });
+    };
+    pop.querySelectorAll(`input[name="tkopt-${tmIdx}"], .tk-fee, .tk-extra, .tk-custom-name, .tk-custom-rate`).forEach(inp=>{
+      inp.addEventListener("input", tmSync); inp.addEventListener("change", tmSync);
     });
     const sv=pop.querySelector(".tk-save"); if(sv) sv.addEventListener("click", e=>{ e.stopPropagation();
       const f = parseTicketPopover(pop, tmIdx);
