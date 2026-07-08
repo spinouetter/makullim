@@ -80,6 +80,7 @@ requests/  HISTORY.md  README.md  KNOWN_ISSUES.md
 - `requests/README.md` — 요청 워크플로 상세 · `TEMPLATE.md`
 - `HISTORY.md` — 완료 작업 한 줄 기록(최신이 위)
 - `KNOWN_ISSUES.md` — 알려진 이슈
+- `CASTING_BOARD.md` — **캐스트보드 사진 판독·대조·기록 절차**(에이전트용). 캐스팅 보드 이미지가 올라오면 이 문서대로 처리한다.
 
 <!-- Spinouetter 메모: 이 아래에 자유롭게 추가/수정하세요.
      예) 특정 배역 처리 규칙, 자주 쓰는 명령, 하지 말아야 할 것 등 -->
