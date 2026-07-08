@@ -2,6 +2,7 @@
   {
     "name": "놀티켓",
     "baseFee": 2000,
+    "feeDefault": true,
     "seatIds": [
       "1-1-8",
       "1-1-9",
@@ -1609,6 +1610,7 @@
   },
   {
     "name": "신시컴퍼니",
+    "baseFee": 2000,
     "cancelPolicy": {
       "deadline": { "daysBefore": 1, "hour": 17, "holidayHour": 11 },
       "freeOnBookingDay": true,
