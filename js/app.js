@@ -1558,7 +1558,8 @@ function renderSchedule(){
     pop.querySelectorAll(`input[name="tkopt-${idx}"]`).forEach(radio=>{
       radio.addEventListener("change", ()=>{
         if(tkFeeAutoArm!==idx || !feeCb || feeCb.checked) return;
-        if(resellerBaseFee(perf && perf.seat) <= 0) return;
+        const rObj = resellerObjOf(perf && perf.seat);
+        if(!rObj || !rObj.feeDefault) return; // feeDefault인 예매처만 자동 체크(신시는 baseFee 있어도 자동 안 함)
         // 선택된 티켓이 유료인지 확인
         const val = radio.value;
         const price = (val==="__custom__")
@@ -3105,24 +3106,35 @@ function renderTickets(){
 
   // --- 아이템 수집(보유 + 취소/양도 이력) ---
   const items = [];
-  performanceData.performances.forEach((p, idx)=>{
-    if(hasTopTicket(p) && !p.buyout && !isCancelled(p)){
-      const seat=(p.seat||"").trim();
-      const it = { kind:"held", idx, p, date:p.date, time:p.time||"", seat, grade:gradeOf(seat)||"",
-        ticketType:p.ticketType, ticketDiscount:p.ticketDiscount, bookingDate:p.bookingDate||"", ended:isEnded(p) };
-      if(!it.ended && p.bookingDate){
-        const cc=computeCancelFee(p, p.bookingDate);
-        if(cc && cc.closed){ it.cc=cc; it.closed=true; }
-        else if(cc){
-          const sched=cancelSchedule(p, p.bookingDate);
-          if(sched){
-            const cur=sched.find(r=>r.label===cc.label);
-            it.cc=cc; it.deadlineDate=cur?cur.date:today; it.deadlineDays=cur?cur.daysLeft:0;
-            it.next=cur?sched.filter(r=>r.daysLeft>=0).find(r=>r.daysLeft>cur.daysLeft):null;
-          }
+  // 한 티켓(맨 위 or 추가 좌석) → Tickets 카드용 아이템. 예매일 있으면 취소료·데드라인 계산.
+  const buildHeld = (t, p, idx, isExtra)=>{
+    const seat=(t.seat||"").trim();
+    const it = { kind:"held", idx, p, isExtra, date:p.date, time:p.time||"", seat, grade:gradeOf(seat)||"",
+      ticketType:t.ticketType, ticketDiscount:t.ticketDiscount, bookingDate:t.bookingDate||"", ended:isEnded(p) };
+    if(!it.ended && t.bookingDate){
+      const pseudo = { seat, ticketType:t.ticketType, ticketDiscount:(t.ticketDiscount!=null?t.ticketDiscount:null),
+        ticketFee:!!t.ticketFee, date:p.date, time:p.time };
+      const cc=computeCancelFee(pseudo, t.bookingDate);
+      if(cc && cc.closed){ it.cc=cc; it.closed=true; }
+      else if(cc){
+        const sched=cancelSchedule(pseudo, t.bookingDate);
+        if(sched){
+          const cur=sched.find(r=>r.label===cc.label);
+          it.cc=cc; it.deadlineDate=cur?cur.date:today; it.deadlineDays=cur?cur.daysLeft:0;
+          it.next=cur?sched.filter(r=>r.daysLeft>=0).find(r=>r.daysLeft>cur.daysLeft):null;
         }
       }
-      items.push(it);
+    }
+    return it;
+  };
+  performanceData.performances.forEach((p, idx)=>{
+    if(!p.buyout && !isCancelled(p)){
+      // 맨 위 티켓 + 추가 티켓(다중 티켓) 모두 표시 — 0070
+      if(hasTopTicket(p)) items.push(buildHeld({ seat:p.seat, ticketType:p.ticketType,
+        ticketDiscount:p.ticketDiscount, ticketFee:p.ticketFee, bookingDate:p.bookingDate }, p, idx, false));
+      (Array.isArray(p.extraTickets)?p.extraTickets:[]).forEach(t=>{
+        if(t && (t.seat||"").trim()) items.push(buildHeld(t, p, idx, true));
+      });
     }
     (p.ticketHistory||[]).forEach(hRaw=>{
       const h=normTicketHist(hRaw);
@@ -3165,7 +3177,9 @@ function renderTickets(){
     const gchip = it.grade ? `<span class="hc-grade" style="background:${gradeFillVar(it.grade)};">${escHtml(it.grade[0])}</span>` : "";
     const typeTxt = it.ticketType ? escHtml(it.ticketType) : (it.ticketDiscount!=null ? "임의 할인" : "정가 미선택");
     const reseller = resellerOf(it.seat);
-    const r1 = `<div class="hc-r1">${gchip}<span class="hc-date">${escHtml(perfDateLabel(it.p))}</span><span class="hc-seat">${escHtml(it.seat)}</span><span class="hc-type">${typeTxt}</span>${reseller ? `<span class="hc-reseller">${escHtml(reseller)}</span>` : ""}</div>`;
+    const extraTag = it.isExtra ? `<span class="hc-extra-tag" title="같은 공연의 추가 좌석">추가</span>` : "";
+    const r1 = `<div class="hc-r1">${gchip}<span class="hc-date">${escHtml(perfDateLabel(it.p))}</span><span class="hc-seat">${escHtml(it.seat)}</span>${extraTag}<span class="hc-type">${typeTxt}</span>${reseller ? `<span class="hc-reseller">${escHtml(reseller)}</span>` : ""}</div>`;
+    const heldAttr = `data-idx="${it.idx}" data-kind="held" data-extra="${it.isExtra?"1":"0"}"`;
     if(it.kind==="cancel")
       return `<button class="hist-card u-done" data-idx="${it.idx}" data-kind="cancel">${r1}
         <div class="hc-r2b"><span class="hc-badge cancel">취소</span><span class="hc-note">수수료 ${formatKRW(it.cost||0)}${it.note?` · ${escHtml(it.note)}`:""}</span></div></button>`;
@@ -3173,16 +3187,16 @@ function renderTickets(){
       return `<button class="hist-card u-done" data-idx="${it.idx}" data-kind="transfer">${r1}
         <div class="hc-r2b"><span class="hc-badge transfer">양도</span><span class="hc-note">${it.note?escHtml(it.note):"양수인 미상"}${it.cost?` · 자체할인 ${formatKRW(it.cost)}`:""}</span></div></button>`;
     if(it.ended)
-      return `<button class="hist-card u-done" data-idx="${it.idx}" data-kind="held">${r1}
+      return `<button class="hist-card u-done" ${heldAttr}>${r1}
         <div class="hc-r2b"><span class="hc-note">관람 완료</span></div></button>`;
     if(it.closed)
-      return `<button class="hist-card u-done" data-idx="${it.idx}" data-kind="held">${r1}
+      return `<button class="hist-card u-done" ${heldAttr}>${r1}
         <div class="hc-r2b"><span class="hc-badge closed">마감</span><span class="hc-note">취소 마감 — 취소 불가</span></div></button>`;
     if(!it.cc)
-      return `<button class="hist-card u-none" data-idx="${it.idx}" data-kind="held">${r1}
-        <div class="hc-need">예매일 입력 필요 — 눌러서 입력</div></button>`;
+      return `<button class="hist-card u-none" ${heldAttr}>${r1}
+        <div class="hc-need">${it.isExtra ? "예매일 입력은 다중 티켓 관리에서 — 눌러서 열기" : "예매일 입력 필요 — 눌러서 입력"}</div></button>`;
     const nextTxt = it.next ? `이후 <b>${mmdd(it.next.date)}~</b> ${formatKRW(it.next.fee)} · ${escHtml(it.next.disp)}` : "더 이상 인상 없음";
-    return `<button class="hist-card ${urgency(it.deadlineDays)}" data-idx="${it.idx}" data-kind="held">${r1}
+    return `<button class="hist-card ${urgency(it.deadlineDays)}" ${heldAttr}>${r1}
       <div class="hc-r2"><span class="hc-amt"><b>${formatKRW(it.cc.total)}</b><span class="hc-tier">${escHtml(it.cc.label)}</span></span><span class="hc-dl"><b>${mmdd(it.deadlineDate)}</b>까지·<span class="hc-left">${leftTxt(it.deadlineDays)}</span></span></div>
       <div class="hc-r3">${nextTxt}</div></button>`;
   };
@@ -3201,12 +3215,17 @@ function renderTickets(){
   html += `</div>`;
   body.innerHTML = html;
 
-  // 카드 클릭 → 스케줄로 이동. 보유 티켓은 팝오버(예매일 없으면 계산 패널), 이력은 해당 행으로 이동만.
+  // 카드 클릭 → 스케줄로 이동. 맨 위 티켓=팝오버(예매일 없으면 계산 패널), 추가 티켓=다중 티켓 관리창, 이력=행 이동만.
   body.querySelectorAll(".hist-card").forEach(btn=>{
     btn.addEventListener("click", ()=>{
       const idx = +btn.dataset.idx;
       activateTab("schedule", true);
       if(btn.dataset.kind === "held"){
+        if(btn.dataset.extra === "1"){
+          renderSchedule();
+          openTicketManager(idx); // 추가 좌석은 다중 티켓 관리창에서 확인/편집
+          return;
+        }
         ticketPopoverIdx = idx; tkLifeForm = null;
         tkCancelCalc = btn.classList.contains("u-none") ? idx : null;
         renderSchedule();
