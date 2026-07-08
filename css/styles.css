@@ -208,9 +208,13 @@
     padding:0 20px;
     border-bottom:1px solid var(--line);
     background:var(--panel);
-    /* 탭이 많아도 줄바꿈 없이 한 줄 유지, 넘치면 가로 스크롤(스크롤바 숨김) */
+    /* 탭이 많아도 줄바꿈 없이 한 줄 유지, 넘치면 가로 스크롤(스크롤바 숨김).
+       overflow-x만 지정하면 overflow-y가 auto로 계산돼 nav가 '세로 스크롤 컨테이너'가 되고,
+       sticky 헤더 안에서 모바일 키보드 시 화면이 위로 밀리는 버그가 난다 → overflow-y:hidden 명시. — 0072 */
     flex-wrap:nowrap;
     overflow-x:auto;
+    overflow-y:hidden;
+    overscroll-behavior:contain;
     scrollbar-width:none;
   }
   nav::-webkit-scrollbar{ display:none; }
@@ -231,6 +235,9 @@
   .tab-icon{ display:none; font-size:17px; line-height:1; }
   nav.compact .tab-btn[data-page="settings"] .tab-label{ display:none; }
   nav.compact .tab-btn[data-page="settings"] .tab-icon{ display:inline; }
+  /* 컴팩트 시 탭 간격·패딩을 더 줄여 6탭이 좁은 폰에서도 가로 스크롤 없이 들어가게 — 0072 */
+  nav.compact{ gap:1px; }
+  nav.compact button{ padding:10px 8px; font-size:13px; letter-spacing:0; }
   nav button.active{
     color:var(--gold);
     border-bottom-color:var(--gold);
