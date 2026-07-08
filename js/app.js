@@ -146,6 +146,7 @@ async function loadData(){
     if(p.ticketDiscount == null) p.ticketDiscount = null; // 임의 할인권 할인율(없으면 null)
     if(p.ticketExtra == null) p.ticketExtra = 0; // 기타 비용(취소 수수료 등, 원)
     if(p.bookingDate == null) p.bookingDate = ""; // 예매일("YYYY-MM-DD", 빈=미입력) — 취소료 계산용 0069
+    if(p.reseller == null) p.reseller = ""; // 예매처 이름(빈=좌석 기본값). 티켓별 오버라이드 — 0072
     if(p.ticketTransferred == null) p.ticketTransferred = false; // 양도받은 티켓 여부(없으면 내가 구매)
     if(p.ticketHidden == null) p.ticketHidden = false; // 숨김 티켓: 자번 제외·좌석 취소선(기록은 유지) — 0064
     if(!Array.isArray(p.ticketHistory)) p.ticketHistory = []; // 취소·양도 이력 [{kind,seat,grade,cost,note}] — 0064
@@ -287,7 +288,7 @@ function gradeFacePrice(grade){
 
 // 좌석(→등급) + 티켓 종류 + 수수료 + (선택)임의 할인율로 최종 가격 계산. 계산 불가하면 null.
 // customDiscount(숫자)가 주어지면 정가×(1-할인율)로 계산(임의 할인권), 아니면 등급 prices에서 이름으로 조회.
-function ticketPriceOf(seatId, type, fee, customDiscount, extra){
+function ticketPriceOf(seatId, type, fee, customDiscount, extra, resellerName){
   if(!type) return null;
   const gname = gradeOf((seatId||"").trim());
   if(!gname) return null;
@@ -304,14 +305,14 @@ function ticketPriceOf(seatId, type, fee, customDiscount, extra){
     base = pr.price;
   }
   const extraCost = (typeof extra === "number" && isFinite(extra)) ? extra : 0;
-  return base + (fee ? resellerBaseFee(seatId) : 0) + extraCost; // 최종가 = 티켓가 + 예매수수료(예매처별) + 기타비용
+  return base + (fee ? resellerBaseFee(seatId, resellerName) : 0) + extraCost; // 최종가 = 티켓가 + 예매수수료(예매처별) + 기타비용
 }
 
 /* === 다중 티켓 헬퍼 (맨 위=평면 필드, 2번째 이후=p.extraTickets) === */
 function topTicketObj(p){
   return { seat:p.seat||"", ticketType:p.ticketType||"", ticketFee:!!p.ticketFee,
     ticketDiscount:(p.ticketDiscount!=null?p.ticketDiscount:null), ticketExtra:p.ticketExtra||0,
-    ticketTransferred:!!p.ticketTransferred, bookingDate:p.bookingDate||"" };
+    ticketTransferred:!!p.ticketTransferred, bookingDate:p.bookingDate||"", reseller:p.reseller||"" };
 }
 function hasTopTicket(p){ return !!(p.seat && p.seat.trim()); }
 // 모든 티켓을 순서대로: [맨위, ...extra]. 맨 위가 없으면 빈 배열(invariant).
@@ -325,15 +326,15 @@ function setTickets(p, list){
   const clean = (list||[]).filter(t=>t && t.seat && String(t.seat).trim())
     .map(t=>({ seat:String(t.seat).trim(), ticketType:t.ticketType||"", ticketFee:!!t.ticketFee,
       ticketDiscount:(t.ticketDiscount!=null?t.ticketDiscount:null), ticketExtra:t.ticketExtra||0,
-      ticketTransferred:!!t.ticketTransferred, bookingDate:t.bookingDate||"" }));
+      ticketTransferred:!!t.ticketTransferred, bookingDate:t.bookingDate||"", reseller:t.reseller||"" }));
   if(clean.length===0){
     p.seat=""; p.ticketType=""; p.ticketFee=false; p.ticketDiscount=null; p.ticketExtra=0; p.ticketTransferred=false;
-    p.bookingDate=""; p.extraTickets=[]; return;
+    p.bookingDate=""; p.reseller=""; p.extraTickets=[]; return;
   }
   const t0=clean[0];
   p.seat=t0.seat; p.ticketType=t0.ticketType; p.ticketFee=t0.ticketFee;
   p.ticketDiscount=t0.ticketDiscount; p.ticketExtra=t0.ticketExtra; p.ticketTransferred=t0.ticketTransferred;
-  p.bookingDate=t0.bookingDate||"";
+  p.bookingDate=t0.bookingDate||""; p.reseller=t0.reseller||"";
   p.extraTickets=clean.slice(1);
 }
 
@@ -380,6 +381,8 @@ function parseTicketPopover(scope, idx){
   const out = { ticketFee: feeCb ? feeCb.checked : false, ticketTransferred: transferCb ? transferCb.checked : false };
   const bookInp = scope.querySelector(`.tk-booking-date[data-idx="${idx}"]`);
   if(bookInp) out.bookingDate = bookInp.value || ""; // 예매일 필드가 있을 때만(관리 창) — 없으면 기존 값 유지
+  const resSel = scope.querySelector(`.tk-reseller-sel[data-idx="${idx}"]`);
+  if(resSel) out.reseller = resSel.value || ""; // 예매처 오버라이드(빈=좌석 기본) — 0072
   // 기타 금액은 음수도 허용(양도받을 때 자체 할인 등) — 맨 앞의 '-'만 부호로 인정
   const extraRaw = (extraInp && extraInp.value || "").trim();
   const extraNeg = /^-/.test(extraRaw);
@@ -448,7 +451,14 @@ function buildTicketPopover(idx, grade, tk, opts){
     .sort((a,b)=> (b.discount||0)-(a.discount||0) || a.name.localeCompare(b.name,'ko'));
   const prices = [...topG, ...midG, ...botG];
   const selEntry = isCustom ? null : resolveTicketEntry(grade, ticketType); // 옛 이름(alias)도 해당 타입으로 선택 표시
-  const reseller = resellerOf(perf.seat); // 좌석의 예매처(리셀러). 없으면 괄호 표기 생략
+  // 예매처: 티켓 값 우선, 없으면 좌석 기본값. 드롭다운으로 티켓별 지정 가능 — 0072
+  const seatForRes = (tk.seat != null ? (tk.seat||"").trim() : (perf.seat||"").trim());
+  const defRes = resellerOf(seatForRes) || "";      // 좌석 기본 예매처
+  const curRes = tk.reseller || "";                  // 오버라이드(빈=기본)
+  const resSelect = `<select class="tk-reseller-sel" data-idx="${idx}" title="예매처">
+      <option value="">${defRes ? escHtml(defRes)+" (좌석 기본)" : "예매처 선택"}</option>
+      ${(performanceData.resellers||[]).map(r=>`<option value="${escHtml(r.name)}" ${r.name===curRes?"selected":""}>${escHtml(r.name)}</option>`).join("")}
+    </select>`;
   const gname = grade.name;
   return `
     <div class="ticket-popover" data-idx="${idx}">
@@ -462,7 +472,7 @@ function buildTicketPopover(idx, grade, tk, opts){
       <div class="ticket-popover-title">
         <span class="tk-title-grade" style="background:${gradeFillVar(gname)};">${escHtml(gname[0])}</span>
         <span class="tk-title-label">${escHtml(gname)}석 티켓 선택</span>
-        ${reseller ? `<span class="tk-title-reseller">${escHtml(reseller)} 예매</span>` : ""}
+        ${resSelect}
       </div>
       <div class="ticket-options">
         ${prices.map(pr=>`
@@ -515,6 +525,7 @@ function normTicketHist(h){
     cost: (typeof h.cost==="number" && h.cost>0) ? h.cost : 0,
     note: h.note || "",
     bookingDate: h.bookingDate || "", // 예매일(Tickets 예매순 정렬용) — 0070
+    reseller: h.reseller || "",        // 예매처 오버라이드 — 0072
     seat: h.seat || "", grade: h.grade || "",
     ticketType: h.ticketType || "", ticketFee: !!h.ticketFee,
     ticketDiscount: (typeof h.ticketDiscount==="number") ? h.ticketDiscount : null,
@@ -547,11 +558,12 @@ function ticketCostSummaryHtml(perf, t){
   const type = t.ticketType || "";
   const disc = (t.ticketDiscount != null) ? t.ticketDiscount : null;
   const extra = (typeof t.ticketExtra === "number" && isFinite(t.ticketExtra)) ? Math.round(t.ticketExtra) : 0;
-  const base = ticketPriceOf(seat, type, false, disc, 0);   // 티켓가(수수료·기타 제외)
-  const total = ticketPriceOf(seat, type, !!t.ticketFee, disc, extra); // 총금액
+  const resName = t.reseller || ""; // 예매처 오버라이드 — 예매수수료가 예매처를 따르게 — 0072
+  const base = ticketPriceOf(seat, type, false, disc, 0, resName);   // 티켓가(수수료·기타 제외)
+  const total = ticketPriceOf(seat, type, !!t.ticketFee, disc, extra, resName); // 총금액
   // 미선택(base==null)이어도 4행 골격을 그대로 그려 팝오버 높이를 고정 — 티켓가·총금액만 '—'.
   // 수수료·기타 행은 0이어도 항상 표시 → 선택/토글 시 행 수가 변하지 않아 높이 불변(모바일 UX) — 0068
-  const feeVal = t.ticketFee ? "+"+formatKRW(resellerBaseFee(seat)) : formatKRW(0);
+  const feeVal = t.ticketFee ? "+"+formatKRW(resellerBaseFee(seat, resName)) : formatKRW(0);
   const extraVal = extra<0 ? "−"+formatKRW(-extra) : (extra>0 ? "+"+formatKRW(extra) : formatKRW(0));
   const rows = [`<div class="tk-cost-row"><span>티켓가</span><span class="v">${base!=null ? formatKRW(base) : '—'}</span></div>`];
   rows.push(`<div class="tk-cost-row"><span>수수료</span><span class="v">${feeVal}</span></div>`);
@@ -588,8 +600,8 @@ function buildTicketLifeRow(idx, perf){
 // 취소료 계산 패널(예매일 입력 + 오늘 기준 취소료 표시) — 0069.
 function buildCancelCalcPanel(idx, perf){
   const seat = (perf.seat||"").trim();
-  const reseller = resellerOf(seat);
-  const bf = resellerBaseFee(seat);
+  const reseller = ticketResellerName(seat, perf.reseller); // 티켓 예매처(오버라이드) 우선
+  const bf = resellerBaseFee(seat, perf.reseller);
   return `
     <div class="tk-cancelcalc" data-idx="${idx}">
       <div class="tk-cc-title">취소료 계산 — ${escHtml(seat) || "좌석 미정"}</div>
@@ -1348,7 +1360,7 @@ function renderSchedule(){
     // 가격(0066) = 현재 티켓의 모든 비용(티켓가+수수료+기타).
     let priceCell = "";
     if(showPrice){
-      const price = ticketPriceOf(p.seat, ticketType, ticketFee, ticketDiscount, p.ticketExtra);
+      const price = ticketPriceOf(p.seat, ticketType, ticketFee, ticketDiscount, p.ticketExtra, p.reseller);
       priceCell = `<td class="price-cell">${price!=null ? formatKRW(price) : '<span class="empty">—</span>'}</td>`;
     }
     // 기타 비용(0066) = 이력의 비용 합(전부 내가 지불한 비용). 헤더에서 고른 종류만 합산.
@@ -1567,7 +1579,7 @@ function renderSchedule(){
         opt.classList.toggle("sel", !!(r && r.checked));
       });
     };
-    pop.querySelectorAll(`input[name="tkopt-${idx}"], .tk-fee, .tk-extra, .tk-custom-name, .tk-custom-rate`).forEach(inp=>{
+    pop.querySelectorAll(`input[name="tkopt-${idx}"], .tk-reseller-sel, .tk-fee, .tk-extra, .tk-custom-name, .tk-custom-rate`).forEach(inp=>{
       inp.addEventListener("input", sync);
       inp.addEventListener("change", sync);
     });
@@ -1577,7 +1589,8 @@ function renderSchedule(){
     pop.querySelectorAll(`input[name="tkopt-${idx}"]`).forEach(radio=>{
       radio.addEventListener("change", ()=>{
         if(tkFeeAutoArm!==idx || !feeCb || feeCb.checked) return;
-        const rObj = resellerObjOf(perf && perf.seat);
+        const resSel = pop.querySelector(".tk-reseller-sel"); // 팝오버에서 고른 예매처(없으면 좌석 기본)
+        const rObj = resellerObjOf(perf && perf.seat, resSel ? resSel.value : "");
         if(!rObj || !rObj.feeDefault) return; // feeDefault인 예매처만 자동 체크(신시는 baseFee 있어도 자동 안 함)
         // 선택된 티켓이 유료인지 확인
         const val = radio.value;
@@ -1602,7 +1615,7 @@ function renderSchedule(){
       const perf = performanceData.performances[idx];
       const f = parseTicketPopover(body, idx);
       perf.ticketType = f.ticketType; perf.ticketDiscount = f.ticketDiscount;
-      perf.ticketFee = f.ticketFee; perf.ticketExtra = f.ticketExtra; perf.ticketTransferred = f.ticketTransferred;
+      perf.ticketFee = f.ticketFee; perf.ticketExtra = f.ticketExtra; perf.ticketTransferred = f.ticketTransferred; if(f.reseller!=null) perf.reseller = f.reseller;
       ticketPopoverIdx = null;
       tkCancelCalc = null;
       renderSchedule();
@@ -1620,7 +1633,7 @@ function renderSchedule(){
       const perf = performanceData.performances[idx];
       const f = parseTicketPopover(body, idx);
       perf.ticketType = f.ticketType; perf.ticketDiscount = f.ticketDiscount;
-      perf.ticketFee = f.ticketFee; perf.ticketExtra = f.ticketExtra; perf.ticketTransferred = f.ticketTransferred;
+      perf.ticketFee = f.ticketFee; perf.ticketExtra = f.ticketExtra; perf.ticketTransferred = f.ticketTransferred; if(f.reseller!=null) perf.reseller = f.reseller;
       ticketPopoverIdx = null;
       renderSchedule();
       renderStats();
@@ -1706,7 +1719,7 @@ function renderSchedule(){
       const cost = Math.max(0, parseInt(String(costRaw).replace(/[^\d]/g,""),10) || 0);
       const seat = (p.seat||"").trim();
       // 기본 금액(티켓 가격+수수료, 기타 제외) — 통계용으로 함께 저장
-      const base = ticketPriceOf(seat, p.ticketType, p.ticketFee, (p.ticketDiscount!=null?p.ticketDiscount:null), 0) || 0;
+      const base = ticketPriceOf(seat, p.ticketType, p.ticketFee, (p.ticketDiscount!=null?p.ticketDiscount:null), 0, p.reseller) || 0;
       // 기존 티켓 정보를 그대로 복사 + 취소/양도 여부·비용·메모(0068)
       p.ticketHistory.push({
         kind, cost, note: note.trim(),
@@ -2394,7 +2407,7 @@ function renderStats(){
   let spentAmount = 0, upcomingAmount = 0;
   perfs.forEach(p=>{
     if(isCancelled(p)) return; // 취소된 공연은 금액 집계에서 제외
-    const price = ticketPriceOf(p.seat, p.ticketType, p.ticketFee, (p.ticketDiscount!=null?p.ticketDiscount:null), p.ticketExtra) || 0;
+    const price = ticketPriceOf(p.seat, p.ticketType, p.ticketFee, (p.ticketDiscount!=null?p.ticketDiscount:null), p.ticketExtra, p.reseller) || 0;
     if(isEnded(p)) spentAmount += price; else upcomingAmount += price;
   });
 
@@ -2672,7 +2685,7 @@ function renderEtcStats(){
       const key = grade+"||"+type;
       const b = map[key] || (map[key]={grade, type, watched:0, upcoming:0, amount:0});
       if(isEnded(p)) b.watched++; else b.upcoming++;
-      b.amount += ticketPriceOf(p.seat, p.ticketType, p.ticketFee, (p.ticketDiscount!=null?p.ticketDiscount:null), p.ticketExtra) || 0;
+      b.amount += ticketPriceOf(p.seat, p.ticketType, p.ticketFee, (p.ticketDiscount!=null?p.ticketDiscount:null), p.ticketExtra, p.reseller) || 0;
     });
     const arr = Object.values(map).sort((a,b)=>
       ((gIdx[a.grade]??99)-(gIdx[b.grade]??99)) || ((b.watched+b.upcoming)-(a.watched+a.upcoming)) || a.type.localeCompare(b.type,"ko"));
@@ -2703,7 +2716,7 @@ function renderEtcStats(){
     perfs.forEach(p=>{
       if(hasSeat(p) && p.ticketTransferred){
         recv.n++;
-        recv.amt += ticketPriceOf(p.seat, p.ticketType, p.ticketFee, (p.ticketDiscount!=null?p.ticketDiscount:null), 0) || 0;
+        recv.amt += ticketPriceOf(p.seat, p.ticketType, p.ticketFee, (p.ticketDiscount!=null?p.ticketDiscount:null), 0, p.reseller) || 0;
       }
       (p.ticketHistory||[]).forEach(h=>{
         if(h.kind==="transfer"){ give.n++; give.amt += (h.amount||0); }
@@ -2946,7 +2959,7 @@ function resellerOf(seatId){
 
 // 좌석 → 예매처 객체(캐시). 좌석은 한 예매처에만 속한다.
 let _seatResellerMap = null;
-function resellerObjOf(seatId){
+function resellerObjOfSeat(seatId){
   if(!seatId) return null;
   if(!_seatResellerMap){
     _seatResellerMap = new Map();
@@ -2955,9 +2968,23 @@ function resellerObjOf(seatId){
   }
   return _seatResellerMap.get(seatId) || null;
 }
+// 예매처 이름으로 객체 찾기(티켓별 예매처 오버라이드용) — 0072
+function resellerObjByName(name){
+  if(!name) return null;
+  return (performanceData.resellers || []).find(r=>r.name===name) || null;
+}
+// 티켓의 실제 예매처 객체: 티켓이 예매처를 지정했으면 그것, 아니면 좌석 매핑(기본값). resellerName 오버라이드.
+function resellerObjOf(seatId, resellerName){
+  return resellerObjByName(resellerName) || resellerObjOfSeat(seatId);
+}
+// 티켓의 실제 예매처 이름(표시·비교용): 지정값 우선, 없으면 좌석 기본.
+function ticketResellerName(seatId, resellerName){
+  const r = resellerObjOf(seatId, resellerName);
+  return r ? r.name : null;
+}
 // 예매수수료(기본수수료) — 예매처 설정값. 하드코딩 대신 예매처별로 관리(놀/멜/NOL=2000). 없으면 0.
-function resellerBaseFee(seatId){
-  const r = resellerObjOf(seatId);
+function resellerBaseFee(seatId, resellerName){
+  const r = resellerObjOf(seatId, resellerName);
   return r ? (+r.baseFee || 0) : 0;
 }
 
@@ -2975,8 +3002,8 @@ const DEFAULT_CANCEL_POLICY = {
     { fromDaysBefore: 2,    toDaysBefore: 1,  pct: 30 },
   ]
 };
-function resellerCancelPolicy(seatId){
-  const r = resellerObjOf(seatId);
+function resellerCancelPolicy(seatId, resellerName){
+  const r = resellerObjOf(seatId, resellerName);
   return (r && r.cancelPolicy) ? r.cancelPolicy : DEFAULT_CANCEL_POLICY;
 }
 // 구간 라벨: {9,7}→"관람 9~7일전", {null,10}→"관람 10일전 이전"
@@ -3032,11 +3059,12 @@ function cancelTierPenalty(t, ticketBase){
 function computeCancelFee(perf, bookingDate, asOf){
   if(!perf) return null;
   const seat = (perf.seat||"").trim();
+  const resName = perf.reseller || ""; // 티켓의 예매처 오버라이드 — 0072
   const disc = (perf.ticketDiscount!=null) ? perf.ticketDiscount : null;
-  const ticketBase = ticketPriceOf(seat, perf.ticketType, false, disc, 0);
+  const ticketBase = ticketPriceOf(seat, perf.ticketType, false, disc, 0, resName);
   if(ticketBase==null || !bookingDate || !perf.date) return null;
-  const pol = resellerCancelPolicy(seat);
-  const base = perf.ticketFee ? resellerBaseFee(seat) : 0;   // 예매수수료
+  const pol = resellerCancelPolicy(seat, resName);
+  const base = perf.ticketFee ? resellerBaseFee(seat, resName) : 0;   // 예매수수료
   const today = asOf || todayStrKST();
   const d = daysBetweenYMD(today, perf.date);        // 관람까지 남은 일수
   const b = daysBetweenYMD(bookingDate, today);      // 예매 경과일
@@ -3062,11 +3090,12 @@ function computeCancelFee(perf, bookingDate, asOf){
 function cancelSchedule(perf, bookingDate, asOf){
   if(!perf) return null;
   const seat = (perf.seat||"").trim();
+  const resName = perf.reseller || ""; // 예매처 오버라이드 — 0072
   const disc = (perf.ticketDiscount!=null) ? perf.ticketDiscount : null;
-  const ticketBase = ticketPriceOf(seat, perf.ticketType, false, disc, 0);
+  const ticketBase = ticketPriceOf(seat, perf.ticketType, false, disc, 0, resName);
   if(ticketBase==null || !bookingDate || !perf.date) return null;
-  const pol = resellerCancelPolicy(seat);
-  const base = perf.ticketFee ? resellerBaseFee(seat) : 0;
+  const pol = resellerCancelPolicy(seat, resName);
+  const base = perf.ticketFee ? resellerBaseFee(seat, resName) : 0;
   const today = asOf || todayStrKST();
   const P = perf.date, B = bookingDate;
   const addD = (ymd,n)=>{ const d=parseYMD(ymd); if(!d) return ymd; d.setDate(d.getDate()+n); return fmtYMD(d); };
@@ -3129,10 +3158,10 @@ function renderTickets(){
   const buildHeld = (t, p, idx, isExtra)=>{
     const seat=(t.seat||"").trim();
     const it = { kind:"held", idx, p, isExtra, date:p.date, time:p.time||"", seat, grade:gradeOf(seat)||"",
-      ticketType:t.ticketType, ticketDiscount:t.ticketDiscount, bookingDate:t.bookingDate||"", ended:isEnded(p) };
+      ticketType:t.ticketType, ticketDiscount:t.ticketDiscount, bookingDate:t.bookingDate||"", reseller:t.reseller||"", ended:isEnded(p) };
     if(!it.ended && t.bookingDate){
       const pseudo = { seat, ticketType:t.ticketType, ticketDiscount:(t.ticketDiscount!=null?t.ticketDiscount:null),
-        ticketFee:!!t.ticketFee, date:p.date, time:p.time };
+        ticketFee:!!t.ticketFee, reseller:t.reseller||"", date:p.date, time:p.time };
       const cc=computeCancelFee(pseudo, t.bookingDate);
       if(cc && cc.closed){ it.cc=cc; it.closed=true; }
       else if(cc){
@@ -3150,7 +3179,7 @@ function renderTickets(){
     if(!p.buyout && !isCancelled(p)){
       // 맨 위 티켓 + 추가 티켓(다중 티켓) 모두 표시 — 0070
       if(hasTopTicket(p)) items.push(buildHeld({ seat:p.seat, ticketType:p.ticketType,
-        ticketDiscount:p.ticketDiscount, ticketFee:p.ticketFee, bookingDate:p.bookingDate }, p, idx, false));
+        ticketDiscount:p.ticketDiscount, ticketFee:p.ticketFee, bookingDate:p.bookingDate, reseller:p.reseller }, p, idx, false));
       (Array.isArray(p.extraTickets)?p.extraTickets:[]).forEach(t=>{
         if(t && (t.seat||"").trim()) items.push(buildHeld(t, p, idx, true));
       });
@@ -3161,7 +3190,7 @@ function renderTickets(){
       if(h.kind==="transfer" && !ticketsShowTransferred) return;
       items.push({ kind:h.kind, idx, p, date:p.date, time:p.time||"", seat:(h.seat||"").trim(),
         grade:h.grade||gradeOf((h.seat||"").trim())||"", ticketType:h.ticketType, ticketDiscount:h.ticketDiscount,
-        bookingDate:h.bookingDate||"", cost:h.cost, note:h.note, ended:true });
+        bookingDate:h.bookingDate||"", reseller:h.reseller||"", cost:h.cost, note:h.note, ended:true });
     });
   });
 
@@ -3195,7 +3224,7 @@ function renderTickets(){
   const cardHtml = it=>{
     const gchip = it.grade ? `<span class="hc-grade" style="background:${gradeFillVar(it.grade)};">${escHtml(it.grade[0])}</span>` : "";
     const typeTxt = it.ticketType ? escHtml(it.ticketType) : (it.ticketDiscount!=null ? "임의 할인" : "정가 미선택");
-    const reseller = resellerOf(it.seat);
+    const reseller = it.reseller || resellerOf(it.seat); // 티켓 예매처 우선(오버라이드), 없으면 좌석 기본
     const extraTag = it.isExtra ? `<span class="hc-extra-tag" title="같은 공연의 추가 좌석">추가</span>` : "";
     const r1 = `<div class="hc-r1">${gchip}<span class="hc-date">${escHtml(perfDateLabel(it.p))}</span><span class="hc-seat">${escHtml(it.seat)}</span>${extraTag}<span class="hc-type">${typeTxt}</span>${reseller ? `<span class="hc-reseller">${escHtml(reseller)}</span>` : ""}</div>`;
     const heldAttr = `data-idx="${it.idx}" data-kind="held" data-extra="${it.isExtra?"1":"0"}"`;
@@ -4805,7 +4834,7 @@ function normalizeHeatArr(arr){
 }
 
 function buildStateSnapshot(){
-  const perfSnap = p=>({seat:p.seat, note:p.note, ticketType:p.ticketType||"", ticketFee:!!p.ticketFee, ticketDiscount:(p.ticketDiscount!=null?p.ticketDiscount:null), ticketExtra:(p.ticketExtra||0), ticketTransferred:!!p.ticketTransferred, ticketHidden:!!p.ticketHidden, bookingDate:(p.bookingDate||""), ticketHistory:(Array.isArray(p.ticketHistory)?p.ticketHistory:[]), extraTickets:(Array.isArray(p.extraTickets)?p.extraTickets:[])});
+  const perfSnap = p=>({seat:p.seat, note:p.note, ticketType:p.ticketType||"", ticketFee:!!p.ticketFee, ticketDiscount:(p.ticketDiscount!=null?p.ticketDiscount:null), ticketExtra:(p.ticketExtra||0), ticketTransferred:!!p.ticketTransferred, ticketHidden:!!p.ticketHidden, bookingDate:(p.bookingDate||""), reseller:(p.reseller||""), ticketHistory:(Array.isArray(p.ticketHistory)?p.ticketHistory:[]), extraTickets:(Array.isArray(p.extraTickets)?p.extraTickets:[])});
   return {
     // v2: sid 키 객체(스케줄 중간에 회차가 추가·삭제돼도 기록이 밀리지 않음), v1: 배열(인덱스 기준, 배포분 호환)
     performances: performanceData.dbVersion >= 2
@@ -4895,8 +4924,9 @@ function applyState(state){
     pp.ticketTransferred = !!s.ticketTransferred;
     pp.ticketHidden = !!s.ticketHidden;
     if(typeof s.bookingDate === "string") pp.bookingDate = s.bookingDate; // 예매일 — 0069
+    if(typeof s.reseller === "string") pp.reseller = s.reseller; // 예매처 오버라이드 — 0072
     pp.ticketHistory = Array.isArray(s.ticketHistory) ? s.ticketHistory.map(normTicketHist) : [];
-    pp.extraTickets = Array.isArray(s.extraTickets) ? s.extraTickets.map(t=>({seat:t.seat||"", ticketType:t.ticketType||"", ticketFee:!!t.ticketFee, ticketDiscount:(t.ticketDiscount!=null?t.ticketDiscount:null), ticketExtra:t.ticketExtra||0, ticketTransferred:!!t.ticketTransferred, bookingDate:t.bookingDate||""})) : [];
+    pp.extraTickets = Array.isArray(s.extraTickets) ? s.extraTickets.map(t=>({seat:t.seat||"", ticketType:t.ticketType||"", ticketFee:!!t.ticketFee, ticketDiscount:(t.ticketDiscount!=null?t.ticketDiscount:null), ticketExtra:t.ticketExtra||0, ticketTransferred:!!t.ticketTransferred, bookingDate:t.bookingDate||"", reseller:t.reseller||""})) : [];
     // 불변식 보정: 맨 위 좌석이 비었는데 추가 티켓이 있으면 첫 추가 티켓을 맨 위로 승격
     if(!(pp.seat && pp.seat.trim()) && pp.extraTickets.length) setTickets(pp, pp.extraTickets);
   };
@@ -5498,7 +5528,7 @@ function renderTicketHistory(){
         if(box){ const f=parseTicketPopover(pop, thIdx); f.seat=(seatInp&&seatInp.value.trim())||h.seat; box.innerHTML = ticketCostSummaryHtml(performanceData.performances[thIdx], f); }
         pop.querySelectorAll(".ticket-option").forEach(opt=>{ const r=opt.querySelector('input[type="radio"]'); opt.classList.toggle("sel", !!(r&&r.checked)); });
       };
-      pop.querySelectorAll(`input[name="tkopt-${thIdx}"], .tk-fee, .tk-extra, .tk-custom-name, .tk-custom-rate`).forEach(inp=>{
+      pop.querySelectorAll(`input[name="tkopt-${thIdx}"], .tk-reseller-sel, .tk-fee, .tk-extra, .tk-custom-name, .tk-custom-rate`).forEach(inp=>{
         inp.addEventListener("input", sync); inp.addEventListener("change", sync);
       });
       // 현재 팝오버 상태를 기록 h에 반영(저장·재렌더 공용)
@@ -5507,6 +5537,7 @@ function renderTicketHistory(){
         h.ticketType=f.ticketType; h.ticketFee=f.ticketFee; h.ticketDiscount=f.ticketDiscount;
         h.ticketExtra=f.ticketExtra; h.ticketTransferred=f.ticketTransferred;
         if(f.bookingDate!=null) h.bookingDate=f.bookingDate;
+        if(f.reseller!=null) h.reseller=f.reseller;
         if(seatInp){ h.seat=(seatInp.value||"").trim(); h.grade=gradeOf(h.seat)||h.grade||""; }
         if(kindSel) h.kind=(kindSel.value==="transfer")?"transfer":"cancel";
         const costInp=pop.querySelector(".tk-hist-cost"); if(costInp) h.cost=Math.max(0, parseInt(String(costInp.value).replace(/[^\d]/g,""),10)||0);
@@ -5570,7 +5601,7 @@ function renderTicketManager(){
         trig = `<button class="tm-ticket-trigger ticket-trigger" data-ti="${ti}">${chip}<span class="tk-icon" aria-hidden="true">&#127903;</span>${dot}</button>`;
       }
     }
-    const price = ticketPriceOf(seat, t.ticketType, t.ticketFee, t.ticketDiscount, t.ticketExtra);
+    const price = ticketPriceOf(seat, t.ticketType, t.ticketFee, t.ticketDiscount, t.ticketExtra, t.reseller);
     return `
       <div class="tm-row${ti===0?' tm-top':''}" data-ti="${ti}">
         <span class="tm-drag" title="길게 눌러 순서 변경">&#8942;&#8942;</span>
@@ -5643,7 +5674,7 @@ function wireTicketManager(bodyEl){
       if(box){ const f = parseTicketPopover(pop, tmIdx); f.seat = (tmTickets[tmEditTi]||{}).seat; box.innerHTML = ticketCostSummaryHtml(performanceData.performances[tmIdx], f); }
       pop.querySelectorAll(".ticket-option").forEach(opt=>{ const r=opt.querySelector('input[type="radio"]'); opt.classList.toggle("sel", !!(r&&r.checked)); });
     };
-    pop.querySelectorAll(`input[name="tkopt-${tmIdx}"], .tk-fee, .tk-extra, .tk-custom-name, .tk-custom-rate`).forEach(inp=>{
+    pop.querySelectorAll(`input[name="tkopt-${tmIdx}"], .tk-reseller-sel, .tk-fee, .tk-extra, .tk-custom-name, .tk-custom-rate`).forEach(inp=>{
       inp.addEventListener("input", tmSync); inp.addEventListener("change", tmSync);
     });
     // 금액·직접입력 칸에서 엔터 → 포커스 해제(모바일 키보드 닫기) — 0066
