@@ -710,6 +710,11 @@
   .tk-life-cost-row{ margin-bottom:2px; }
   .tk-life-cost-group{display:inline-flex; align-items:center; gap:4px; color:var(--ink-dim); white-space:nowrap;}
   .tk-life-cost-group input{width:80px; padding:4px 6px; font-size:12px;}
+  /* 팝오버 예매일 필드(관리 창) — 0071 */
+  .tk-booking-row{ display:flex; align-items:center; gap:8px; margin-top:6px; font-size:12px; color:var(--ink-dim); }
+  .tk-booking-row > span{ flex:0 0 auto; }
+  .tk-booking-date{ flex:1; min-width:0; padding:5px 8px; font-size:12px; font-family:inherit; box-sizing:border-box;
+    background:var(--panel); border:1px solid var(--line); color:var(--ink); border-radius:6px; }
   /* 취소료 계산 — 0069 */
   .tk-cc-open{
     margin-left:auto; flex:0 0 auto; width:24px; height:22px; padding:0;
@@ -846,6 +851,19 @@
   .th-del{ font-size:10px; padding:2px 8px; flex-shrink:0; border-color:#a85a44; color:#e08a73; }
   .th-l2{ margin-top:4px; display:flex; align-items:center; gap:8px; }
   .th-note2{ flex:1; min-width:0; padding-left:2px; font-size:11px; color:var(--ink-dim); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  /* 이력 기록 편집 — 티켓 알약 버튼 + 팝오버 내 좌석·기록 필드 — 0071 */
+  .th-edit-open{ background:none; border:none; padding:0; cursor:pointer; display:inline-flex; }
+  .th-edit-open:hover{ filter:brightness(1.15); }
+  .tk-hist-seat-row{ display:flex; align-items:center; gap:8px; margin-bottom:6px; font-size:12px; color:var(--ink-dim); }
+  .tk-hist-seat-row > span{ flex:0 0 auto; }
+  .tk-hist-seat{ flex:1; min-width:0; padding:5px 8px; font-size:12px; font-family:inherit; box-sizing:border-box;
+    background:var(--panel); border:1px solid var(--line); color:var(--ink); border-radius:6px; }
+  .tk-hist-rec{ display:flex; flex-direction:column; gap:6px; margin-top:8px; padding-top:8px; border-top:1px solid var(--line); }
+  .tk-hist-rec-line{ display:flex; align-items:center; gap:8px; font-size:12px; color:var(--ink-dim); }
+  .tk-hist-kind{ flex:0 0 auto; padding:5px 7px; font:inherit; font-size:12px; background:var(--panel); border:1px solid var(--line); color:var(--ink); border-radius:6px; }
+  .tk-hist-cost-group{ display:inline-flex; align-items:center; gap:4px; white-space:nowrap; }
+  .tk-hist-cost{ width:80px; padding:5px 7px; font-size:12px; font-family:inherit; box-sizing:border-box; background:var(--panel); border:1px solid var(--line); color:var(--ink); border-radius:6px; }
+  .tk-hist-note{ width:100%; box-sizing:border-box; padding:5px 8px; font-size:12px; font-family:inherit; background:var(--panel); border:1px solid var(--line); color:var(--ink); border-radius:6px; }
   .th-note-inline{font-size:10px; color:var(--ink-dim); font-weight:400;}
   .price-cell{
     white-space:nowrap; text-align:right;

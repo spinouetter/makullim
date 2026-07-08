@@ -237,6 +237,7 @@ let ticketsSortMode = "deadline"; // Tickets 탭 정렬: "deadline"|"booking"|"p
 let ticketsShowCancelled = false; // Tickets: 취소한 공연도 표시 — 0070
 let ticketsShowTransferred = false; // Tickets: 양도한 공연도 표시 — 0070
 let thIdx = -1;              // 티켓 이력 창의 공연 인덱스(-1=닫힘) — 0064
+let thEditHi = -1;          // 이력 창에서 편집 중인 기록 인덱스(-1=없음) — 0071
 let tmIdx = -1;              // 티켓 관리 모달의 공연 인덱스
 let tmTickets = [];          // 티켓 관리 모달의 작업 목록(복사본)
 let tmEditTi = -1;           // 모달에서 팝오버가 열린 티켓 인덱스(-1=없음)
@@ -310,7 +311,7 @@ function ticketPriceOf(seatId, type, fee, customDiscount, extra){
 function topTicketObj(p){
   return { seat:p.seat||"", ticketType:p.ticketType||"", ticketFee:!!p.ticketFee,
     ticketDiscount:(p.ticketDiscount!=null?p.ticketDiscount:null), ticketExtra:p.ticketExtra||0,
-    ticketTransferred:!!p.ticketTransferred };
+    ticketTransferred:!!p.ticketTransferred, bookingDate:p.bookingDate||"" };
 }
 function hasTopTicket(p){ return !!(p.seat && p.seat.trim()); }
 // 모든 티켓을 순서대로: [맨위, ...extra]. 맨 위가 없으면 빈 배열(invariant).
@@ -324,14 +325,15 @@ function setTickets(p, list){
   const clean = (list||[]).filter(t=>t && t.seat && String(t.seat).trim())
     .map(t=>({ seat:String(t.seat).trim(), ticketType:t.ticketType||"", ticketFee:!!t.ticketFee,
       ticketDiscount:(t.ticketDiscount!=null?t.ticketDiscount:null), ticketExtra:t.ticketExtra||0,
-      ticketTransferred:!!t.ticketTransferred }));
+      ticketTransferred:!!t.ticketTransferred, bookingDate:t.bookingDate||"" }));
   if(clean.length===0){
     p.seat=""; p.ticketType=""; p.ticketFee=false; p.ticketDiscount=null; p.ticketExtra=0; p.ticketTransferred=false;
-    p.extraTickets=[]; return;
+    p.bookingDate=""; p.extraTickets=[]; return;
   }
   const t0=clean[0];
   p.seat=t0.seat; p.ticketType=t0.ticketType; p.ticketFee=t0.ticketFee;
   p.ticketDiscount=t0.ticketDiscount; p.ticketExtra=t0.ticketExtra; p.ticketTransferred=t0.ticketTransferred;
+  p.bookingDate=t0.bookingDate||"";
   p.extraTickets=clean.slice(1);
 }
 
@@ -376,6 +378,8 @@ function parseTicketPopover(scope, idx){
   const transferCb = scope.querySelector(`.tk-transfer[data-idx="${idx}"]`);
   const extraInp = scope.querySelector(`.tk-extra[data-idx="${idx}"]`);
   const out = { ticketFee: feeCb ? feeCb.checked : false, ticketTransferred: transferCb ? transferCb.checked : false };
+  const bookInp = scope.querySelector(`.tk-booking-date[data-idx="${idx}"]`);
+  if(bookInp) out.bookingDate = bookInp.value || ""; // 예매일 필드가 있을 때만(관리 창) — 없으면 기존 값 유지
   // 기타 금액은 음수도 허용(양도받을 때 자체 할인 등) — 맨 앞의 '-'만 부호로 인정
   const extraRaw = (extraInp && extraInp.value || "").trim();
   const extraNeg = /^-/.test(extraRaw);
@@ -453,6 +457,8 @@ function buildTicketPopover(idx, grade, tk, opts){
         ${opts.lifecycle && devFeatOn ? `<button class="tk-cc-open${perf.bookingDate ? " active" : ""}" data-idx="${idx}" title="취소료 계산${perf.bookingDate ? ` · 예매일 ${escHtml(perf.bookingDate)}` : ""}" aria-label="취소료 계산">🕐</button>` : ""}
         ${opts.showAddTicket ? `<button class="tk-add-multi" data-idx="${idx}" title="현재 티켓 저장 후 좌석 추가">＋ 좌석 추가</button>` : ""}
       </div>
+      ${opts.historyEdit ? `<label class="tk-hist-seat-row"><span>좌석</span>
+        <input type="text" class="tk-hist-seat" data-idx="${idx}" value="${escHtml((tk.seat||"").trim())}" placeholder="층-열-번"></label>` : ""}
       <div class="ticket-popover-title">
         <span class="tk-title-grade" style="background:${gradeFillVar(gname)};">${escHtml(gname[0])}</span>
         <span class="tk-title-label">${escHtml(gname)}석 티켓 선택</span>
@@ -474,12 +480,25 @@ function buildTicketPopover(idx, grade, tk, opts){
         </label>
       </div>
       <div class="tk-cost" data-idx="${idx}">${ticketCostSummaryHtml(perf, tk)}</div>
+      ${opts.bookingField ? `<label class="tk-booking-row"><span>예매일</span>
+        <input type="date" class="tk-booking-date" data-idx="${idx}" value="${escHtml(tk.bookingDate||"")}"></label>` : ""}
       <div class="ticket-fee-row">
         <label class="tk-fee-label"><input type="checkbox" class="tk-fee" data-idx="${idx}" ${ticketFee?'checked':''}> 수수료</label>
         <label class="tk-fee-label"><input type="checkbox" class="tk-transfer" data-idx="${idx}" ${tk.ticketTransferred?'checked':''}> 양도받음</label>
         <span class="tk-extra-group">기타 <input type="text" inputmode="numeric" class="tk-extra" data-idx="${idx}" value="${tk.ticketExtra ? tk.ticketExtra : ''}" placeholder="할인 (-)">원</span>
       </div>
       ${opts.lifecycle ? buildTicketLifeRow(idx, perf) : ""}
+      ${opts.historyEdit ? `<div class="tk-hist-rec">
+        <div class="tk-hist-rec-line">
+          <select class="tk-hist-kind" data-idx="${idx}">
+            <option value="cancel" ${tk.kind!=="transfer"?"selected":""}>취소</option>
+            <option value="transfer" ${tk.kind==="transfer"?"selected":""}>양도</option>
+          </select>
+          <span class="tk-hist-cost-group">${tk.kind==="transfer"?"자체할인":"취소수수료"}
+            <input type="text" inputmode="numeric" class="tk-hist-cost" data-idx="${idx}" value="${tk.cost?tk.cost:''}" placeholder="0">원</span>
+        </div>
+        <input type="text" class="tk-hist-note" data-idx="${idx}" value="${escHtml(tk.note||"")}" placeholder="${tk.kind==="transfer"?"양수인":"취소 사유"}">
+      </div>` : ""}
       <div class="ticket-popover-actions tk-main-actions">
         <button class="tk-clear" data-idx="${idx}">삭제</button>
         <button class="tk-cancel" data-idx="${idx}">닫기</button>
@@ -4877,7 +4896,7 @@ function applyState(state){
     pp.ticketHidden = !!s.ticketHidden;
     if(typeof s.bookingDate === "string") pp.bookingDate = s.bookingDate; // 예매일 — 0069
     pp.ticketHistory = Array.isArray(s.ticketHistory) ? s.ticketHistory.map(normTicketHist) : [];
-    pp.extraTickets = Array.isArray(s.extraTickets) ? s.extraTickets.map(t=>({seat:t.seat||"", ticketType:t.ticketType||"", ticketFee:!!t.ticketFee, ticketDiscount:(t.ticketDiscount!=null?t.ticketDiscount:null), ticketExtra:t.ticketExtra||0, ticketTransferred:!!t.ticketTransferred})) : [];
+    pp.extraTickets = Array.isArray(s.extraTickets) ? s.extraTickets.map(t=>({seat:t.seat||"", ticketType:t.ticketType||"", ticketFee:!!t.ticketFee, ticketDiscount:(t.ticketDiscount!=null?t.ticketDiscount:null), ticketExtra:t.ticketExtra||0, ticketTransferred:!!t.ticketTransferred, bookingDate:t.bookingDate||""})) : [];
     // 불변식 보정: 맨 위 좌석이 비었는데 추가 티켓이 있으면 첫 추가 티켓을 맨 위로 승격
     if(!(pp.seat && pp.seat.trim()) && pp.extraTickets.length) setTickets(pp, pp.extraTickets);
   };
@@ -5396,7 +5415,7 @@ function tmCommit(){
    행: 좌석번호·등급 / [취소|양도 배지] / 비용 / 내용 / 삭제 */
 let thWired = false;
 function openTicketHistory(idx){
-  thIdx = idx;
+  thIdx = idx; thEditHi = -1;
   const ov = document.getElementById("ticketHistoryOverlay");
   ov.style.display = "flex";
   if(!thWired){
@@ -5417,7 +5436,8 @@ function renderTicketHistory(){
   const bodyEl = document.getElementById("thBody");
   const hist = p.ticketHistory || [];
   // 2줄 행(0068): [좌석 · 티켓UI(등급칩·이름1자·할인율) · 취소/양도 배지 · 비용] / [메모 · 삭제]
-  bodyEl.innerHTML = hist.length ? hist.map((h,hi)=>{
+  // 티켓(알약)을 누르면 관리 창과 동일한 티켓 팝오버(오버레이)로 편집 — 0071
+  const rowsHTML = hist.length ? hist.map((h,hi)=>{
     const isTr = h.kind==='transfer';
     const seatVal = (h.seat||"").trim();
     const seatOk = seatVal && isValidSeat(seatVal);
@@ -5430,7 +5450,7 @@ function renderTicketHistory(){
             <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>
           </button>
         </span>
-        ${ticketPillHtml(h)}
+        <button class="th-edit-open" data-hi="${hi}" title="눌러서 수정">${ticketPillHtml(h)}</button>
         <span class="th-kind ${isTr?'th-transfer':'th-cancel'}">${isTr?'양도':'취소'}</span>
         <span class="th-cost" title="${isTr?'자체 할인':'취소 수수료'}">${h.cost ? formatKRW(h.cost) : '—'}</span>
       </div>
@@ -5440,22 +5460,71 @@ function renderTicketHistory(){
       </div>
     </div>`;
   }).join("") : `<p style="color:var(--ink-dim); font-size:13px; margin:0;">기록이 없습니다.</p>`;
-  bodyEl.querySelectorAll(".th-del").forEach(btn=>{
-    btn.addEventListener("click", ()=>{
-      p.ticketHistory.splice(+btn.dataset.hi, 1);
-      renderTicketHistory();
-      renderSchedule(); // 이력 수가 티켓 셀 칩·팝오버 버튼에 반영됨
-      saveState();
-    });
-  });
-  // 좌석표 보기(0068): 그 이력의 좌석을 좌석맵 오버레이로 표시
+
+  // 편집 오버레이: 관리 창과 동일한 티켓 팝오버 + 예매일·좌석·취소/양도·수수료·메모
+  let overlay = "";
+  if(thEditHi>=0 && hist[thEditHi]){
+    const h = hist[thEditHi];
+    const gname = gradeOf((h.seat||"").trim()) || h.grade || "";
+    const gradeObj = performanceData.grades.find(g=>g.name===gname) || performanceData.grades[0] || null;
+    if(gradeObj) overlay = `<div class="tm-pop-overlay th-pop-overlay">${buildTicketPopover(thIdx, gradeObj, {...h}, {bookingField:true, historyEdit:true})}</div>`;
+  }
+  bodyEl.innerHTML = rowsHTML + overlay;
+
+  const delHist = hi=>{ p.ticketHistory.splice(hi, 1); thEditHi=-1; renderTicketHistory(); renderSchedule(); saveState(); };
+  bodyEl.querySelectorAll(".th-del").forEach(btn=> btn.addEventListener("click", ()=> delHist(+btn.dataset.hi)));
+  bodyEl.querySelectorAll(".th-edit-open").forEach(btn=>
+    btn.addEventListener("click", ()=>{ thEditHi = +btn.dataset.hi; renderTicketHistory(); }));
   bodyEl.querySelectorAll(".th-eye").forEach(btn=>{
-    btn.addEventListener("click", ()=>{
-      if(btn.disabled) return;
+    btn.addEventListener("click", ()=>{ if(btn.disabled) return;
       const seat = ((p.ticketHistory[+btn.dataset.hi]||{}).seat||"").trim();
-      if(seat) showSeatOverlay([seat], seat, "선택 좌석");
-    });
+      if(seat) showSeatOverlay([seat], seat, "선택 좌석"); });
   });
+
+  // 편집 팝오버 배선
+  const popOv = bodyEl.querySelector(".th-pop-overlay");
+  if(popOv && thEditHi>=0 && hist[thEditHi]){
+    const h = hist[thEditHi];
+    popOv.addEventListener("click", e=>{ if(e.target===popOv){ thEditHi=-1; renderTicketHistory(); } });
+    const pop = popOv.querySelector(".ticket-popover");
+    if(pop){
+      pop.addEventListener("click", e=>e.stopPropagation());
+      pop.querySelectorAll(".tk-custom-name, .tk-custom-rate").forEach(inp=>
+        inp.addEventListener("focus", ()=>{ const r=pop.querySelector(`input[name="tkopt-${thIdx}"][value="__custom__"]`); if(r) r.checked=true; }));
+      const seatInp = pop.querySelector(".tk-hist-seat");
+      const kindSel = pop.querySelector(".tk-hist-kind");
+      const sync = ()=>{
+        const box = pop.querySelector(`.tk-cost[data-idx="${thIdx}"]`);
+        if(box){ const f=parseTicketPopover(pop, thIdx); f.seat=(seatInp&&seatInp.value.trim())||h.seat; box.innerHTML = ticketCostSummaryHtml(performanceData.performances[thIdx], f); }
+        pop.querySelectorAll(".ticket-option").forEach(opt=>{ const r=opt.querySelector('input[type="radio"]'); opt.classList.toggle("sel", !!(r&&r.checked)); });
+      };
+      pop.querySelectorAll(`input[name="tkopt-${thIdx}"], .tk-fee, .tk-extra, .tk-custom-name, .tk-custom-rate`).forEach(inp=>{
+        inp.addEventListener("input", sync); inp.addEventListener("change", sync);
+      });
+      // 현재 팝오버 상태를 기록 h에 반영(저장·재렌더 공용)
+      const commit = ()=>{
+        const f = parseTicketPopover(pop, thIdx);
+        h.ticketType=f.ticketType; h.ticketFee=f.ticketFee; h.ticketDiscount=f.ticketDiscount;
+        h.ticketExtra=f.ticketExtra; h.ticketTransferred=f.ticketTransferred;
+        if(f.bookingDate!=null) h.bookingDate=f.bookingDate;
+        if(seatInp){ h.seat=(seatInp.value||"").trim(); h.grade=gradeOf(h.seat)||h.grade||""; }
+        if(kindSel) h.kind=(kindSel.value==="transfer")?"transfer":"cancel";
+        const costInp=pop.querySelector(".tk-hist-cost"); if(costInp) h.cost=Math.max(0, parseInt(String(costInp.value).replace(/[^\d]/g,""),10)||0);
+        const noteInp=pop.querySelector(".tk-hist-note"); if(noteInp) h.note=(noteInp.value||"").trim();
+      };
+      // 좌석·종류 변경 → 현재 편집 반영 후 재렌더(등급·라벨 갱신)
+      if(seatInp){
+        seatInp.addEventListener("keydown", e=>{ if(e.key==="Enter"){ e.preventDefault(); seatInp.blur(); } });
+        seatInp.addEventListener("change", ()=>{ commit(); renderTicketHistory(); });
+      }
+      if(kindSel) kindSel.addEventListener("change", ()=>{ commit(); renderTicketHistory(); });
+      pop.querySelectorAll(".tk-extra, .tk-custom-name, .tk-custom-rate, .tk-hist-note, .tk-hist-cost").forEach(inp=>
+        inp.addEventListener("keydown", e=>{ if(e.key==="Enter"){ e.preventDefault(); inp.blur(); } }));
+      const sv=pop.querySelector(".tk-save"); if(sv) sv.addEventListener("click", e=>{ e.stopPropagation(); commit(); thEditHi=-1; renderTicketHistory(); renderSchedule(); saveState(); });
+      const cl=pop.querySelector(".tk-clear"); if(cl) cl.addEventListener("click", e=>{ e.stopPropagation(); delHist(thEditHi); });
+      const cx=pop.querySelector(".tk-cancel"); if(cx) cx.addEventListener("click", e=>{ e.stopPropagation(); thEditHi=-1; renderTicketHistory(); });
+    }
+  }
 }
 
 function openTicketManager(idx){
@@ -5520,7 +5589,7 @@ function renderTicketManager(){
   if(tmEditTi>=0 && tmTickets[tmEditTi]){
     const t = tmTickets[tmEditTi]; const gname = gradeOf((t.seat||"").trim());
     const grade = gname ? performanceData.grades.find(g=>g.name===gname) : null;
-    if(grade) popOverlay = `<div class="tm-pop-overlay">${buildTicketPopover(tmIdx, grade, t)}</div>`;
+    if(grade) popOverlay = `<div class="tm-pop-overlay">${buildTicketPopover(tmIdx, grade, t, {bookingField: devFeatOn})}</div>`;
   }
   bodyEl.innerHTML = rowsHTML + `<div class="tm-addrow"><button id="tmAddBtn" class="tm-add-btn">+ 티켓 추가</button></div>` + popOverlay;
   wireTicketManager(bodyEl);
