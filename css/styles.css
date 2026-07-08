@@ -743,6 +743,8 @@
   .tk-booking-row > span{ flex:0 0 auto; }
   .tk-booking-date{ flex:1; min-width:0; padding:5px 8px; font-size:12px; font-family:inherit; box-sizing:border-box;
     background:var(--panel); border:1px solid var(--line); color:var(--ink); border-radius:6px; }
+  /* 좌석줄의 커스텀 달력 아이콘(.tk-booking-lbl)과 중복되는 브라우저 기본 달력 아이콘은 숨김(칸 전체를 눌러도 선택기가 열림) — 0073 */
+  .tk-hist-seat-row .tk-booking-date::-webkit-calendar-picker-indicator{ display:none; }
   /* 취소료 계산 — 0069 */
   .tk-cc-open{
     margin-left:auto; flex:0 0 auto; width:24px; height:22px; padding:0;
@@ -882,9 +884,13 @@
   .tk-hist-seat-row{ display:flex; align-items:center; gap:6px; margin-bottom:6px; font-size:12px; color:var(--ink-dim); }
   .tk-hist-seat-row > span{ flex:0 0 auto; }
   .tk-hist-seat-row .tk-seat-eye{ margin-left:-2px; }
-  /* 좌석 입력은 내용 폭만큼만(고정폭) — 눈 아이콘이 바로 옆에 붙도록 flex:1 대신 좁게 — 0073 */
-  .tk-hist-seat{ flex:0 0 auto; width:100px; padding:5px 8px; font-size:12px; font-family:inherit; box-sizing:border-box;
+  /* 좌석 입력은 내용 폭만큼만(고정폭, 최장 좌석번호 7자 기준) — 눈 아이콘이 바로 옆에 붙고, 예매일이 같은 줄에 들어갈 공간 확보 — 0073 */
+  .tk-hist-seat{ flex:0 0 auto; width:68px; padding:5px 6px; font-size:12px; font-family:inherit; box-sizing:border-box;
     background:var(--panel); border:1px solid var(--line); color:var(--ink); border-radius:6px; }
+  /* 예매일을 좌석·눈 옆에 같은 줄로 붙임(달력 아이콘 라벨 — 좁은 줄에서 날짜 입력 폭 확보) — 0073 */
+  /* 달력 아이콘부터 오른쪽 끝까지를 한 덩어리로 밀어 눈 아이콘과 간격을 벌림(margin-left:auto), 날짜 입력은 고정폭으로 축소 */
+  .tk-hist-seat-row .tk-booking-lbl{ display:inline-flex; align-items:center; color:var(--gold); flex-shrink:0; margin-left:auto; }
+  .tk-hist-seat-row .tk-booking-date{ flex:0 0 auto; width:104px; margin-top:0; }
   .tk-hist-rec{ display:flex; flex-direction:column; gap:6px; margin-top:8px; padding-top:8px; border-top:1px solid var(--line); }
   .tk-hist-rec-line{ display:flex; align-items:center; gap:8px; font-size:12px; color:var(--ink-dim); }
   .tk-hist-kind{ flex:0 0 auto; padding:5px 7px; font:inherit; font-size:12px; background:var(--panel); border:1px solid var(--line); color:var(--ink); border-radius:6px; }

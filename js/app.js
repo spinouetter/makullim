@@ -465,13 +465,19 @@ function buildTicketPopover(idx, grade, tk, opts){
       <div class="ticket-popover-head">
         <span class="popover-date">${perfDateLabel(perf)}</span>
         ${opts.lifecycle && devFeatOn ? `<button class="tk-cc-open${perf.bookingDate ? " active" : ""}" data-idx="${idx}" title="취소료 계산${perf.bookingDate ? ` · 예매일 ${escHtml(perf.bookingDate)}` : ""}" aria-label="취소료 계산">🕐</button>` : ""}
-        ${opts.showAddTicket ? `<button class="tk-add-multi" data-idx="${idx}" title="현재 티켓 저장 후 좌석 추가">＋ 좌석 추가</button>` : ""}
+        ${opts.showAddTicket ? `<button class="tk-add-multi" data-idx="${idx}" title="현재 티켓 저장 후 중복 티켓 관리로 이동">중복 티켓 관리</button>` : ""}
       </div>
       ${(opts.seatField || opts.historyEdit) ? (()=>{ const sv=(tk.seat||"").trim(); const ok=sv&&isValidSeat(sv); return `<div class="tk-hist-seat-row"><span>좌석</span>
         <input type="text" class="tk-hist-seat" data-idx="${idx}" value="${escHtml(sv)}" placeholder="층-열-번">
         <button class="tk-seat-eye tk-leye" data-idx="${idx}" ${ok?'':'disabled'} title="${ok?'좌석표에서 보기':'등록되지 않은 좌석'}">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>
-        </button></div>`; })() : ""}
+        </button>
+        ${opts.bookingField ? `<span class="tk-booking-lbl" title="예매일">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/></svg>
+        </span>
+        <input type="date" class="tk-booking-date" data-idx="${idx}" value="${escHtml(tk.bookingDate||"")}">` : ""}
+      </div>`; })() : (opts.bookingField ? `<label class="tk-booking-row"><span>예매일</span>
+        <input type="date" class="tk-booking-date" data-idx="${idx}" value="${escHtml(tk.bookingDate||"")}"></label>` : "")}
       <div class="ticket-popover-title">
         <span class="tk-title-grade" style="background:${gradeFillVar(gname)};">${escHtml(gname[0])}</span>
         <span class="tk-title-label">${escHtml(gname)}석 티켓 선택</span>
@@ -493,8 +499,6 @@ function buildTicketPopover(idx, grade, tk, opts){
         </label>
       </div>
       <div class="tk-cost" data-idx="${idx}">${ticketCostSummaryHtml(perf, tk)}</div>
-      ${opts.bookingField ? `<label class="tk-booking-row"><span>예매일</span>
-        <input type="date" class="tk-booking-date" data-idx="${idx}" value="${escHtml(tk.bookingDate||"")}"></label>` : ""}
       <div class="ticket-fee-row">
         <label class="tk-fee-label"><input type="checkbox" class="tk-fee" data-idx="${idx}" ${ticketFee?'checked':''}> 수수료</label>
         <label class="tk-fee-label"><input type="checkbox" class="tk-transfer" data-idx="${idx}" ${tk.ticketTransferred?'checked':''}> 양도받음</label>
