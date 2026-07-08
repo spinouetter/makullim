@@ -165,6 +165,7 @@ async function loadData(){
 function activateTab(page, push){
   const btn = document.querySelector('.tab-btn[data-page="'+page+'"]');
   if(!btn || btn.style.display === "none") return;   // 숨긴 탭(Finale off 등)은 무시
+  if(page !== "tickets") ticketsEditIdx = -1;         // 다른 탭으로 이동하면 Tickets 직접 편집 팝오버는 닫힘 — 0074
   const wasActive = btn.classList.contains("active");
   document.querySelectorAll(".tab-btn").forEach(b=>b.classList.remove("active"));
   document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
@@ -237,6 +238,7 @@ let tkFeeAutoArm = null;     // 빈 티켓으로 팝오버를 연 idx — 첫 �
 let ticketsSortMode = "deadline"; // Tickets 탭 정렬: "deadline"|"booking"|"perf" — 0070
 let ticketsShowCancelled = false; // Tickets: 취소한 공연도 표시 — 0070
 let ticketsShowTransferred = false; // Tickets: 양도한 공연도 표시 — 0070
+let ticketsEditIdx = -1;     // Tickets 탭에서 직접 편집 중인 공연 인덱스(맨 위 티켓, -1=닫힘) — 0074
 let thIdx = -1;              // 티켓 이력 창의 공연 인덱스(-1=닫힘) — 0064
 let thEditHi = -1;          // 이력 창에서 편집 중인 기록 인덱스(-1=없음) — 0071
 let tmIdx = -1;              // 티켓 관리 모달의 공연 인덱스
@@ -3205,11 +3207,11 @@ function renderTickets(){
         if(t && (t.seat||"").trim()) items.push(buildHeld(t, p, idx, true));
       });
     }
-    (p.ticketHistory||[]).forEach(hRaw=>{
+    (p.ticketHistory||[]).forEach((hRaw, hi)=>{
       const h=normTicketHist(hRaw);
       if(h.kind==="cancel" && !ticketsShowCancelled) return;
       if(h.kind==="transfer" && !ticketsShowTransferred) return;
-      items.push({ kind:h.kind, idx, p, date:p.date, time:p.time||"", seat:(h.seat||"").trim(),
+      items.push({ kind:h.kind, idx, p, hi, date:p.date, time:p.time||"", seat:(h.seat||"").trim(),
         grade:h.grade||gradeOf((h.seat||"").trim())||"", ticketType:h.ticketType, ticketDiscount:h.ticketDiscount,
         bookingDate:h.bookingDate||"", reseller:h.reseller||"", cost:h.cost, note:h.note, ended:true });
     });
@@ -3248,12 +3250,12 @@ function renderTickets(){
     const reseller = it.reseller || resellerOf(it.seat); // 티켓 예매처 우선(오버라이드), 없으면 좌석 기본
     const extraTag = it.isExtra ? `<span class="hc-extra-tag" title="같은 공연의 추가 좌석">추가</span>` : "";
     const r1 = `<div class="hc-r1">${gchip}<span class="hc-date">${escHtml(perfDateLabel(it.p))}</span><span class="hc-seat">${escHtml(it.seat)}</span>${extraTag}<span class="hc-type">${typeTxt}</span>${reseller ? `<span class="hc-reseller">${escHtml(reseller)}</span>` : ""}</div>`;
-    const heldAttr = `data-idx="${it.idx}" data-kind="held" data-extra="${it.isExtra?"1":"0"}"`;
+    const heldAttr = `data-idx="${it.idx}" data-kind="held" data-extra="${it.isExtra?"1":"0"}" data-seat="${escHtml(it.seat)}"`;
     if(it.kind==="cancel")
-      return `<button class="hist-card u-done" data-idx="${it.idx}" data-kind="cancel">${r1}
+      return `<button class="hist-card u-done" data-idx="${it.idx}" data-hi="${it.hi}" data-kind="cancel">${r1}
         <div class="hc-r2b"><span class="hc-badge cancel">취소</span><span class="hc-note">수수료 ${formatKRW(it.cost||0)}${it.note?` · ${escHtml(it.note)}`:""}</span></div></button>`;
     if(it.kind==="transfer")
-      return `<button class="hist-card u-done" data-idx="${it.idx}" data-kind="transfer">${r1}
+      return `<button class="hist-card u-done" data-idx="${it.idx}" data-hi="${it.hi}" data-kind="transfer">${r1}
         <div class="hc-r2b"><span class="hc-badge transfer">양도</span><span class="hc-note">${it.note?escHtml(it.note):"양수인 미상"}${it.cost?` · 자체할인 ${formatKRW(it.cost)}`:""}</span></div></button>`;
     if(it.ended)
       return `<button class="hist-card u-done" ${heldAttr}>${r1}
@@ -3282,29 +3284,82 @@ function renderTickets(){
     html += cardHtml(it);
   });
   html += `</div>`;
-  body.innerHTML = html;
 
-  // 카드 클릭 → 스케줄로 이동. 맨 위 티켓=팝오버(예매일 없으면 계산 패널), 추가 티켓=다중 티켓 관리창, 이력=행 이동만.
+  // 맨 위 티켓 직접 편집 팝오버(탭 이동 없이 Tickets 안에서) — 0074
+  let popOverlay = "";
+  if(ticketsEditIdx>=0){
+    const p = performanceData.performances[ticketsEditIdx];
+    const gname = p ? gradeOf((p.seat||"").trim()) : "";
+    const grade = gname ? performanceData.grades.find(g=>g.name===gname) : null;
+    if(grade) popOverlay = `<div class="tm-pop-overlay tix-pop-overlay">${buildTicketPopover(ticketsEditIdx, grade, topTicketObj(p), { bookingField:true, showAddTicket: !multiTicketMode })}</div>`;
+  }
+  body.innerHTML = html + popOverlay;
+
+  // 카드 클릭 → 탭 이동 없이 바로 편집. 맨 위 티켓=이 탭 안에서 팝오버, 추가 티켓=다중 티켓 관리창(해당 티켓 바로 편집),
+  // 취소/양도 이력=이력 창(해당 기록 바로 편집) — 0074
   body.querySelectorAll(".hist-card").forEach(btn=>{
     btn.addEventListener("click", ()=>{
       const idx = +btn.dataset.idx;
-      activateTab("schedule", true);
       if(btn.dataset.kind === "held"){
         if(btn.dataset.extra === "1"){
-          renderSchedule();
-          openTicketManager(idx); // 추가 좌석은 다중 티켓 관리창에서 확인/편집
+          openTicketManager(idx); // 다중 티켓 관리창(전역 오버레이, 탭 이동 불필요)
+          const ti = tmTickets.findIndex(t=>(t.seat||"").trim()===btn.dataset.seat);
+          if(ti>=0){ tmEditTi = ti; renderTicketManager(); }
           return;
         }
-        ticketPopoverIdx = idx; tkLifeForm = null;
-        tkCancelCalc = btn.classList.contains("u-none") ? idx : null;
-        renderSchedule();
+        ticketsEditIdx = idx;
+        renderTickets();
+        return;
       }
-      requestAnimationFrame(()=>{
-        const row = document.querySelectorAll("#scheduleBody tr")[idx];
-        if(row) row.scrollIntoView({ block:"center" });
-      });
+      // 취소·양도 이력: 이력 창을 열고 해당 기록을 바로 편집
+      openTicketHistory(idx);
+      thEditHi = +btn.dataset.hi;
+      renderTicketHistory();
     });
   });
+  wireTicketsEditPopover(body);
+}
+
+// 맨 위 티켓 직접 편집 팝오버 배선(Tickets 탭 전용, Manager 팝오버와 동일한 최소 구성) — 0074
+function wireTicketsEditPopover(bodyEl){
+  const popOv = bodyEl.querySelector(".tix-pop-overlay");
+  if(!popOv) return;
+  popOv.addEventListener("click", e=>{ if(e.target===popOv){ ticketsEditIdx=-1; renderTickets(); } });
+  const pop = popOv.querySelector(".ticket-popover");
+  if(!pop) return;
+  const idx = ticketsEditIdx;
+  const p = performanceData.performances[idx];
+  pop.addEventListener("click", e=>e.stopPropagation());
+  pop.querySelectorAll(".tk-custom-name, .tk-custom-rate").forEach(inp=>{
+    inp.addEventListener("focus", ()=>{ const r=pop.querySelector(`input[name="tkopt-${idx}"][value="__custom__"]`); if(r) r.checked=true; });
+  });
+  const sync = ()=>{
+    const box = pop.querySelector(`.tk-cost[data-idx="${idx}"]`);
+    if(box){ const f = parseTicketPopover(pop, idx); box.innerHTML = ticketCostSummaryHtml(p, f); }
+    pop.querySelectorAll(".ticket-option").forEach(opt=>{ const r=opt.querySelector('input[type="radio"]'); opt.classList.toggle("sel", !!(r&&r.checked)); });
+  };
+  pop.querySelectorAll(`input[name="tkopt-${idx}"], .tk-reseller-sel, .tk-fee, .tk-extra, .tk-custom-name, .tk-custom-rate`).forEach(inp=>{
+    inp.addEventListener("input", sync); inp.addEventListener("change", sync);
+  });
+  pop.querySelectorAll(".tk-extra, .tk-custom-name, .tk-custom-rate").forEach(inp=>{
+    inp.addEventListener("keydown", e=>{ if(e.key==="Enter"){ e.preventDefault(); inp.blur(); } });
+  });
+  const commit = ()=>{
+    const f = parseTicketPopover(pop, idx);
+    p.ticketType=f.ticketType; p.ticketDiscount=f.ticketDiscount; p.ticketFee=f.ticketFee;
+    p.ticketExtra=f.ticketExtra; p.ticketTransferred=f.ticketTransferred;
+    if(f.reseller!=null) p.reseller=f.reseller;
+    if(f.bookingDate!=null) p.bookingDate=f.bookingDate;
+  };
+  const refresh = ()=>{ renderTickets(); renderSchedule(); renderStats(); renderSeatMap(true); saveState(); };
+  const sv=pop.querySelector(".tk-save"); if(sv) sv.addEventListener("click", e=>{ e.stopPropagation();
+    commit(); ticketsEditIdx=-1; refresh(); });
+  const am=pop.querySelector(".tk-add-multi"); if(am) am.addEventListener("click", e=>{ e.stopPropagation();
+    commit(); ticketsEditIdx=-1; refresh(); openTicketManager(idx); });
+  const cc=pop.querySelector(".tk-cancel"); if(cc) cc.addEventListener("click", e=>{ e.stopPropagation(); ticketsEditIdx=-1; renderTickets(); });
+  const cl=pop.querySelector(".tk-clear"); if(cl) cl.addEventListener("click", e=>{ e.stopPropagation();
+    p.ticketType=""; p.ticketFee=false; p.ticketDiscount=null; p.ticketExtra=0; p.ticketTransferred=false; p.bookingDate="";
+    ticketsEditIdx=-1; refresh(); });
 }
 
 function gradeFillVar(gname){
