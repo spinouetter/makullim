@@ -646,6 +646,10 @@
   }
   .tk-title-label{font-size:12px; font-weight:700; color:var(--ink);}
   .tk-title-reseller{margin-left:auto; font-size:10.5px; color:var(--ink-dim);}
+  /* 예매처 드롭다운(티켓별 지정) — 0072 */
+  .tk-reseller-sel{ margin-left:auto; flex:0 1 auto; min-width:0; max-width:150px; font:inherit; font-size:10.5px;
+    padding:3px 6px; background:var(--panel); border:1px solid var(--line); color:var(--ink-dim); border-radius:6px; cursor:pointer; }
+  .tk-reseller-sel:focus{ outline:none; border-color:var(--gold-dim); color:var(--ink); }
   /* 옵션 목록: 4.5장만 보이고 넘으면 스크롤(더 있음을 알리고 모바일에서 컨트롤과 겹치지 않게) — 0066 */
   .ticket-options{display:flex; flex-direction:column; gap:1px; flex:0 1 auto; min-height:0; max-height:min(108px, calc(var(--app-height, 100vh) / 3)); overflow-y:auto;}
   .ticket-option{
