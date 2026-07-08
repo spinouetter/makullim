@@ -10,7 +10,7 @@
 <!-- __SHOW__ --><!-- 배포 시 GitHub Action이 slug 스텁(<slug>/index.html)을 만들며 위 마커를
      <script>window.MAKULLIM_SHOW_ID="<id>";window.MAKULLIM_BUILD="<커밋SHA>";</script> 로 치환한다.
      루트는 빌드 버전만 주입. BUILD는 데이터(JSON) 요청의 캐시 버스터(?v=) — 로컬 개발(미주입)은 no-store로 항상 최신. -->
-<link rel="stylesheet" href="/css/styles.css?v=118">
+<link rel="stylesheet" href="/css/styles.css?v=127">
 </head>
 <body>
 
@@ -24,10 +24,11 @@
 
 <nav>
   <button class="tab-btn active" data-page="schedule">Schedule</button>
+  <button class="tab-btn" data-page="tickets">Tickets</button>
   <button class="tab-btn" data-page="stats">Statistics</button>
   <button class="tab-btn" data-page="seatmap">Seat map</button>
   <button class="tab-btn" data-page="finale">Finale</button>
-  <button class="tab-btn" data-page="settings">Settings</button>
+  <button class="tab-btn" data-page="settings" aria-label="Settings"><span class="tab-label">Settings</span><span class="tab-icon" aria-hidden="true">⚙</span></button>
 </nav>
 </div>
 
@@ -51,6 +52,11 @@
         <tbody id="scheduleBody"></tbody>
       </table>
     </div>
+  </section>
+
+  <section class="page" id="page-tickets">
+    <div class="tickets-controls" id="ticketsControls"></div>
+    <div class="tickets-scroll-area" id="ticketsBody"></div>
   </section>
 
   <section class="page" id="page-stats">
@@ -245,9 +251,12 @@
       <div class="col-toggle-group" id="roleColToggles"></div>
     </div>
     <div class="stat-section">
-      <h2>기능 표시</h2>
+      <h2>개발 중인 기능 보기</h2>
+      <p style="color:var(--ink-dim); font-size:13px; margin:-2px 0 12px;">아직 다듬는 중인 기능들입니다. 필요할 때 켜서 써보세요.</p>
       <label class="opt-row"><input type="checkbox" id="optFinaleView"><span><b>Finale 보기</b> — 공연 후 트위터에 올릴 <b>관극 인증 이미지</b> 탭을 표시</span></label>
       <p style="color:var(--ink-dim); font-size:13px; margin:6px 0 0;">켜면 상단에 <b>Finale</b> 탭이 생겨 배역별 배우·관극 좌석을 한 장의 이미지(SVG/PNG/JPG/PDF)로 저장할 수 있습니다.</p>
+      <label class="opt-row" style="margin-top:14px;"><input type="checkbox" id="optDevFeat"><span><b>취소 수수료 · Tickets 탭</b> — 티켓 취소료 계산·취소 데드라인·예매 티켓 목록을 표시</span></label>
+      <p style="color:var(--ink-dim); font-size:13px; margin:6px 0 0;">아직 다듬는 중인 기능입니다. 켜면 티켓 팝오버에 <b>시계 아이콘</b>(예매일 입력·취소료 계산)이 생기고, 상단에 <b>Tickets</b> 탭이 나타나며, 티켓 취소 시 계산된 <b>취소 수수료가 자동 입력</b>됩니다.</p>
     </div>
     <div class="stat-section">
       <h2>좌석 보기</h2>
@@ -437,7 +446,7 @@
 </div>
 
 <script src="/js/config.js?v=2"></script>
-<script src="/js/app.js?v=174"></script>
+<script src="/js/app.js?v=182"></script>
 <script src="/js/dropbox.js?v=6"></script>
 <script src="/js/finale.js?v=45"></script>
 </body>
