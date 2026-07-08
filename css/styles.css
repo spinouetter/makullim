@@ -471,7 +471,7 @@
   }
   .seat-input::placeholder, .note-input::placeholder{ color:var(--ink-dim); opacity:0.4; } /* 프리셋 더 연하게 */
   /* 양식이 틀리거나 등록되지 않은 좌석: 입력한 글자 아래에만 빨간 물결표 */
-  .seat-input.invalid-seat{
+  .seat-input.invalid-seat, .tk-hist-seat.invalid-seat{
     text-decoration:underline;
     text-decoration-style:wavy;
     text-decoration-color:#e0594a;
@@ -613,18 +613,35 @@
   .ticket-count-badge{ position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); min-width:13px; height:13px; padding:0 2px; border-radius:7px; background:var(--gold); color:#3a2c0c; font-size:9px; font-weight:800; display:flex; align-items:center; justify-content:center; opacity:0.9; }
   .ticket-count-corner{ position:absolute; top:-5px; right:-5px; bottom:auto; left:auto; z-index:3; min-width:16px; height:16px; padding:0 3px; border-radius:8px; border:1px solid var(--gold-dim); background:var(--gold); color:#3a2c0c; font-size:10px; font-weight:800; line-height:1; cursor:pointer; display:flex; align-items:center; justify-content:center; }
 
-  /* 티켓 관리 모달 */
-  .tm-row{ display:flex; align-items:center; gap:6px; padding:6px 4px; border-bottom:1px solid var(--line); touch-action:none; -webkit-user-select:none; user-select:none; }
+  /* 티켓 목록 행 공통 뼈대(flex만) — 관리 창(tm)·이력 창(th) 동일 스타일 (0073).
+     여백·경계선은 각 창 래퍼(.tm-row/.th-row)가 담당(이력은 메모 2번째 줄이 있어 분리). */
+  .tk-lrow{ display:flex; align-items:center; gap:6px; font-size:12px; }
+  /* 좌석 칸: 가장 긴 좌석번호(7자, 예 1-10-10)에 맞춘 폭 — 짧은 번호 뒤 빈 공간을 줄여 눈 아이콘과의 간격을 좁힘 — 0073 */
+  .tk-lseat{ flex-shrink:0; width:50px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .tk-leye{ background:none; border:none; padding:2px 3px; display:inline-flex; align-items:center; line-height:0; cursor:pointer; color:var(--gold); flex-shrink:0; }
+  .tk-leye:hover{ color:var(--gold); filter:brightness(1.2); }
+  .tk-leye:disabled{ color:var(--ink-dim); opacity:0.4; cursor:default; }
+  .tk-lpill{ flex-shrink:0; width:80px; justify-content:flex-start; }
+  .tk-linfo{ margin-left:auto; flex-shrink:0; text-align:right; font-size:12px; font-variant-numeric:tabular-nums; white-space:nowrap; }
+
+  /* 티켓 관리 모달 — 공통 행(.tk-lrow) + 드래그/순서변경 전용 */
+  .tm-row{ padding:7px 4px; border-bottom:1px solid var(--line); touch-action:none; -webkit-user-select:none; user-select:none; }
   /* 행 안에서는 드래그 텍스트 선택을 막아 순서변경 제스처가 선택으로 바뀌지 않게(타이핑·캐럿은 유지) */
   .tm-row *, .tm-seat-input{ -webkit-user-select:none; user-select:none; }
   .tm-row.tm-top{ background:color-mix(in srgb, var(--gold) 8%, transparent); border-radius:6px; }
-  .tm-drag{ color:var(--ink-dim); font-size:17px; cursor:grab; flex-shrink:0; user-select:none; padding:0 4px; touch-action:none; }
+  .tm-drag{ color:var(--ink-dim); font-size:17px; cursor:grab; flex-shrink:0; user-select:none; padding:0 2px; touch-action:none; }
   .tm-row.tm-dragging{ touch-action:none; }
-  .tm-price{ flex:1; text-align:right; font-size:12px; color:var(--ink); }
+  .tm-price{ color:var(--ink); }
+  /* 좌석 버튼: 텍스트처럼 보이되 눌러서 티켓 입력 팝오버를 연다(좌석은 팝오버 안에서 입력) — 0073 */
+  .tm-seat-btn{ background:none; border:none; padding:0; margin:0; font:inherit; text-align:left; color:var(--ink); cursor:pointer; }
+  .tm-seat-btn.tm-seat-empty{ color:var(--ink-dim); font-weight:400; }
+  .tm-seat-btn.invalid-seat{ color:#e0594a; text-decoration:underline wavy; text-decoration-skip-ink:none; text-underline-offset:2px; }
   .tm-row.tm-dragging{ opacity:0.6; background:color-mix(in srgb, var(--gold) 22%, transparent); box-shadow:0 2px 8px rgba(0,0,0,0.35); border-radius:6px; cursor:grabbing; }
   .tm-row.tm-drop{ border-top:2px solid var(--gold); }
   .tm-row.tm-drop-end{ border-bottom:2px solid var(--gold); }
   .tm-trig{ flex-shrink:0; }
+  /* 관리 창 티켓 알약도 이력 창 알약(.tk-lpill)과 같은 고정 폭 → 두 창의 열 정렬 일치 */
+  .tm-ticket-trigger{ width:80px; box-sizing:border-box; justify-content:flex-start; }
   .tm-addrow{ margin-top:12px; }
   .tm-add-btn{ width:100%; padding:8px; border:1px dashed var(--line); background:var(--panel2); color:var(--gold); border-radius:8px; cursor:pointer; font-weight:700; }
   /* 모달 티켓 팝오버: 관리 창 위에 떠서 표시 */
@@ -840,34 +857,33 @@
   }
   .tk-hist-chip:hover{color:var(--gold); border-color:var(--gold);}
   /* 이력 창 행(0068): 2줄 — [좌석 · 티켓알약 · 배지 · 비용] / [메모 · 삭제] */
-  .th-row{ padding:7px 2px; border-bottom:1px solid var(--line); }
-  .th-row:last-child{border-bottom:none;}
-  .th-l1{ display:flex; align-items:center; gap:4px; font-size:12px; }
-  /* 좌석 + 눈: 좌석번호는 원래대로 왼쪽 정렬. 좌석칸에 고정 최소폭을 줘서
-     번호 길이가 달라도 눈(과 뒤따르는 알약·배지) x좌표가 행마다 일치(정렬) — 0068 */
-  .th-seatwrap{ display:inline-flex; align-items:center; gap:2px; flex-shrink:0; }
-  .th-seat{ font-weight:700; white-space:nowrap; min-width:56px; }
-  .th-eye{ background:none; border:none; padding:2px 2px; display:inline-flex; align-items:center; line-height:0; cursor:pointer; color:var(--gold); }
-  .th-eye:hover{ color:var(--gold); filter:brightness(1.2); }
-  .th-eye:disabled{ color:var(--ink-dim); opacity:0.4; cursor:default; }
-  /* 알약 고정 폭 → 뒤따르는 양도/취소 배지 x좌표가 행마다 일치(정렬) */
-  .th-pill{ flex-shrink:0; width:80px; justify-content:flex-start; }
+  /* 티켓 이력 목록 — 관리 창과 동일한 공통 행(.tk-lrow) + 메모 2번째 줄 (0073) */
+  .th-row{ padding:7px 4px; border-bottom:1px solid var(--line); }
+  .th-row:last-child{ border-bottom:none; }
   .th-kind{
     flex-shrink:0; padding:0 5px; font-size:10px; font-weight:700; line-height:1.6;
     border-radius:4px; border:1px solid currentColor;
   }
   .th-cancel{color:#e0594a;}
   .th-transfer{color:#5b8fd6;}
-  .th-cost{ margin-left:auto; flex-shrink:0; min-width:52px; text-align:right; color:var(--gold); font-variant-numeric:tabular-nums; white-space:nowrap; }
-  .th-del{ font-size:10px; padding:2px 8px; flex-shrink:0; border-color:#a85a44; color:#e08a73; }
-  .th-l2{ margin-top:4px; display:flex; align-items:center; gap:8px; }
-  .th-note2{ flex:1; min-width:0; padding-left:2px; font-size:11px; color:var(--ink-dim); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  /* 가격: 원래가격(취소선) + 취소수수료/자체할인. 두 값 모두 고정폭 열로 두어 총폭이 행마다 일정 →
+     블록 전체(margin-left:auto)가 항상 같은 자리에 오고, 그 안의 취소선 값도 자기 열에서 오른쪽 정렬(행마다 위치 일치) — 0073 */
+  .th-cost{ display:inline-flex; align-items:baseline; gap:5px; }
+  .th-orig{ display:inline-block; width:56px; flex:0 0 auto; text-align:right; white-space:nowrap;
+    color:var(--ink-dim); text-decoration:line-through; }
+  .th-fee{ display:inline-block; width:56px; flex:0 0 auto; text-align:right; white-space:nowrap;
+    color:var(--gold); font-weight:700; }
+  /* 메모: 티켓 알약 아래로 내려 별도 줄에 표시 — 0073 */
+  .th-sub{ margin-top:3px; padding-left:96px; font-size:11px; color:var(--ink-dim); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .th-del{ font-size:11px; line-height:1; padding:3px 7px; flex-shrink:0; border-color:#a85a44; color:#e08a73; }
   /* 이력 기록 편집 — 티켓 알약 버튼 + 팝오버 내 좌석·기록 필드 — 0071 */
-  .th-edit-open{ background:none; border:none; padding:0; cursor:pointer; display:inline-flex; }
+  .th-edit-open{ background:none; border:none; padding:0; cursor:pointer; display:inline-flex; flex-shrink:0; }
   .th-edit-open:hover{ filter:brightness(1.15); }
-  .tk-hist-seat-row{ display:flex; align-items:center; gap:8px; margin-bottom:6px; font-size:12px; color:var(--ink-dim); }
+  .tk-hist-seat-row{ display:flex; align-items:center; gap:6px; margin-bottom:6px; font-size:12px; color:var(--ink-dim); }
   .tk-hist-seat-row > span{ flex:0 0 auto; }
-  .tk-hist-seat{ flex:1; min-width:0; padding:5px 8px; font-size:12px; font-family:inherit; box-sizing:border-box;
+  .tk-hist-seat-row .tk-seat-eye{ margin-left:-2px; }
+  /* 좌석 입력은 내용 폭만큼만(고정폭) — 눈 아이콘이 바로 옆에 붙도록 flex:1 대신 좁게 — 0073 */
+  .tk-hist-seat{ flex:0 0 auto; width:100px; padding:5px 8px; font-size:12px; font-family:inherit; box-sizing:border-box;
     background:var(--panel); border:1px solid var(--line); color:var(--ink); border-radius:6px; }
   .tk-hist-rec{ display:flex; flex-direction:column; gap:6px; margin-top:8px; padding-top:8px; border-top:1px solid var(--line); }
   .tk-hist-rec-line{ display:flex; align-items:center; gap:8px; font-size:12px; color:var(--ink-dim); }

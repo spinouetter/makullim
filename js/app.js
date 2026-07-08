@@ -467,8 +467,11 @@ function buildTicketPopover(idx, grade, tk, opts){
         ${opts.lifecycle && devFeatOn ? `<button class="tk-cc-open${perf.bookingDate ? " active" : ""}" data-idx="${idx}" title="취소료 계산${perf.bookingDate ? ` · 예매일 ${escHtml(perf.bookingDate)}` : ""}" aria-label="취소료 계산">🕐</button>` : ""}
         ${opts.showAddTicket ? `<button class="tk-add-multi" data-idx="${idx}" title="현재 티켓 저장 후 좌석 추가">＋ 좌석 추가</button>` : ""}
       </div>
-      ${opts.historyEdit ? `<label class="tk-hist-seat-row"><span>좌석</span>
-        <input type="text" class="tk-hist-seat" data-idx="${idx}" value="${escHtml((tk.seat||"").trim())}" placeholder="층-열-번"></label>` : ""}
+      ${(opts.seatField || opts.historyEdit) ? (()=>{ const sv=(tk.seat||"").trim(); const ok=sv&&isValidSeat(sv); return `<div class="tk-hist-seat-row"><span>좌석</span>
+        <input type="text" class="tk-hist-seat" data-idx="${idx}" value="${escHtml(sv)}" placeholder="층-열-번">
+        <button class="tk-seat-eye tk-leye" data-idx="${idx}" ${ok?'':'disabled'} title="${ok?'좌석표에서 보기':'등록되지 않은 좌석'}">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>
+        </button></div>`; })() : ""}
       <div class="ticket-popover-title">
         <span class="tk-title-grade" style="background:${gradeFillVar(gname)};">${escHtml(gname[0])}</span>
         <span class="tk-title-label">${escHtml(gname)}석 티켓 선택</span>
@@ -548,7 +551,21 @@ function ticketPillHtml(t){
   const nameChar = t.ticketType ? `<span class="tk-name">${escHtml(t.ticketType[0])}</span>` : `<span class="tk-name-blank" aria-hidden="true"></span>`;
   const dot = t.ticketTransferred ? `<span class="tk-transfer-dot" title="양도받음"></span>` : "";
   const discSpan = (disc!=null) ? `<span class="tk-disc">${disc}%${dot}</span>` : "";
-  return `<span class="ticket-trigger th-pill">${chip}${nameChar}${discSpan}</span>`;
+  return `<span class="ticket-trigger tk-lpill">${chip}${nameChar}${discSpan}</span>`;
+}
+
+// 이력 기록의 원래 티켓 가격(취소선 표시용). 계산 불가하면 null — 0073
+function histOrigPrice(h){
+  const seat = (h.seat||"").trim();
+  const disc = (h.ticketDiscount!=null) ? h.ticketDiscount : null;
+  let price = ticketPriceOf(seat, h.ticketType, !!h.ticketFee, disc, h.ticketExtra||0, h.reseller);
+  if(price==null && disc!=null){
+    const gname = gradeOf(seat);
+    const grade = gname ? performanceData.grades.find(g=>g.name===gname) : null;
+    const face = grade ? gradeFacePrice(grade) : null;
+    if(face!=null) price = Math.round(face*(1-disc/100)) + (h.ticketFee?resellerBaseFee(seat,h.reseller):0) + (h.ticketExtra||0);
+  }
+  return price;
 }
 
 // 티켓 가격 구성 요약(티켓가·수수료·자체할인·총금액) — 요청 0066.
@@ -5471,23 +5488,26 @@ function renderTicketHistory(){
     const isTr = h.kind==='transfer';
     const seatVal = (h.seat||"").trim();
     const seatOk = seatVal && isValidSeat(seatVal);
+    const orig = histOrigPrice(h);
+    const feeTxt = h.cost ? formatKRW(h.cost) : '—';
+    const costHtml = (orig!=null)
+      ? `<span class="th-orig">${formatKRW(orig)}</span><span class="th-fee">${feeTxt}</span>`
+      : `<span class="th-fee">${feeTxt}</span>`;
+    const noteRow = (h.note && h.note.trim())
+      ? `<div class="th-sub" title="${escHtml(h.note)}">${escHtml(h.note)}</div>` : "";
     return `
     <div class="th-row">
-      <div class="th-l1">
-        <span class="th-seatwrap">
-          <span class="th-seat">${escHtml(h.seat)||'—'}</span>
-          <button class="th-eye" data-hi="${hi}" ${seatOk?'':'disabled'} title="${seatOk?'좌석표에서 보기':'등록되지 않은 좌석'}">
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>
-          </button>
-        </span>
+      <div class="th-main tk-lrow">
+        <span class="tk-lseat" title="${escHtml(h.seat||'')}">${escHtml(h.seat)||'—'}</span>
+        <button class="th-eye tk-leye" data-hi="${hi}" ${seatOk?'':'disabled'} title="${seatOk?'좌석표에서 보기':'등록되지 않은 좌석'}">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>
+        </button>
         <button class="th-edit-open" data-hi="${hi}" title="눌러서 수정">${ticketPillHtml(h)}</button>
         <span class="th-kind ${isTr?'th-transfer':'th-cancel'}">${isTr?'양도':'취소'}</span>
-        <span class="th-cost" title="${isTr?'자체 할인':'취소 수수료'}">${h.cost ? formatKRW(h.cost) : '—'}</span>
+        <span class="th-cost tk-linfo" title="${isTr?'원래가격 → 자체 할인':'원래가격 → 취소 수수료'}">${costHtml}</span>
+        <button class="th-del" data-hi="${hi}" title="이 기록 삭제">&#10005;</button>
       </div>
-      <div class="th-l2">
-        <span class="th-note2" title="${escHtml(h.note||'')}">${escHtml(h.note||'')}</span>
-        <button class="th-del" data-hi="${hi}" title="이 기록 삭제">삭제</button>
-      </div>
+      ${noteRow}
     </div>`;
   }).join("") : `<p style="color:var(--ink-dim); font-size:13px; margin:0;">기록이 없습니다.</p>`;
 
@@ -5544,10 +5564,20 @@ function renderTicketHistory(){
         const noteInp=pop.querySelector(".tk-hist-note"); if(noteInp) h.note=(noteInp.value||"").trim();
       };
       // 좌석·종류 변경 → 현재 편집 반영 후 재렌더(등급·라벨 갱신)
+      const seatEye = pop.querySelector(".tk-seat-eye");
       if(seatInp){
         seatInp.addEventListener("keydown", e=>{ if(e.key==="Enter"){ e.preventDefault(); seatInp.blur(); } });
+        // 잘못된 좌석: 빨간 물결 밑줄 + 눈 비활성화
+        seatInp.addEventListener("input", ()=>{
+          const v = seatInp.value.trim(); const ok = v!=="" && isValidSeat(v);
+          seatInp.classList.toggle("invalid-seat", v!=="" && !ok);
+          if(seatEye) seatEye.disabled = !ok;
+        });
         seatInp.addEventListener("change", ()=>{ commit(); renderTicketHistory(); });
       }
+      // 좌석 오른쪽 눈: 입력된 좌석을 좌석표에서 보기 — 0073
+      if(seatEye) seatEye.addEventListener("click", e=>{ e.preventDefault(); e.stopPropagation(); if(seatEye.disabled) return;
+        const v=(seatInp?seatInp.value:"").trim(); if(v && isValidSeat(v)) showSeatOverlay([v], v, "선택 좌석"); });
       if(kindSel) kindSel.addEventListener("change", ()=>{ commit(); renderTicketHistory(); });
       pop.querySelectorAll(".tk-extra, .tk-custom-name, .tk-custom-rate, .tk-hist-note, .tk-hist-cost").forEach(inp=>
         inp.addEventListener("keydown", e=>{ if(e.key==="Enter"){ e.preventDefault(); inp.blur(); } }));
@@ -5603,61 +5633,40 @@ function renderTicketManager(){
     }
     const price = ticketPriceOf(seat, t.ticketType, t.ticketFee, t.ticketDiscount, t.ticketExtra, t.reseller);
     return `
-      <div class="tm-row${ti===0?' tm-top':''}" data-ti="${ti}">
+      <div class="tm-row tk-lrow${ti===0?' tm-top':''}" data-ti="${ti}">
         <span class="tm-drag" title="길게 눌러 순서 변경">&#8942;&#8942;</span>
-        <span class="seat-input-wrap" style="position:relative; display:inline-flex;">
-          <input class="seat-input tm-seat-input${invalid?' invalid-seat':''}" type="text" value="${escHtml(seat)}" placeholder="층-열-번" data-ti="${ti}" readonly>
-        </span>
-        <button class="tm-eye-btn seat-eye-btn" data-ti="${ti}" ${(seat&&!invalid)?'':'disabled'} title="좌석표에서 보기" style="background:none;border:none;padding:2px 3px;display:flex;align-items:center;line-height:0;color:${(seat&&!invalid)?'var(--gold)':'var(--ink-dim)'};">
+        <button class="tm-seat-btn tk-lseat${invalid?' invalid-seat':''}${seat?'':' tm-seat-empty'}" data-ti="${ti}" title="눌러서 티켓 입력">${seat?escHtml(seat):'좌석 입력'}</button>
+        <button class="tm-eye-btn tk-leye seat-eye-btn" data-ti="${ti}" ${(seat&&!invalid)?'':'disabled'} title="좌석표에서 보기">
           <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>
         </button>
         <span class="tm-trig">${trig}</span>
-        <span class="tm-price">${price!=null ? formatKRW(price) : '—'}</span>
+        <span class="tm-price tk-linfo">${price!=null ? formatKRW(price) : '—'}</span>
       </div>`;
   }).join("");
-  // 편집 중인 티켓 팝오버는 관리 창 위에 오버레이로 표시
+  // 편집 중인 티켓 팝오버는 관리 창 위에 오버레이로 표시. 좌석 입력을 팝오버 안에 두므로
+  // 등급이 아직 없어도(빈 티켓) 기본 등급으로 팝오버를 열어 좌석을 입력하게 한다 — 0073
   let popOverlay = "";
   if(tmEditTi>=0 && tmTickets[tmEditTi]){
     const t = tmTickets[tmEditTi]; const gname = gradeOf((t.seat||"").trim());
-    const grade = gname ? performanceData.grades.find(g=>g.name===gname) : null;
-    if(grade) popOverlay = `<div class="tm-pop-overlay">${buildTicketPopover(tmIdx, grade, t, {bookingField: devFeatOn})}</div>`;
+    const grade = (gname ? performanceData.grades.find(g=>g.name===gname) : null) || performanceData.grades[0] || null;
+    if(grade) popOverlay = `<div class="tm-pop-overlay">${buildTicketPopover(tmIdx, grade, t, {bookingField: devFeatOn, seatField:true})}</div>`;
   }
   bodyEl.innerHTML = rowsHTML + `<div class="tm-addrow"><button id="tmAddBtn" class="tm-add-btn">+ 티켓 추가</button></div>` + popOverlay;
   wireTicketManager(bodyEl);
 }
 function wireTicketManager(bodyEl){
-  // 좌석 입력
-  bodyEl.querySelectorAll(".tm-seat-input").forEach(inp=>{
-    inp.addEventListener("input", ()=>{ inp.classList.toggle("invalid-seat", inp.value.trim()!=="" && !isValidSeat(inp.value)); });
-    inp.addEventListener("change", ()=>{
-      const ti = +inp.dataset.ti; const val = inp.value.trim();
-      if(val === ""){
-        // 좌석을 비우면 그 티켓 삭제(맨 위면 다음 티켓이 맨 위로 승격)
-        tmTickets.splice(ti,1);
-        if(tmTickets.length===0){ closeTicketManager(); return; }
-        tmEditTi=-1; tmCommit(); renderTicketManager(); return;
-      }
-      if(tmTickets.some((x,j)=> j!==ti && (x.seat||"").trim()===val)){
-        alert("이미 같은 좌석의 티켓이 있습니다."); inp.value = tmTickets[ti].seat||""; return;
-      }
-      tmTickets[ti].seat = val; tmCommit(); renderTicketManager();
-    });
-    inp.addEventListener("keydown", e=>{ if(e.key==="Enter"){ e.preventDefault(); inp.blur(); } });
-    // 떠나면 다시 readonly로(다음에 누를 때 커서/키보드가 안 뜨도록)
-    inp.addEventListener("blur", ()=>{ inp.setAttribute("readonly",""); });
-  });
   // 눈: 모든 좌석 표시, 내가 누른 행의 좌석=이중 테두리(나머지 단일)
   bodyEl.querySelectorAll(".tm-eye-btn").forEach(btn=>{
-    btn.addEventListener("click", e=>{ e.preventDefault(); if(lpSuppressClick){return;} if(btn.disabled) return;
+    btn.addEventListener("click", e=>{ e.preventDefault(); e.stopPropagation(); if(lpSuppressClick){return;} if(btn.disabled) return;
       const ti=+btn.dataset.ti;
       const seats=tmTickets.map(t=>(t.seat||"").trim()).filter(Boolean);
       const sel=(tmTickets[ti].seat||"").trim();
       if(seats.length) showSeatOverlay(seats, sel||seats[0], "선택 좌석"); });
   });
-  // 티켓 트리거 → 팝오버 열기
-  bodyEl.querySelectorAll(".tm-ticket-trigger").forEach(btn=>{
-    btn.addEventListener("click", e=>{ e.stopPropagation();
-      const ti=+btn.dataset.ti; tmEditTi = (tmEditTi===ti? -1 : ti); renderTicketManager(); });
+  // 좌석 버튼·티켓 트리거 → 티켓 입력 팝오버 열기(좌석 입력은 팝오버 안에) — 0073
+  bodyEl.querySelectorAll(".tm-ticket-trigger, .tm-seat-btn").forEach(btn=>{
+    btn.addEventListener("click", e=>{ e.stopPropagation(); if(lpSuppressClick) return;
+      const ti=+btn.dataset.ti; tmEditTi = ti; renderTicketManager(); });
   });
   // 팝오버(오버레이로 관리 창 위에 표시)
   const popOv = bodyEl.querySelector(".tm-pop-overlay");
@@ -5681,7 +5690,37 @@ function wireTicketManager(bodyEl){
     pop.querySelectorAll(".tk-extra, .tk-custom-name, .tk-custom-rate").forEach(inp=>{
       inp.addEventListener("keydown", e=>{ if(e.key==="Enter"){ e.preventDefault(); inp.blur(); } });
     });
+    // 좌석 입력(팝오버 안) — 값이 바뀌면 등급·티켓 목록·가격이 좌석을 따르도록 재렌더 — 0073
+    const seatInp = pop.querySelector(".tk-hist-seat");
+    // 좌석 중복이면 되돌리고 알림. 유효하면 반영(빈 좌석은 저장 시 정리). 반환: 반영 성공 여부
+    const applyTmSeat = (val, showAlert)=>{
+      val = (val||"").trim();
+      if(val && tmTickets.some((x,j)=> j!==tmEditTi && (x.seat||"").trim()===val)){
+        if(showAlert) alert("이미 같은 좌석의 티켓이 있습니다.");
+        return false;
+      }
+      tmTickets[tmEditTi].seat = val; return true;
+    };
+    const seatEye = pop.querySelector(".tk-seat-eye");
+    if(seatInp){
+      seatInp.addEventListener("keydown", e=>{ if(e.key==="Enter"){ e.preventDefault(); seatInp.blur(); } });
+      seatInp.addEventListener("input", ()=>{
+        const v = seatInp.value.trim(); const ok = v!=="" && isValidSeat(v);
+        seatInp.classList.toggle("invalid-seat", v!=="" && !ok);
+        if(seatEye) seatEye.disabled = !ok;
+      });
+      seatInp.addEventListener("change", ()=>{
+        if(!applyTmSeat(seatInp.value, true)){ seatInp.value = tmTickets[tmEditTi].seat||""; return; }
+        // 좌석 외 현재 선택(티켓·수수료·예매처 등)도 함께 반영해 재렌더 시 유지 — 0073
+        const f = parseTicketPopover(pop, tmIdx); Object.assign(tmTickets[tmEditTi], f);
+        renderTicketManager(); // 등급·티켓 목록·제목·가격 갱신(팝오버 유지)
+      });
+    }
+    // 좌석 오른쪽 눈: 입력된 좌석을 좌석표에서 보기 — 0073
+    if(seatEye) seatEye.addEventListener("click", e=>{ e.preventDefault(); e.stopPropagation(); if(seatEye.disabled) return;
+      const v=(seatInp?seatInp.value:"").trim(); if(v && isValidSeat(v)) showSeatOverlay([v], v, "선택 좌석"); });
     const sv=pop.querySelector(".tk-save"); if(sv) sv.addEventListener("click", e=>{ e.stopPropagation();
+      if(seatInp && !applyTmSeat(seatInp.value, true)) return; // 중복 좌석이면 저장 막음
       const f = parseTicketPopover(pop, tmIdx);
       Object.assign(tmTickets[tmEditTi], f);
       tmEditTi=-1; tmCommit(); renderTicketManager(); });
@@ -5691,10 +5730,10 @@ function wireTicketManager(bodyEl){
       if(tmTickets.length===0){ closeTicketManager(); return; }
       tmCommit(); renderTicketManager(); });
   }
-  // 추가
+  // 추가: 빈 티켓을 넣고 곧바로 티켓 입력 팝오버를 연다(좌석부터 입력) — 0073
   const add = bodyEl.querySelector("#tmAddBtn");
-  if(add) add.addEventListener("click", ()=>{ tmTickets.push(blankTicket()); tmEditTi=-1; renderTicketManager();
-    const inputs = bodyEl.querySelectorAll(".tm-seat-input"); const last=inputs[inputs.length-1]; if(last){ last.removeAttribute("readonly"); last.focus(); } });
+  if(add) add.addEventListener("click", ()=>{ tmTickets.push(blankTicket()); tmEditTi = tmTickets.length-1; renderTicketManager();
+    const si = bodyEl.querySelector(".tm-pop-overlay .tk-hist-seat"); if(si){ try{ si.focus(); }catch(_){}} });
   // 순서 변경: 조금이라도 끌거나(>8px) 길게 누르면(0.3s) 이동 모드. 짧게 누르면 그대로 클릭/입력.
   //  주의: 포인터 캡처는 '드래그 시작 시(lpActivateDrag)'에만 건다. pointerdown에서 캡처하면
   //        그 클릭의 click 이벤트가 자식(티켓·눈·입력) 대신 캡처한 행으로 재타게팅되어
@@ -5707,9 +5746,6 @@ function wireTicketManager(bodyEl){
       lpFromTi = +row.dataset.ti; lpStartY = e.clientY; lpStartX = e.clientX; lpToTi=-1;
       lpActive = false; lpPending = true; lpRow = row; lpPid = e.pointerId;
       clearTimeout(lpTimer);
-      // 입력칸은 기본 포커스를 막아둔다(롱프레스=이동 전용). 짧은 탭으로 끝나면 lpEnd에서 포커스 부여.
-      lpDownInput = e.target.closest(".tm-seat-input") || null;
-      if(lpDownInput) e.preventDefault();
       // 가만히 길게 눌러도 이동 모드 진입(움직임 없이)
       lpTimer = setTimeout(()=>{ lpActivateDrag(); }, 300);
     });
@@ -5778,7 +5814,6 @@ function lpEnd(e){
   const row = lpRow; lpRow = null;
   try{ if(row && lpPid!=null && row.hasPointerCapture && row.hasPointerCapture(lpPid)) row.releasePointerCapture(lpPid); }catch(_){}
   lpPid = null;
-  const downInput = lpDownInput; lpDownInput = null;
   if(lpFromTi<0){ clearTimeout(lpTimer); return; }
   clearTimeout(lpTimer);
   const wasActive = lpActive;
@@ -5796,10 +5831,8 @@ function lpEnd(e){
       document.querySelectorAll("#tmBody .tm-row").forEach(r=>r.classList.remove("tm-dragging","tm-drop","tm-drop-end"));
     }
     setTimeout(()=>{ lpSuppressClick=false; }, 0);
-  } else if(downInput){
-    // 짧은 탭이면 입력 모드로: readonly 해제 후 포커스(이때만 커서/키보드). 캐럿은 끝으로.
-    try{ downInput.removeAttribute("readonly"); downInput.focus(); const n=downInput.value.length; downInput.setSelectionRange&&downInput.setSelectionRange(n,n); }catch(_){}
   }
+  // 짧은 탭(비드래그)은 좌석 버튼·티켓 트리거의 click 핸들러가 팝오버를 연다 — 0073
 }
 
 document.getElementById("seatOverlayClose").addEventListener("click", ()=>{
