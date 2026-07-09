@@ -4249,7 +4249,7 @@ function showSeatDetail(seatId){
     <div style="margin-top:14px; font-size:12px; color:var(--ink-dim); text-transform:uppercase; letter-spacing:0.5px;">이 좌석에서 본 공연</div>
     <div style="overflow-x:auto; margin-top:8px;">
       <table class="seat-perf-table">
-        <thead><tr><th>날짜</th><th>시간</th><th>메모</th>${roles.map(r=>`<th>${r}</th>`).join("")}</tr></thead>
+        <thead><tr><th>날짜</th><th>시간</th><th>메모</th>${roles.map(r=>`<th>${escHtml(scheduleRoleLabel(r))}</th>`).join("")}</tr></thead>
         <tbody>${perfRows}</tbody>
       </table>
     </div>
@@ -4454,7 +4454,7 @@ function buildComboBody(rows, rolesSelected, isCollapsed){
     }
   }
   const fin = isShowFinished();   // 막 내린 공연 → 종료·남음·예매 열 숨김
-  const head = `<tr>${rolesSelected.map(r=>`<th>${escHtml(r)}</th>`).join("")}<th>전체</th>${fin ? "" : `<th>종료</th><th>남음</th>`}<th>관극</th>${fin ? "" : `<th>예매</th>`}</tr>`;
+  const head = `<tr>${rolesSelected.map(r=>`<th>${escHtml(scheduleRoleLabel(r))}</th>`).join("")}<th>전체</th>${fin ? "" : `<th>종료</th><th>남음</th>`}<th>관극</th>${fin ? "" : `<th>예매</th>`}</tr>`;
   const body = rows.map((row,idx)=>{
     const roleCells = rolesSelected.map((_,col)=>{
       if(skip[idx][col]) return "";
@@ -6193,7 +6193,7 @@ function setupScheduleOptions(){
   const roleBox = document.getElementById("roleColToggles");
   if(roleBox){
     roleBox.innerHTML = orderedScheduleRoles().map(role=>
-      `<button type="button" class="floor-toggle-btn col-toggle" data-col="${escHtml(role)}">${escHtml(scheduleRoleLabel(role))}</button>`
+      `<button type="button" class="floor-toggle-btn col-toggle" data-col="${escHtml(role)}">${escHtml(role)}</button>`
     ).join("");
   }
   // 특수 컬럼 + 배역 토글 공통 처리 — scheduleHiddenCols와 연동
