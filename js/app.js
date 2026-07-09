@@ -220,15 +220,13 @@ let scheduleRoleOrder = []; // 배역 컬럼 사용자 지정 순서(요청 0057
 let scheduleOpenDropdownRole = null; // 현재 열려있는 드롭다운의 컬럼 키(배역 이름 또는 COL_TICKET/COL_PRICE)
 let showCastHistory = false; // 켜면 비중 0인 배우도 취소선과 함께 표시
 let memoPopoverIdx = null; // 현재 열려있는 메모 팝오버의 공연 인덱스
-// === 막공(마지막 공연) 표시 — 요청 0046 ===
-let myLastShowOn = false;     // 내 막공(0076): 티켓이 입력된 회차 기준 막공을 함께 표시(전체 막공은 옅게)
-let lastShowRoleOn = false;   // 배역별 막공: 각 배우가 그 배역에서 마지막으로 서는 회차 강조
-let lastShowPairOn = false;   // 페어막: 선택 배역 조합이 마지막으로 함께 서는 회차 강조
+// === 막공(마지막 공연) 표시 — 요청 0046, 0077에서 메뉴 통합 ===
+let lastShowRoleOn = false;   // 배우 막공: 각 배우가 그 배역에서 마지막으로 서는 회차 강조
+let lastShowPairOn = false;   // 페어막: 배역 1개 선택=주역 페어막(그 배역 중심), 2개+=조합 페어막
 let lastShowPairRoles = [];   // 페어막 배역 선택(선택 순서 유지 — 토글 on/off와 무관하게 보존)
-let lastShowLeadOn = false;   // 주역 페어막(0058): 주역 배우와의 페어가 마지막인 배우에 둥근 테두리
-let lastShowLeadRole = null;  // 주역 배역(예: 빌리 엘리엇의 빌리). 선택은 토글 off에도 유지
-let lastShowLeadExcludeUndetermined = false; // 주역 후보 목록에서 마지막 회차 캐스팅이 미정인 배역 제외 — 요청 0075
-let lastShowPairOnlyOn = false; // 페어막만 표시(0058): 페어막 표시가 있는 회차만 남기고 사이는 접기
+let myLastShowOn = false;     // 내 막공(0076): 티켓이 입력된 회차 기준 막공을 함께(진하게) 표시, 전체 막공은 옅게
+let lastShowIncludeUndetermined = false; // 미정 배역 포함(기본 OFF): 총막이 미정인 배역도 막공/페어막·픽커에 포함 — 요청 0077(구 '미정 제외' 반전)
+let lastShowPairOnlyOn = false; // 막공만 표시(0058→0077): 막공/페어막 배우가 있는 회차만 남기고 사이는 접기
 let pairOnlyExpanded = new Set(); // 접힌 구간 중 펼친 것(구간 첫 회차 인덱스 키, 저장 안 함)
 let scheduleAutoScrolled = false; // 현재 공연으로의 자동 스크롤을 한 번만 수행
 let ticketPopoverIdx = null; // 현재 열려있는 티켓 선택 팝오버의 공연 인덱스
@@ -684,7 +682,8 @@ function buildLastShowMap(){
   if(!perfs.length) return map;
   const lastPerf = perfs[perfs.length-1];
   const roles = castRoleObjs().map(c=>c.role)
-    .filter(role=>castVisibleNamesOf(lastPerf.cast[role]).length>0);   // 마지막 공연이 미정인 배역 제외
+    // 마지막 공연이 미정인 배역 제외(요청 0051). '미정 배역 포함'(0077)이 켜지면 포함.
+    .filter(role=>lastShowIncludeUndetermined || castVisibleNamesOf(lastPerf.cast[role]).length>0);
   perfs.forEach((p,i)=>{
     roles.forEach(role=>{
       castVisibleNamesOf(p.cast[role]).forEach(n=>map.set(role+"|"+n, i));
@@ -693,13 +692,17 @@ function buildLastShowMap(){
   return map;
 }
 /* 내 막공(요청 0076): 티켓이 입력된(hasTopTicket) 공연만 대상으로 배역-배우별 마지막 출연을 계산.
-   "전체 막공"(buildLastShowMap)과 달리 티켓 유무만 기준이라 미정 배역 제외 규칙은 적용하지 않는다
-   (내가 이미 표를 가진 회차만 보므로 그 회차의 캐스팅은 이미 알고 있음). */
+   '미정 배역 포함'(0077)이 꺼져 있으면 미정 배역을 제외하되, 기준은 '전체 총막'이 아니라
+   내가 가진 마지막 티켓 회차다. 내 마지막 티켓 회차에 그 배역이 확정이면(미정이 아니면)
+   전체 총막이 미정이어도 내 막공에는 포함한다(내 관점에선 미정이 아니므로) — 요청 0077. */
 function buildMyLastShowMap(){
   const perfs = performanceData.performances;
   const map = new Map();
   if(!perfs.length) return map;
-  const roles = castRoleObjs().map(c=>c.role);
+  let myLastPerf = null;
+  for(let i=perfs.length-1;i>=0;i--){ if(hasTopTicket(perfs[i])){ myLastPerf = perfs[i]; break; } }
+  const roles = castRoleObjs().map(c=>c.role)
+    .filter(role=>lastShowIncludeUndetermined || !myLastPerf || castVisibleNamesOf(myLastPerf.cast[role]).length>0);
   perfs.forEach((p,i)=>{
     if(!hasTopTicket(p)) return;
     roles.forEach(role=>{
@@ -718,17 +721,18 @@ function buildMyLastShowMap(){
        (drawPairComboOverlay)가 렌더 후 실제 위치를 재서 그린다. */
 /* 주역 페어막(요청 0058): 주역 배역(예: 빌리)의 배우 × 다른 배역 배우 — 개별 페어가
    마지막으로 함께 서는 회차를 계산한다. key "주역배우|배역|배우" -> 회차 인덱스 */
-function buildLeadPairMap(leadRole){
+function buildLeadPairMap(leadRole, perfFilter){
   const perfs = performanceData.performances;
   let roles = castRoleObjs().map(c=>c.role).filter(r=>r!==leadRole);
-  // 옵션 ON이면 마지막 회차 캐스팅이 미정인 배역은 주역 페어막 파트너에서 제외
-  // (진짜 마지막 페어를 알 수 없으므로 스케줄에서 그 배역과는 페어를 잡지 않음) — 요청 0075
-  if(lastShowLeadExcludeUndetermined && perfs.length){
+  // '미정 배역 포함'이 꺼져 있으면(기본) 마지막 회차 캐스팅이 미정인 배역은 주역 페어막 파트너에서 제외
+  // (진짜 마지막 페어를 알 수 없으므로 그 배역과는 페어를 잡지 않음) — 요청 0075/0077
+  if(!lastShowIncludeUndetermined && perfs.length){
     const lastPerf = perfs[perfs.length-1];
     roles = roles.filter(role => castVisibleNamesOf(lastPerf.cast[role]).length>0);
   }
   const map = new Map();
   perfs.forEach((p,i)=>{
+    if(perfFilter && !perfFilter(p)) return;   // 내 막공: 티켓 있는 회차만
     const leads = castVisibleNamesOf(p.cast[leadRole]);
     if(!leads.length) return;
     roles.forEach(role=>{
@@ -740,11 +744,12 @@ function buildLeadPairMap(leadRole){
   return map;
 }
 
-function buildPairLastInfo(pairRoles){
+function buildPairLastInfo(pairRoles, perfFilter){
   const perfs = performanceData.performances;
   const namesAt = perfs.map(p=>pairRoles.map(r=>castVisibleNamesOf(p.cast[r])));
   const last = new Map();      // 개별 조합키 -> 마지막 동반 출연 회차 인덱스
   perfs.forEach((p,i)=>{
+    if(perfFilter && !perfFilter(p)) return;   // 내 막공: 티켓 있는 회차만
     if(namesAt[i].some(l=>!l.length)) return;   // 미정 배역이 있으면 조합 없음
     cartesian(namesAt[i]).forEach(tuple=>last.set(tuple.join("|"), i));
   });
@@ -833,66 +838,40 @@ function drawPairComboOverlay(){
 window.addEventListener("resize", ()=>{
   if(document.querySelector("#page-schedule .pair-mate")) drawPairComboOverlay();
 });
+// 페어막 배역 선택 중 현재 공연에 존재하는 배역만(선택 순서 유지).
 function lastShowPairValidRoles(){
   const roles = castRoleObjs().map(c=>c.role);
   return lastShowPairRoles.filter(r=>roles.includes(r));
 }
 function lastShowPairActive(){ return lastShowPairOn && lastShowPairValidRoles().length>0; }
-function lastShowLeadValidRole(){
-  const roles = castRoleObjs().map(c=>c.role);
-  return (lastShowLeadRole && roles.includes(lastShowLeadRole)) ? lastShowLeadRole : null;
+// 병합된 페어막(0077): 배역 1개 선택이면 '주역 페어막' 모드(그 배역이 주역), 2개+면 '조합 페어막'.
+function lastShowLeadRoleActive(){
+  const rs = lastShowPairValidRoles();
+  return (lastShowPairOn && rs.length===1) ? rs[0] : null;
 }
-function lastShowLeadActive(){ return lastShowLeadOn && !!lastShowLeadValidRole(); }
-// 화면에 적용되는 페어막 배역: 주역 페어막이 함께 켜져 있으면 주역을 제외한
-// 나머지 배역만 하나로 묶는다(요청 0058).
 function effectivePairRoles(){
-  if(!lastShowPairActive()) return [];
-  let rs = lastShowPairValidRoles();
-  if(lastShowLeadActive()) rs = rs.filter(r=>r!==lastShowLeadValidRole());
-  return rs;
+  const rs = lastShowPairValidRoles();
+  return (lastShowPairOn && rs.length>=2) ? rs : [];
 }
 
 // 막공 설정 오버레이(시트맵 필터와 같은 방식). 토글·배역 선택은 즉시 반영·저장.
 // 페어막 배역 선택 순서(chip 번호)는 '배역 통계 추가'와 같은 클릭 순서 방식이며,
 // 토글을 꺼도 선택은 지워지지 않는다(초기화 버튼으로만 리셋).
 function renderLastShowModalBody(){
-  const myToggle = document.getElementById("myLastShowToggle");
-  const roleToggle = document.getElementById("lastShowRoleToggle");
-  const pairToggle = document.getElementById("lastShowPairToggle");
-  const leadToggle = document.getElementById("lastShowLeadToggle");
-  const leadExcludeToggle = document.getElementById("lastShowLeadExcludeToggle");
-  const pairOnlyToggle = document.getElementById("lastShowPairOnlyToggle");
-  if(myToggle) myToggle.checked = myLastShowOn;
-  if(roleToggle) roleToggle.checked = lastShowRoleOn;
-  if(pairToggle) pairToggle.checked = lastShowPairOn;
-  if(leadToggle) leadToggle.checked = lastShowLeadOn;
-  if(leadExcludeToggle) leadExcludeToggle.checked = lastShowLeadExcludeUndetermined;
-  if(pairOnlyToggle) pairOnlyToggle.checked = lastShowPairOnlyOn;
-  const roles = castRoleObjs().map(c=>c.role);
-  // 주역 페어막(0058): 주역 배역 하나만 선택(다시 누르면 해제)
-  // 옵션 ON이면 마지막 회차 캐스팅이 미정인 배역은 후보에서 제외(요청 0051과 같은 기준) — 요청 0075
-  const perfs = performanceData.performances;
-  const lastPerf = perfs.length ? perfs[perfs.length-1] : null;
-  const leadRoles = lastShowLeadExcludeUndetermined
-    ? roles.filter(role => !lastPerf || castVisibleNamesOf(lastPerf.cast[role]).length>0)
-    : roles;
-  const leadPicker = document.getElementById("lastShowLeadPicker");
-  if(leadPicker){
-    leadPicker.innerHTML = `
-      <div class="combo-actor-chips">
-        ${leadRoles.map(role=>`<div class="combo-chip ${lastShowLeadRole===role?'selected':''}" data-lead="${escHtml(role)}">${escHtml(role)}</div>`).join("")}
-      </div>`;
-    leadPicker.querySelectorAll(".combo-chip").forEach(chip=>{
-      chip.addEventListener("click", ()=>{
-        lastShowLeadRole = (lastShowLeadRole===chip.dataset.lead) ? null : chip.dataset.lead;
-        renderLastShowModalBody();
-        renderSchedule();
-        saveState();
-      });
-    });
-  }
+  const sync = (id, on)=>{ const el = document.getElementById(id); if(el) el.checked = on; };
+  sync("lastShowRoleToggle", lastShowRoleOn);
+  sync("lastShowPairToggle", lastShowPairOn);
+  sync("myLastShowToggle", myLastShowOn);
+  sync("lastShowIncludeUndeterminedToggle", lastShowIncludeUndetermined);
+  sync("lastShowPairOnlyToggle", lastShowPairOnlyOn);
   const picker = document.getElementById("lastShowPairPicker");
   if(!picker) return;
+  // 페어막 배역 픽커(병합, 0077): 1개 선택=주역 페어막(그 배역 중심), 2개+=조합 페어막.
+  // '미정 배역 포함'이 꺼져 있으면(기본) 마지막 회차 캐스팅이 미정인 배역은 단추도 표시하지 않는다.
+  const perfs = performanceData.performances;
+  const lastPerf = perfs.length ? perfs[perfs.length-1] : null;
+  const roles = castRoleObjs().map(c=>c.role).filter(role =>
+    lastShowIncludeUndetermined || !lastPerf || castVisibleNamesOf(lastPerf.cast[role]).length>0);
   picker.innerHTML = `
     <div class="combo-actor-chips">
       ${roles.map(role=>{
@@ -924,14 +903,10 @@ function setupLastShowModal(){
   document.getElementById("lastShowCloseBtn")?.addEventListener("click", closeLastShowModal);
   document.getElementById("lastShowApplyBtn")?.addEventListener("click", closeLastShowModal);
   document.getElementById("lastShowResetBtn")?.addEventListener("click", ()=>{
-    myLastShowOn = false;
     lastShowRoleOn = false; lastShowPairOn = false; lastShowPairRoles = [];
-    lastShowLeadOn = false; lastShowLeadRole = null; lastShowLeadExcludeUndetermined = false;
+    myLastShowOn = false; lastShowIncludeUndetermined = false;
     lastShowPairOnlyOn = false; pairOnlyExpanded.clear();
     renderLastShowModalBody(); renderSchedule(); saveState();
-  });
-  document.getElementById("myLastShowToggle")?.addEventListener("change", e=>{
-    myLastShowOn = e.target.checked; renderSchedule(); saveState();
   });
   document.getElementById("lastShowRoleToggle")?.addEventListener("change", e=>{
     lastShowRoleOn = e.target.checked; renderSchedule(); saveState();
@@ -939,12 +914,12 @@ function setupLastShowModal(){
   document.getElementById("lastShowPairToggle")?.addEventListener("change", e=>{
     lastShowPairOn = e.target.checked; renderSchedule(); saveState();
   });
-  document.getElementById("lastShowLeadToggle")?.addEventListener("change", e=>{
-    lastShowLeadOn = e.target.checked; renderSchedule(); saveState();
+  document.getElementById("myLastShowToggle")?.addEventListener("change", e=>{
+    myLastShowOn = e.target.checked; renderSchedule(); saveState();
   });
-  document.getElementById("lastShowLeadExcludeToggle")?.addEventListener("change", e=>{
-    // 후보 목록뿐 아니라 스케줄의 주역 페어막 계산(buildLeadPairMap)도 이 옵션을 따르므로 함께 갱신 — 요청 0075
-    lastShowLeadExcludeUndetermined = e.target.checked; renderLastShowModalBody(); renderSchedule(); saveState();
+  document.getElementById("lastShowIncludeUndeterminedToggle")?.addEventListener("change", e=>{
+    // 픽커 후보와 막공/페어막 계산 모두 이 옵션을 따르므로 함께 갱신 — 요청 0077
+    lastShowIncludeUndetermined = e.target.checked; renderLastShowModalBody(); renderSchedule(); saveState();
   });
   document.getElementById("lastShowPairOnlyToggle")?.addEventListener("change", e=>{
     lastShowPairOnlyOn = e.target.checked; pairOnlyExpanded.clear(); renderSchedule(); saveState();
@@ -987,8 +962,8 @@ function renderSchedule(){
   const allRoles = orderedScheduleRoles();
   // 페어막이 켜지면: 선택 배역이 맨 앞으로 오고(선택 순서), 숨김 무시는 "선택 배역만" —
   // 나머지 배역은 평소처럼 숨길 수 있다(요청 0051 후속).
-  const leadRole = lastShowLeadActive() ? lastShowLeadValidRole() : null;
-  const pairRoles = effectivePairRoles();       // 주역 페어막이 켜져 있으면 주역 제외(0058)
+  const leadRole = lastShowLeadRoleActive();    // 페어막 배역 1개 선택 = 주역 페어막(그 배역 중심) — 0077
+  const pairRoles = effectivePairRoles();       // 페어막 배역 2개+ = 조합 페어막
   const pairActive = pairRoles.length>0;
   // 주역 페어막이 켜져 있으면 주역 컬럼은 숨김 무시(강제 표시) — 페어 선택 배역과 같은 잠금
   const visibleRoles = pairActive
@@ -997,9 +972,11 @@ function renderSchedule(){
   const lastShowMap = lastShowRoleOn ? buildLastShowMap() : null;
   const pairLastInfo = pairActive ? buildPairLastInfo(pairRoles) : null;
   const leadPairMap = leadRole ? buildLeadPairMap(leadRole) : null;
-  // 내 막공(0076): 티켓이 입력된 공연 중에서의 배역별 막공. 켜져 있으면 배역별 막공(lastShowMap)은
-  // "전체 막공"으로 옅게·점선으로, 내 막공은 기존 강조 색을 그대로 가져간다.
+  // 내 막공(0076·0077): 티켓이 입력된(hasTopTicket) 회차만 기준으로 배역별 막공·페어막을 별도 계산.
+  // 켜져 있으면 내 막공은 진하게, 전체 막공은 옅게(배우막공=연한 알약 / 페어막=점선+연한 선). 이름 색은 그대로.
   const myLastShowMap = (myLastShowOn && lastShowRoleOn) ? buildMyLastShowMap() : null;
+  const myPairLastInfo = (myLastShowOn && pairActive) ? buildPairLastInfo(pairRoles, hasTopTicket) : null;
+  const myLeadPairMap = (myLastShowOn && leadRole) ? buildLeadPairMap(leadRole, hasTopTicket) : null;
   const showNum = !scheduleHiddenCols.has(COL_NUM);
   const showSeat = !scheduleHiddenCols.has(COL_SEAT);
   const showTicket = !scheduleHiddenCols.has(COL_TICKET);
@@ -1464,37 +1441,42 @@ function renderSchedule(){
     //  - all   : 다중 배우 행에서 모든 조합이 막공 → 셀 전체 점선
     //  - combos: 다중 배우 행에서 일부 조합만 막공 → 조합별 배우 점선 상자+연결선
     //            (출연 순서 유지 — 표시는 drawPairComboOverlay가 그림, 여기선 표식만)
-    const pairInfo = pairLastInfo ? pairLastInfo.get(idx) : null;
-    // 주역 페어막(0058): 이 행에서 막공 페어에 참여하는 그날 주역 배우들(없으면 null).
-    // 행 필터(페어막만 표시)와 주역 배우 동그라미(lead-self) 표시에 쓴다.
+    // 페어막(조합): 전체(pairLastInfo) + 내 티켓 기준(myPairLastInfo). 내가 있으면 진하게, 전체만이면 옅게.
+    const pairInfoAll = pairLastInfo ? pairLastInfo.get(idx) : null;
+    const pairInfoMy = myPairLastInfo ? myPairLastInfo.get(idx) : null;
+    const pairInfo = pairInfoMy || pairInfoAll;
+    const pairMine = myLastShowOn && !!pairInfoMy && !pairInfoAll;   // 내 공연에서만 페어막(전체 아님) → 점선
+    // 주역 페어막(0058): 이 행에서 막공 페어에 참여하는 그날 주역 배우들(없으면 null). 내/전체 둘 다 계산.
     // 숨긴 배역 컬럼은 제외 — 배역을 숨겨서 보이는 막공 페어가 없으면 행도 접힌다(후속).
-    let rowLeadActors = null;
-    if(leadPairMap){
+    const leadActorsFrom = (map)=>{
+      if(!map) return null;
       const leads = castVisibleNamesOf(p.cast[leadRole]);
-      if(leads.length){
-        const hit = new Set();
-        castRoleObjs().forEach(c=>{
-          const role = c.role;
-          if(role===leadRole || !visibleRoles.includes(role)) return;
-          const lk = {}; c.actors.forEach(a=>lk[a.name]=a.role);
-          castVisibleNamesOf(p.cast[role]).forEach(n=>{
-            if(lk[n]!=="cast") return;
-            leads.forEach(l=>{ if(leadPairMap.get(l+"|"+role+"|"+n)===idx) hit.add(l); });
-          });
+      if(!leads.length) return null;
+      const hit = new Set();
+      castRoleObjs().forEach(c=>{
+        const role = c.role;
+        if(role===leadRole || !visibleRoles.includes(role)) return;
+        const lk = {}; c.actors.forEach(a=>lk[a.name]=a.role);
+        castVisibleNamesOf(p.cast[role]).forEach(n=>{
+          if(lk[n]!=="cast") return;
+          leads.forEach(l=>{ if(map.get(l+"|"+role+"|"+n)===idx) hit.add(l); });
         });
-        if(hit.size) rowLeadActors = hit;
-      }
-    }
+      });
+      return hit.size ? hit : null;
+    };
+    const rowLeadActors = leadActorsFrom(leadPairMap);
+    const rowLeadActorsMy = leadActorsFrom(myLeadPairMap);
+    let rowRoleLast = false;   // 이 행에 배우 막공(내/전체) 강조가 하나라도 있는가 — '막공만 표시'용
     const castCells = visibleRoles.map(role=>{
       let tdCls = "cast-cell";
       const inPair = !!(pairInfo && pairRoles.includes(role));
       const rIdx = inPair ? pairRoles.indexOf(role) : -1;
       if(inPair && pairInfo.mode!=="combos"){
-        tdCls += " pairlast" + (pairInfo.mode==="all" ? " pairdot" : "");
+        tdCls += " pairlast" + (pairInfo.mode==="all" ? " pairdot" : "") + (pairMine ? " pairlast-mine" : "");
         if(role===pairRoles[0]) tdCls += " pairlast-start";
         if(role===pairRoles[pairRoles.length-1]) tdCls += " pairlast-end";
       }
-      if(inPair && pairInfo.mode==="combos") tdCls += " paircombo";
+      if(inPair && pairInfo.mode==="combos") tdCls += " paircombo" + (pairMine ? " pairlast-mine" : "");
       const items = showCastHistory
         ? parseCastWeighted(p.cast[role])
         : parseCastWeighted(p.cast[role]).filter(it=>it.weight>0);
@@ -1516,7 +1498,9 @@ function renderSchedule(){
         const myIdx = myLastShowMap ? myLastShowMap.get(role+"|"+n) : undefined;
         let lastCls = "", lastAllCls = "";
         if(myLastShowMap){
-          if(it.weight>0 && lookup[n]==="cast" && myIdx===idx) lastCls = "last-show";
+          // 배우막공 세 상태(0077): 내&전체(일치)=골드100+점 / 내만(전체 아님)=골드65+점 / 전체만=골드100(점 없음)
+          if(it.weight>0 && lookup[n]==="cast" && myIdx===idx)
+            lastCls = (allIdx===idx) ? "last-show" : "last-show last-show-mine";
           if(it.weight>0 && lookup[n]==="cast" && allIdx!=null && allIdx===idx){
             const coincide = myIdx===allIdx;
             const hiddenTicket = coincide && performanceData.performances[allIdx] && performanceData.performances[allIdx].ticketHidden;
@@ -1525,17 +1509,34 @@ function renderSchedule(){
         } else {
           lastCls = (lastShowMap && it.weight>0 && lookup[n]==="cast" && allIdx===idx) ? "last-show" : "";
         }
-        if(lastCls || lastAllCls) hasLast = true;
+        if(lastCls || lastAllCls){ hasLast = true; rowRoleLast = true; }
         // 주역 페어막(0058): 이 배우와 오늘 주역 배우의 페어가 마지막이면 둥근 테두리.
         // 배역별 막공 강조가 있으면 그게 우선(배역 막공은 무조건 페어막이므로 테두리 생략).
+        // 내 막공(0077): 내 티켓 기준 페어막=기본색 동그라미, 전체만이면 점선+연한 선(lead-pair-faint).
+        // 페어막 세 상태(0077): 내&전체(일치)=실선+점 / 내만(전체 아님)=점선+점 / 전체만=실선(점 없음)
         let leadCls = "";
-        if(leadPairMap && role!==leadRole && !lastCls && it.weight>0 && lookup[n]==="cast"){
+        const isCast = it.weight>0 && lookup[n]==="cast";
+        const noRoleLast = !lastCls && !lastAllCls;   // 배우막공(내·전체 무엇이든) 있으면 페어막 테두리 생략
+        if((leadPairMap||myLeadPairMap) && role!==leadRole && noRoleLast && isCast){
           const leads = castVisibleNamesOf(p.cast[leadRole]);
-          if(leads.some(l=>leadPairMap.get(l+"|"+role+"|"+n)===idx)) leadCls = " lead-pair";
+          const hitIn = m => m && leads.some(l=>m.get(l+"|"+role+"|"+n)===idx);
+          if(myLeadPairMap){
+            const my = hitIn(myLeadPairMap), all = hitIn(leadPairMap);
+            if(my && all) leadCls = " lead-pair";
+            else if(my) leadCls = " lead-pair lead-pair-mine";
+            else if(all) leadCls = " lead-pair lead-pair-faint";
+          } else if(hitIn(leadPairMap)) leadCls = " lead-pair";
         }
-        // 주역 배우 자신: 이 행에 막공 페어가 있으면 약간 더 두꺼운 동그라미(lead-self)
-        if(rowLeadActors && role===leadRole && !lastCls && it.weight>0 && lookup[n]==="cast" && rowLeadActors.has(n)){
-          leadCls = " lead-self";
+        // 주역 배우 자신: 이 행에 막공 페어가 있으면 약간 더 두꺼운 동그라미(lead-self) — 같은 세 상태.
+        // 단, 그 주역이 배우막공(내·전체)이면 알약이 우선(굵게), 테두리는 생략.
+        if((rowLeadActors||rowLeadActorsMy) && role===leadRole && noRoleLast && isCast){
+          if(myLeadPairMap){
+            const my = rowLeadActorsMy && rowLeadActorsMy.has(n);
+            const all = rowLeadActors && rowLeadActors.has(n);
+            if(my && all) leadCls = " lead-self";
+            else if(my) leadCls = " lead-self lead-self-mine";
+            else if(all) leadCls = " lead-self lead-self-faint";
+          } else if(rowLeadActors && rowLeadActors.has(n)) leadCls = " lead-self";
         }
         if(leadCls) hasLast = true;
         // combos 모드: 이 배우가 속한 막공 조합 번호들을 표식으로 남김(오버레이가 상자·연결선을 그림)
@@ -1579,12 +1580,12 @@ function renderSchedule(){
         ${castCells}
       </tr>
     `;
-    return { idx, keep: !!pairInfo || !!rowLeadActors, html: rowHtml, date: p.date };
+    return { idx, keep: rowRoleLast || !!pairInfo || !!rowLeadActors || !!rowLeadActorsMy, html: rowHtml, date: p.date };
   });
 
   // 페어막만 표시(0058): 페어막·주역 페어막 표시가 있는 회차만 남기고, 사이 구간은
   // 위아래 두 줄 사이에 숨긴 공연 개수를 표시(클릭하면 펼치고 다시 누르면 접힘).
-  const pairOnlyMode = lastShowPairOnlyOn && (pairActive || !!leadRole);
+  const pairOnlyMode = lastShowPairOnlyOn && (lastShowRoleOn || pairActive || !!leadRole);
   if(pairOnlyMode){
     // 숨긴 일수: 이전(표시) 공연 ~ 다음(표시) 공연 전날의 날짜 차이. 음수면 0일.
     // 경계에 표시 공연이 없으면 구간 자체의 첫/마지막 날짜로 대신 계산한다.
@@ -5009,14 +5010,12 @@ function buildStateSnapshot(){
     etcStatsOrder: [...etcStatsOrder],
     collapsedEtcStats: [...collapsedEtcStats],
     showCastHistory: showCastHistory,
-    // 막공(마지막 공연) 표시 설정 — 요청 0046
+    // 막공(마지막 공연) 표시 설정 — 요청 0046, 0077 통합
     myLastShowOn: myLastShowOn,
     lastShowRoleOn: lastShowRoleOn,
     lastShowPairOn: lastShowPairOn,
     lastShowPairRoles: [...lastShowPairRoles],
-    lastShowLeadOn: lastShowLeadOn,
-    lastShowLeadRole: lastShowLeadRole,
-    lastShowLeadExcludeUndetermined: lastShowLeadExcludeUndetermined,
+    lastShowIncludeUndetermined: lastShowIncludeUndetermined,
     lastShowPairOnlyOn: lastShowPairOnlyOn,
     seatShowWatched: seatShowWatched,
     seatShowBooked: seatShowBooked,
@@ -5144,9 +5143,13 @@ function applyState(state){
     const lsValid = castRoleObjs().map(c=>c.role);
     lastShowPairRoles = state.lastShowPairRoles.filter(r=>lsValid.includes(r));
   }
-  if(typeof state.lastShowLeadOn === "boolean") lastShowLeadOn = state.lastShowLeadOn;
-  lastShowLeadRole = (typeof state.lastShowLeadRole === "string" && state.lastShowLeadRole) ? state.lastShowLeadRole : null;
-  if(typeof state.lastShowLeadExcludeUndetermined === "boolean") lastShowLeadExcludeUndetermined = state.lastShowLeadExcludeUndetermined;
+  // 0077 마이그레이션: 구 '주역 페어막'(단일 배역, 별도 토글)을 병합된 페어막 픽커로 이어받음.
+  // 페어막 선택이 비어 있던(=주역만 쓰던) 경우에만 그 배역을 단일 선택으로 넣어 주역 페어막을 유지한다.
+  if(state.lastShowLeadOn && typeof state.lastShowLeadRole === "string" && lastShowPairRoles.length===0){
+    const lsValid = castRoleObjs().map(c=>c.role);
+    if(lsValid.includes(state.lastShowLeadRole)){ lastShowPairRoles = [state.lastShowLeadRole]; lastShowPairOn = true; }
+  }
+  if(typeof state.lastShowIncludeUndetermined === "boolean") lastShowIncludeUndetermined = state.lastShowIncludeUndetermined;
   if(typeof state.lastShowPairOnlyOn === "boolean") lastShowPairOnlyOn = state.lastShowPairOnlyOn;
 
   if(typeof state.seatShowWatched === "boolean") seatShowWatched = state.seatShowWatched;
