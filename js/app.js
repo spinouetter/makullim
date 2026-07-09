@@ -226,6 +226,7 @@ let lastShowPairOn = false;   // 페어막: 선택 배역 조합이 마지막으
 let lastShowPairRoles = [];   // 페어막 배역 선택(선택 순서 유지 — 토글 on/off와 무관하게 보존)
 let lastShowLeadOn = false;   // 주역 페어막(0058): 주역 배우와의 페어가 마지막인 배우에 둥근 테두리
 let lastShowLeadRole = null;  // 주역 배역(예: 빌리 엘리엇의 빌리). 선택은 토글 off에도 유지
+let lastShowLeadExcludeUndetermined = false; // 주역 후보 목록에서 마지막 회차 캐스팅이 미정인 배역 제외 — 요청 0075
 let lastShowPairOnlyOn = false; // 페어막만 표시(0058): 페어막 표시가 있는 회차만 남기고 사이는 접기
 let pairOnlyExpanded = new Set(); // 접힌 구간 중 펼친 것(구간 첫 회차 인덱스 키, 저장 안 함)
 let scheduleAutoScrolled = false; // 현재 공연으로의 자동 스크롤을 한 번만 수행
@@ -835,18 +836,26 @@ function renderLastShowModalBody(){
   const roleToggle = document.getElementById("lastShowRoleToggle");
   const pairToggle = document.getElementById("lastShowPairToggle");
   const leadToggle = document.getElementById("lastShowLeadToggle");
+  const leadExcludeToggle = document.getElementById("lastShowLeadExcludeToggle");
   const pairOnlyToggle = document.getElementById("lastShowPairOnlyToggle");
   if(roleToggle) roleToggle.checked = lastShowRoleOn;
   if(pairToggle) pairToggle.checked = lastShowPairOn;
   if(leadToggle) leadToggle.checked = lastShowLeadOn;
+  if(leadExcludeToggle) leadExcludeToggle.checked = lastShowLeadExcludeUndetermined;
   if(pairOnlyToggle) pairOnlyToggle.checked = lastShowPairOnlyOn;
   const roles = castRoleObjs().map(c=>c.role);
   // 주역 페어막(0058): 주역 배역 하나만 선택(다시 누르면 해제)
+  // 옵션 ON이면 마지막 회차 캐스팅이 미정인 배역은 후보에서 제외(요청 0051과 같은 기준) — 요청 0075
+  const perfs = performanceData.performances;
+  const lastPerf = perfs.length ? perfs[perfs.length-1] : null;
+  const leadRoles = lastShowLeadExcludeUndetermined
+    ? roles.filter(role => !lastPerf || castVisibleNamesOf(lastPerf.cast[role]).length>0)
+    : roles;
   const leadPicker = document.getElementById("lastShowLeadPicker");
   if(leadPicker){
     leadPicker.innerHTML = `
       <div class="combo-actor-chips">
-        ${roles.map(role=>`<div class="combo-chip ${lastShowLeadRole===role?'selected':''}" data-lead="${escHtml(role)}">${escHtml(role)}</div>`).join("")}
+        ${leadRoles.map(role=>`<div class="combo-chip ${lastShowLeadRole===role?'selected':''}" data-lead="${escHtml(role)}">${escHtml(role)}</div>`).join("")}
       </div>`;
     leadPicker.querySelectorAll(".combo-chip").forEach(chip=>{
       chip.addEventListener("click", ()=>{
@@ -891,7 +900,7 @@ function setupLastShowModal(){
   document.getElementById("lastShowApplyBtn")?.addEventListener("click", closeLastShowModal);
   document.getElementById("lastShowResetBtn")?.addEventListener("click", ()=>{
     lastShowRoleOn = false; lastShowPairOn = false; lastShowPairRoles = [];
-    lastShowLeadOn = false; lastShowLeadRole = null;
+    lastShowLeadOn = false; lastShowLeadRole = null; lastShowLeadExcludeUndetermined = false;
     lastShowPairOnlyOn = false; pairOnlyExpanded.clear();
     renderLastShowModalBody(); renderSchedule(); saveState();
   });
@@ -903,6 +912,9 @@ function setupLastShowModal(){
   });
   document.getElementById("lastShowLeadToggle")?.addEventListener("change", e=>{
     lastShowLeadOn = e.target.checked; renderSchedule(); saveState();
+  });
+  document.getElementById("lastShowLeadExcludeToggle")?.addEventListener("change", e=>{
+    lastShowLeadExcludeUndetermined = e.target.checked; renderLastShowModalBody(); saveState();
   });
   document.getElementById("lastShowPairOnlyToggle")?.addEventListener("change", e=>{
     lastShowPairOnlyOn = e.target.checked; pairOnlyExpanded.clear(); renderSchedule(); saveState();
@@ -4955,6 +4967,7 @@ function buildStateSnapshot(){
     lastShowPairRoles: [...lastShowPairRoles],
     lastShowLeadOn: lastShowLeadOn,
     lastShowLeadRole: lastShowLeadRole,
+    lastShowLeadExcludeUndetermined: lastShowLeadExcludeUndetermined,
     lastShowPairOnlyOn: lastShowPairOnlyOn,
     seatShowWatched: seatShowWatched,
     seatShowBooked: seatShowBooked,
@@ -5083,6 +5096,7 @@ function applyState(state){
   }
   if(typeof state.lastShowLeadOn === "boolean") lastShowLeadOn = state.lastShowLeadOn;
   lastShowLeadRole = (typeof state.lastShowLeadRole === "string" && state.lastShowLeadRole) ? state.lastShowLeadRole : null;
+  if(typeof state.lastShowLeadExcludeUndetermined === "boolean") lastShowLeadExcludeUndetermined = state.lastShowLeadExcludeUndetermined;
   if(typeof state.lastShowPairOnlyOn === "boolean") lastShowPairOnlyOn = state.lastShowPairOnlyOn;
 
   if(typeof state.seatShowWatched === "boolean") seatShowWatched = state.seatShowWatched;
