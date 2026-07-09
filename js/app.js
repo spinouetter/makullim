@@ -317,6 +317,8 @@ function topTicketObj(p){
     ticketTransferred:!!p.ticketTransferred, bookingDate:p.bookingDate||"", reseller:p.reseller||"" };
 }
 function hasTopTicket(p){ return !!(p.seat && p.seat.trim()); }
+// 내 막공(0076/0078) 전용: 티켓이 있어도 숨김 처리한 회차는 "내가 볼 공연"이 아니므로 제외.
+function hasVisibleTopTicket(p){ return hasTopTicket(p) && !p.ticketHidden; }
 // 모든 티켓을 순서대로: [맨위, ...extra]. 맨 위가 없으면 빈 배열(invariant).
 function allTickets(p){
   const ex = Array.isArray(p.extraTickets) ? p.extraTickets : [];
@@ -691,7 +693,8 @@ function buildLastShowMap(){
   });
   return map;
 }
-/* 내 막공(요청 0076): 티켓이 입력된(hasTopTicket) 공연만 대상으로 배역-배우별 마지막 출연을 계산.
+/* 내 막공(요청 0076): 티켓이 입력된(hasVisibleTopTicket) 공연만 대상으로 배역-배우별 마지막 출연을 계산.
+   숨김 처리한 티켓은 "내가 볼 공연"이 아니므로 제외한다 — 요청 0078.
    '미정 배역 포함'(0077)이 꺼져 있으면 미정 배역을 제외하되, 기준은 '전체 총막'이 아니라
    내가 가진 마지막 티켓 회차다. 내 마지막 티켓 회차에 그 배역이 확정이면(미정이 아니면)
    전체 총막이 미정이어도 내 막공에는 포함한다(내 관점에선 미정이 아니므로) — 요청 0077. */
@@ -700,11 +703,11 @@ function buildMyLastShowMap(){
   const map = new Map();
   if(!perfs.length) return map;
   let myLastPerf = null;
-  for(let i=perfs.length-1;i>=0;i--){ if(hasTopTicket(perfs[i])){ myLastPerf = perfs[i]; break; } }
+  for(let i=perfs.length-1;i>=0;i--){ if(hasVisibleTopTicket(perfs[i])){ myLastPerf = perfs[i]; break; } }
   const roles = castRoleObjs().map(c=>c.role)
     .filter(role=>lastShowIncludeUndetermined || !myLastPerf || castVisibleNamesOf(myLastPerf.cast[role]).length>0);
   perfs.forEach((p,i)=>{
-    if(!hasTopTicket(p)) return;
+    if(!hasVisibleTopTicket(p)) return;
     roles.forEach(role=>{
       castVisibleNamesOf(p.cast[role]).forEach(n=>map.set(role+"|"+n, i));
     });
@@ -972,11 +975,12 @@ function renderSchedule(){
   const lastShowMap = lastShowRoleOn ? buildLastShowMap() : null;
   const pairLastInfo = pairActive ? buildPairLastInfo(pairRoles) : null;
   const leadPairMap = leadRole ? buildLeadPairMap(leadRole) : null;
-  // 내 막공(0076·0077): 티켓이 입력된(hasTopTicket) 회차만 기준으로 배역별 막공·페어막을 별도 계산.
-  // 켜져 있으면 내 막공은 진하게, 전체 막공은 옅게(배우막공=연한 알약 / 페어막=점선+연한 선). 이름 색은 그대로.
+  // 내 막공(0076·0077): 티켓이 입력된(hasVisibleTopTicket — 숨김 티켓은 제외, 요청 0078) 회차만
+  // 기준으로 배역별 막공·페어막을 별도 계산. 켜져 있으면 내 막공은 진하게, 전체 막공은 옅게
+  // (배우막공=연한 알약 / 페어막=점선+연한 선). 이름 색은 그대로.
   const myLastShowMap = (myLastShowOn && lastShowRoleOn) ? buildMyLastShowMap() : null;
-  const myPairLastInfo = (myLastShowOn && pairActive) ? buildPairLastInfo(pairRoles, hasTopTicket) : null;
-  const myLeadPairMap = (myLastShowOn && leadRole) ? buildLeadPairMap(leadRole, hasTopTicket) : null;
+  const myPairLastInfo = (myLastShowOn && pairActive) ? buildPairLastInfo(pairRoles, hasVisibleTopTicket) : null;
+  const myLeadPairMap = (myLastShowOn && leadRole) ? buildLeadPairMap(leadRole, hasVisibleTopTicket) : null;
   const showNum = !scheduleHiddenCols.has(COL_NUM);
   const showSeat = !scheduleHiddenCols.has(COL_SEAT);
   const showTicket = !scheduleHiddenCols.has(COL_TICKET);
@@ -1493,7 +1497,8 @@ function renderSchedule(){
         const zeroCls = it.weight===0 ? "zero-weight" : "";
         // 배역별 막공: 이 배우(캐스트만)가 이 배역으로 서는 마지막 회차면 강조(둥근 배경 사각형)
         // 내 막공(0076) ON이면: 티켓 있는 회차 기준 "내 막공"은 기존 강조를, 전체 막공은 옅은 점선(last-show-all)으로.
-        // 둘이 같은 회차면 보통 내 막공만 표시하되, 그 티켓이 숨김 상태면 전체 막공도 함께 표시(불확실함을 알림).
+        // 둘이 같은 회차면 내 막공만 표시(숨김 티켓 회차는 buildMyLastShowMap에서 이미 제외되므로
+        // myIdx가 숨김 회차를 가리킬 일이 없다 — 요청 0078).
         const allIdx = lastShowMap ? lastShowMap.get(role+"|"+n) : undefined;
         const myIdx = myLastShowMap ? myLastShowMap.get(role+"|"+n) : undefined;
         let lastCls = "", lastAllCls = "";
@@ -1501,10 +1506,8 @@ function renderSchedule(){
           // 배우막공 세 상태(0077): 내&전체(일치)=골드100+점 / 내만(전체 아님)=골드65+점 / 전체만=골드100(점 없음)
           if(it.weight>0 && lookup[n]==="cast" && myIdx===idx)
             lastCls = (allIdx===idx) ? "last-show" : "last-show last-show-mine";
-          if(it.weight>0 && lookup[n]==="cast" && allIdx!=null && allIdx===idx){
-            const coincide = myIdx===allIdx;
-            const hiddenTicket = coincide && performanceData.performances[allIdx] && performanceData.performances[allIdx].ticketHidden;
-            if(!coincide || hiddenTicket) lastAllCls = " last-show-all";
+          if(it.weight>0 && lookup[n]==="cast" && allIdx!=null && allIdx===idx && myIdx!==allIdx){
+            lastAllCls = " last-show-all";
           }
         } else {
           lastCls = (lastShowMap && it.weight>0 && lookup[n]==="cast" && allIdx===idx) ? "last-show" : "";
@@ -2259,6 +2262,7 @@ function isEnded(p){
 }
 function hasSeat(p){
   if(isCancelled(p)) return false; // 취소된 공연은 관극/예매(좌석 기반 집계)에서 제외
+  if(p.ticketHidden) return false; // 숨긴 티켓도 집계에서 제외 — 요청 0078
   return !!(p.seat && p.seat.trim()!=="");
 }
 // 취소된 공연 여부(공연 정의 schedule.json의 cancelled 플래그)
@@ -3241,7 +3245,8 @@ function renderTickets(){
   // 한 티켓(맨 위 or 추가 좌석) → Tickets 카드용 아이템. 예매일 있으면 취소료·데드라인 계산.
   const buildHeld = (t, p, idx, isExtra)=>{
     const seat=(t.seat||"").trim();
-    const it = { kind:"held", idx, p, isExtra, date:p.date, time:p.time||"", seat, grade:gradeOf(seat)||"",
+    // 숨김은 맨 위 티켓에만 있는 개념(자번 제외 대상) — 요청 0064/0078
+    const it = { kind:"held", idx, p, isExtra, hidden:(!isExtra && !!p.ticketHidden), date:p.date, time:p.time||"", seat, grade:gradeOf(seat)||"",
       ticketType:t.ticketType, ticketDiscount:t.ticketDiscount, bookingDate:t.bookingDate||"", reseller:t.reseller||"", ended:isEnded(p) };
     if(!it.ended && t.bookingDate){
       const pseudo = { seat, ticketType:t.ticketType, ticketDiscount:(t.ticketDiscount!=null?t.ticketDiscount:null),
@@ -3310,7 +3315,8 @@ function renderTickets(){
     const typeTxt = it.ticketType ? escHtml(it.ticketType) : (it.ticketDiscount!=null ? "임의 할인" : "정가 미선택");
     const reseller = it.reseller || resellerOf(it.seat); // 티켓 예매처 우선(오버라이드), 없으면 좌석 기본
     const extraTag = it.isExtra ? `<span class="hc-extra-tag" title="같은 공연의 추가 좌석">추가</span>` : "";
-    const r1 = `<div class="hc-r1">${gchip}<span class="hc-date">${escHtml(perfDateLabel(it.p))}</span><span class="hc-seat">${escHtml(it.seat)}</span>${extraTag}<span class="hc-type">${typeTxt}</span>${reseller ? `<span class="hc-reseller">${escHtml(reseller)}</span>` : ""}</div>`;
+    const hiddenTag = it.hidden ? `<span class="hc-hidden-tag" title="숨긴 티켓 — 자번·통계·좌석맵 집계에서 제외">숨김</span>` : "";
+    const r1 = `<div class="hc-r1">${gchip}<span class="hc-date">${escHtml(perfDateLabel(it.p))}</span><span class="hc-seat">${escHtml(it.seat)}</span>${extraTag}${hiddenTag}<span class="hc-type">${typeTxt}</span>${reseller ? `<span class="hc-reseller">${escHtml(reseller)}</span>` : ""}</div>`;
     const heldAttr = `data-idx="${it.idx}" data-kind="held" data-extra="${it.isExtra?"1":"0"}" data-seat="${escHtml(it.seat)}"`;
     if(it.kind==="cancel")
       return `<button class="hist-card u-done" data-idx="${it.idx}" data-hi="${it.hi}" data-kind="cancel">${r1}
@@ -3430,7 +3436,7 @@ function gradeFillVar(gname){
 }
 
 function watchCountOf(seatId){
-  return performanceData.performances.filter(p=>p.seat===seatId && isEnded(p) && !isCancelled(p)).length;
+  return performanceData.performances.filter(p=>p.seat===seatId && isEnded(p) && !isCancelled(p) && !p.ticketHidden).length;
 }
 
 function seatVisualStyle(count){
@@ -3645,6 +3651,7 @@ function seatMapCount(seatId){
   return performanceData.performances.filter(p=>{
     if(p.seat!==seatId) return false;
     if(isCancelled(p)) return false; // 취소된 공연은 좌석맵 집계에서 제외
+    if(p.ticketHidden) return false; // 숨긴 티켓도 집계에서 제외 — 요청 0078
     const ended = isEnded(p);
     if(ended && !seatShowWatched) return false;
     if(!ended && !seatShowBooked) return false;
@@ -4204,7 +4211,7 @@ function showSeatDetail(seatId){
   const price = grade ? grade.prices[0] : null;
 
   const roles = castRoleObjs().map(c=>c.role);
-  const perfsHere = performanceData.performances.filter(p=>p.seat===seatId && !isCancelled(p));
+  const perfsHere = performanceData.performances.filter(p=>p.seat===seatId && !isCancelled(p) && !p.ticketHidden);
 
   const perfRows = perfsHere.length===0
     ? `<tr><td colspan="${3+roles.length}" style="color:var(--ink-dim); font-style:italic;">이 좌석에서 본 공연이 없습니다.</td></tr>`
