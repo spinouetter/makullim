@@ -168,8 +168,7 @@
     overflow:hidden; /* .page의 overflow-y:auto를 덮어써서 바깥은 스크롤하지 않음 */
   }
   #page-schedule .toolbar,
-  #page-schedule .floor-toggle-bar,
-  #page-schedule #scheduleHiddenBar{
+  #page-schedule .floor-toggle-bar{
     flex-shrink:0;
   }
   #page-schedule .table-scroll-wrap{
@@ -324,14 +323,6 @@
   .role-dropdown-item{display:flex; align-items:center; gap:6px; font-size:12px; padding:4px 0; cursor:pointer; white-space:nowrap;}
   .role-dropdown-actions{display:flex; gap:6px; margin-top:8px; border-top:1px solid var(--line); padding-top:8px;}
   .role-dropdown-actions button{font-size:11px; padding:5px 8px; width:100%;}
-  .hidden-roles-bar{
-    display:flex;
-    align-items:center;
-    gap:8px;
-    font-size:12px;
-    color:var(--ink-dim);
-    margin-bottom:10px;
-  }
 
   .toolbar{
     display:flex;
@@ -1155,8 +1146,6 @@
     width:100%;
   }
   .floor-toggle-bar{display:flex; align-items:center; gap:8px; margin-bottom:10px;}
-  /* 숨긴 컬럼 바가 floor-toggle-bar 안에 들어가므로 자체 하단 여백 제거 */
-  #scheduleHiddenBar .hidden-roles-bar{margin-bottom:0;}
   .floor-toggle-btn{
     background:var(--panel2);
     border:1px solid var(--line);
@@ -1178,8 +1167,6 @@
   .col-toggle-sub{ font-size:11px; color:var(--ink-dim); font-weight:700; margin:12px 0 7px; letter-spacing:0.04em; }
   /* 스케줄 옵션 버튼: 모바일에서 잘리지 않도록 작게 */
   #page-schedule .floor-toggle-bar .floor-toggle-btn{ padding:3px 8px; font-size:11px; }
-  #page-schedule .hidden-roles-bar select,
-  #page-schedule .hidden-roles-bar button{ font-size:11px; padding:3px 6px; }
 
   .svg-viewport{
     position:relative;

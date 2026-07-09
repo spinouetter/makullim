@@ -263,11 +263,9 @@ const COL_TICKET = "__ticket__";
 const COL_PRICE = "__price__";
 const COL_EXTRA = "__extracost__";
 const COL_MEMO = "__memo__";
-const COL_LABELS = { [COL_NUM]:"순번", [COL_SEAT]:"좌석", [COL_TICKET]:"티켓", [COL_PRICE]:"가격", [COL_EXTRA]:"기타 비용", [COL_MEMO]:"메모" };
-// 특수(숨김 가능) 컬럼 — Settings에서 전역 표시/숨김을 제어하고, 표시 드롭박스에는 노출하지 않는다(0066)
+// 특수(숨김 가능) 컬럼 — Settings에서 전역 표시/숨김을 제어한다(0066)
 const SPECIAL_COLS = [COL_NUM, COL_SEAT, COL_TICKET, COL_PRICE, COL_EXTRA, COL_MEMO];
 // 예매수수료는 하드코딩하지 않고 예매처(resellers.json)의 baseFee에서 가져온다 — resellerBaseFee(). 0070
-function colLabel(id){ return COL_LABELS[id] || (id.indexOf("match:")===0 ? id.slice(6) : id); }
 // 캐스팅 대상(actors 보유) 역할만 — 스케줄/통계/좌석맵 컬럼용. group 참조전용(앙상블 등)은 제외.
 function castRoleObjs(){ return performanceData.casts.filter(c=>Array.isArray(c.actors) && c.actors.length>0); }
 // 스케줄 표 헤더용 라벨: shortName 있으면 그걸, 없으면 role.
@@ -1020,29 +1018,6 @@ function renderSchedule(){
   const nowBtnEl = document.getElementById("nowBtn");
   if(nowBtnEl) nowBtnEl.style.display = showFin ? "none" : "";
 
-  const hiddenBar = document.getElementById("scheduleHiddenBar");
-  // 페어막 중에는 '선택 배역'만 숨김이 무시(강제 표시)되므로, 숨김 바에서 그 배역들만 제외
-  // 특수 컬럼·배역 모두 Settings에서 전역 제어하므로 표시 드롭박스(숨김 바)에는 대결(match) 컬럼만 남긴다(0066).
-  const hiddenColsShown = [...scheduleHiddenCols].filter(c=>c.indexOf("match:")===0);
-  if(hiddenColsShown.length===0){
-    hiddenBar.innerHTML = "";
-  } else {
-    hiddenBar.innerHTML = `
-      <div class="hidden-roles-bar">
-        <select id="hiddenColSelect">
-          ${hiddenColsShown.map(c=>`<option value="${c}">${colLabel(c)}</option>`).join("")}
-        </select>
-        <button id="hiddenColAddBtn">표시</button>
-      </div>
-    `;
-    document.getElementById("hiddenColAddBtn").addEventListener("click", ()=>{
-      const sel = document.getElementById("hiddenColSelect").value;
-      scheduleHiddenCols.delete(sel);
-      renderSchedule();
-      saveState();
-    });
-  }
-
   const colHeadHtml = (colKey, label, extraHtml)=>{
     const isOpen = scheduleOpenDropdownRole===colKey;
     return `
@@ -1239,6 +1214,7 @@ function renderSchedule(){
       e.stopPropagation();
       scheduleHiddenCols.add("match:"+btn.dataset.match);
       scheduleOpenDropdownRole = null;
+      refreshColumnSettings(); // Settings 대결 토글 동기화
       renderSchedule();
       saveState();
     });
@@ -1261,7 +1237,7 @@ function renderSchedule(){
       if(col===COL_EXTRA) showExtraCost = false;
       else scheduleHiddenCols.add(col);
       scheduleOpenDropdownRole = null;
-      refreshColumnSettings(); // Settings 체크박스 동기화(특수 컬럼은 표시 드롭박스에 없음)
+      refreshColumnSettings(); // Settings 체크박스 동기화
       renderSchedule();
       saveState();
     });
@@ -6196,7 +6172,17 @@ function setupScheduleOptions(){
       `<button type="button" class="floor-toggle-btn col-toggle" data-col="${escHtml(role)}">${escHtml(role)}</button>`
     ).join("");
   }
-  // 특수 컬럼 + 배역 토글 공통 처리 — scheduleHiddenCols와 연동
+  // 대결 컬럼 토글(0079): 배역 토글과 동일한 방식 — 공연에 대결이 정의된 경우만 섹션 표시
+  const matches = performanceData.matches || [];
+  const matchBox = document.getElementById("matchColToggles");
+  const matchSub = document.getElementById("matchColSub");
+  if(matchBox){
+    matchBox.innerHTML = matches.map(m=>
+      `<button type="button" class="floor-toggle-btn col-toggle" data-col="${escHtml("match:"+m.name)}">${escHtml(m.name)}</button>`
+    ).join("");
+  }
+  if(matchSub) matchSub.style.display = matches.length ? "" : "none";
+  // 특수 컬럼 + 배역 + 대결 토글 공통 처리 — scheduleHiddenCols와 연동
   document.querySelectorAll(".col-toggle[data-col]").forEach(btn=>{
     btn.addEventListener("click", ()=>{
       const col = btn.dataset.col;
