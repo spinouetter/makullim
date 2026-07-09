@@ -10,7 +10,7 @@
 <!-- __SHOW__ --><!-- 배포 시 GitHub Action이 slug 스텁(<slug>/index.html)을 만들며 위 마커를
      <script>window.MAKULLIM_SHOW_ID="<id>";window.MAKULLIM_BUILD="<커밋SHA>";</script> 로 치환한다.
      루트는 빌드 버전만 주입. BUILD는 데이터(JSON) 요청의 캐시 버스터(?v=) — 로컬 개발(미주입)은 no-store로 항상 최신. -->
-<link rel="stylesheet" href="/css/styles.css?v=146">
+<link rel="stylesheet" href="/css/styles.css?v=147">
 </head>
 <body>
 
@@ -36,7 +36,6 @@
 
   <section class="page active" id="page-schedule">
     <div class="floor-toggle-bar">
-      <div id="scheduleHiddenBar"></div>
       <!-- 우측 버튼 그룹: 정렬 앵커(margin-left:auto)를 그룹이 담당 → 안의 버튼을 숨겨도 정렬 유지 -->
       <div class="bar-right-group" style="margin-left:auto;">
         <button class="floor-toggle-btn" id="nowBtn" disabled>지금</button>
@@ -250,6 +249,8 @@
       <div class="col-toggle-sub">배역</div>
       <div class="col-toggle-group" id="roleColToggles"></div>
       <p style="color:var(--ink-dim); font-size:13px; margin:8px 0 0;">막공 표시의 <b>페어막·주역 페어막으로 선택된 배역</b>은 여기서 꺼도 스케줄 표에는 항상 표시됩니다.</p>
+      <div class="col-toggle-sub" id="matchColSub" style="display:none;">대결</div>
+      <div class="col-toggle-group" id="matchColToggles"></div>
     </div>
     <div class="stat-section">
       <h2>개발 중인 기능 보기</h2>
@@ -447,7 +448,7 @@
 </div>
 
 <script src="/js/config.js?v=2"></script>
-<script src="/js/app.js?v=203"></script>
+<script src="/js/app.js?v=204"></script>
 <script src="/js/dropbox.js?v=6"></script>
 <script src="/js/finale.js?v=47"></script>
 </body>
