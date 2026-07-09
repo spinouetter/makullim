@@ -10,7 +10,7 @@
 <!-- __SHOW__ --><!-- 배포 시 GitHub Action이 slug 스텁(<slug>/index.html)을 만들며 위 마커를
      <script>window.MAKULLIM_SHOW_ID="<id>";window.MAKULLIM_BUILD="<커밋SHA>";</script> 로 치환한다.
      루트는 빌드 버전만 주입. BUILD는 데이터(JSON) 요청의 캐시 버스터(?v=) — 로컬 개발(미주입)은 no-store로 항상 최신. -->
-<link rel="stylesheet" href="/css/styles.css?v=144">
+<link rel="stylesheet" href="/css/styles.css?v=145">
 </head>
 <body>
 
@@ -431,15 +431,13 @@
       <div style="font-size:14px; color:var(--gold); font-weight:700;">막공 표시</div>
       <button id="lastShowCloseBtn" style="font-size:12px; padding:4px 10px;">닫기</button>
     </div>
-    <label class="opt-row" style="margin-bottom:8px;"><input type="checkbox" id="myLastShowToggle"><span><b>내 막공</b> — 원래(전체 스케줄 기준) 막공과 별개로, 티켓이 입력된 회차 중에서의 막공도 함께 표시합니다. 켜면 내 막공은 지금 색 그대로, 전체 막공(페어막 포함)은 옅은 점선으로 표시됩니다. 두 막공이 같은 회차인데 그 티켓이 숨김 상태면 둘 다 표시합니다.</span></label>
-    <label class="opt-row" style="margin-bottom:8px;"><input type="checkbox" id="lastShowRoleToggle"><span><b>배역별 막공</b> — 각 배우가 그 배역으로 서는 마지막 회차를 강조합니다.</span></label>
-    <label class="opt-row"><input type="checkbox" id="lastShowPairToggle"><span><b>페어막</b> — 아래에서 고른 배역 조합이 마지막으로 함께 서는 회차를 하나로 묶어 표시합니다. 켜면 선택한 배역이 표 맨 앞으로 오고, 배역 숨김은 무시됩니다.</span></label>
+    <label class="opt-row" style="margin-bottom:8px;"><input type="checkbox" id="lastShowRoleToggle"><span><b>배우 막공</b> — 배우가 마지막으로 공연할 때 이름을 강조합니다.</span></label>
+    <label class="opt-row"><input type="checkbox" id="lastShowPairToggle"><span><b>페어막</b> — 하나의 배역을 선택하면 그 배역을 중심으로 페어막을 찾아 이름에 테두리를 그려줍니다. 둘 이상을 선택하면 페어막을 테두리로 모아줍니다.</span></label>
     <div id="lastShowPairPicker" style="margin-top:10px;"></div>
-    <p style="color:var(--ink-dim); font-size:12px; margin:10px 0 0;">배역을 누른 순서대로 앞에 배치됩니다. 선택은 페어막을 꺼도 유지됩니다.</p>
-    <label class="opt-row" style="margin-top:14px;"><input type="checkbox" id="lastShowLeadToggle"><span><b>주역 페어막</b> — 아래에서 고른 주역의 그날 배우와 다른 배역 배우의 페어가 마지막으로 함께 서는 회차에 둥근 테두리를 표시합니다. 배역별 막공 강조가 있으면 그쪽이 우선합니다.</span></label>
-    <label class="opt-row" style="margin-top:8px;"><input type="checkbox" id="lastShowLeadExcludeToggle"><span>미정 캐스트 있는 배역 제외 — 마지막 회차 캐스팅이 미정인 배역은 아래 주역 후보에서 빼고, 스케줄에서도 그 배역과는 페어를 잡지 않습니다.</span></label>
-    <div id="lastShowLeadPicker" style="margin-top:10px;"></div>
-    <label class="opt-row" style="margin-top:14px;"><input type="checkbox" id="lastShowPairOnlyToggle"><span><b>페어막만 표시</b> — 페어막·주역 페어막 표시가 있는 회차만 남기고, 사이 회차는 두 줄 사이에 개수로 접어 표시합니다. 누르면 펼치고 다시 누르면 접힙니다.</span></label>
+    <hr style="border:none; border-top:1px dashed var(--line); margin:14px 0;">
+    <label class="opt-row" style="margin-bottom:8px;"><input type="checkbox" id="myLastShowToggle"><span><b>내 막공</b> — 전체 막공과 함께 내 막공도 표시합니다. 내 막공이 진하게 표시됩니다.</span></label>
+    <label class="opt-row" style="margin-bottom:8px;"><input type="checkbox" id="lastShowIncludeUndeterminedToggle"><span><b>미정 배역 포함</b> — 총막이 미정인 배역도 포함하여 막공/페어막을 표시합니다.</span></label>
+    <label class="opt-row"><input type="checkbox" id="lastShowPairOnlyToggle"><span><b>막공만 표시</b> — 막공/페어막의 배우가 있는 공연만 남기고 숨깁니다.</span></label>
     <div style="display:flex; gap:8px; margin-top:14px;">
       <button id="lastShowResetBtn" style="flex:1;">초기화</button>
       <button id="lastShowApplyBtn" style="flex:1; border-color:var(--gold); color:var(--gold);">확인</button>
@@ -448,7 +446,7 @@
 </div>
 
 <script src="/js/config.js?v=2"></script>
-<script src="/js/app.js?v=197"></script>
+<script src="/js/app.js?v=198"></script>
 <script src="/js/dropbox.js?v=6"></script>
 <script src="/js/finale.js?v=45"></script>
 </body>
