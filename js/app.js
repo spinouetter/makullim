@@ -703,7 +703,13 @@ function buildLastShowMap(){
    마지막으로 함께 서는 회차를 계산한다. key "주역배우|배역|배우" -> 회차 인덱스 */
 function buildLeadPairMap(leadRole){
   const perfs = performanceData.performances;
-  const roles = castRoleObjs().map(c=>c.role).filter(r=>r!==leadRole);
+  let roles = castRoleObjs().map(c=>c.role).filter(r=>r!==leadRole);
+  // 옵션 ON이면 마지막 회차 캐스팅이 미정인 배역은 주역 페어막 파트너에서 제외
+  // (진짜 마지막 페어를 알 수 없으므로 스케줄에서 그 배역과는 페어를 잡지 않음) — 요청 0075
+  if(lastShowLeadExcludeUndetermined && perfs.length){
+    const lastPerf = perfs[perfs.length-1];
+    roles = roles.filter(role => castVisibleNamesOf(lastPerf.cast[role]).length>0);
+  }
   const map = new Map();
   perfs.forEach((p,i)=>{
     const leads = castVisibleNamesOf(p.cast[leadRole]);
@@ -914,7 +920,8 @@ function setupLastShowModal(){
     lastShowLeadOn = e.target.checked; renderSchedule(); saveState();
   });
   document.getElementById("lastShowLeadExcludeToggle")?.addEventListener("change", e=>{
-    lastShowLeadExcludeUndetermined = e.target.checked; renderLastShowModalBody(); saveState();
+    // 후보 목록뿐 아니라 스케줄의 주역 페어막 계산(buildLeadPairMap)도 이 옵션을 따르므로 함께 갱신 — 요청 0075
+    lastShowLeadExcludeUndetermined = e.target.checked; renderLastShowModalBody(); renderSchedule(); saveState();
   });
   document.getElementById("lastShowPairOnlyToggle")?.addEventListener("change", e=>{
     lastShowPairOnlyOn = e.target.checked; pairOnlyExpanded.clear(); renderSchedule(); saveState();
