@@ -77,7 +77,11 @@
     if(w && h){ VB_X=0; VB_Y=0; VB_W=w; VB_H=h; svg.setAttribute("viewBox", `0 0 ${w} ${h}`); }
   }
 
-  let finaleMode = (typeof castStatsMode === "string") ? castStatsMode : "all";
+  // 스크립트 실행 시점엔 app.js의 loadStateFromStorage()가 아직 안 끝났을 수 있어
+  // castStatsMode가 저장된 값이 아니라 선언 시 기본값("all")일 수 있다.
+  // → 여기선 우선 기본값으로 두고, Finale 탭이 실제로 열릴 때(renderFinale) 1회 동기화한다.
+  let finaleMode = "all";
+  let finaleModeSynced = false;
   let booted = false;
 
   // 랜덤 데이터 모드: ?randomData 또는 ?randomData=<시드> → 관극수·좌석수를 (시드 기반) 랜덤으로 채움.
@@ -581,6 +585,16 @@
   // 탭 진입/모드 변경 시: 썸네일만 구성(동적 보드 렌더 X). 오버레이가 열려 있으면 보드 갱신.
   async function renderFinale(){
     if(!dataReady()) return;
+    // Finale 탭이 처음 열리는 시점엔 app.js의 저장된 설정이 이미 복원돼 있으므로,
+    // 이때 1회만 Statistics 탭의 통계 기준 값을 가져와 초기값으로 맞춘다(이후엔 독립적으로 동작).
+    if(!finaleModeSynced){
+      finaleModeSynced = true;
+      if(typeof castStatsMode === "string"){
+        finaleMode = castStatsMode;
+        const sel = document.getElementById("finaleModeSelect");
+        if(sel) sel.value = finaleMode;
+      }
+    }
     buildThumbs();
     // 프리뷰가 없으면 폴백(라이브 보드)이 필요하므로, 무거운 보드 렌더를 미리 시작해 첫 표시를 앞당김.
     previewExists().then(ok=>{ if(!ok) ensureBoardRendered(); });
