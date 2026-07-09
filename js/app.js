@@ -2494,7 +2494,7 @@ function renderStats(){
   // (막 내린 공연은 상단 카드에 총액을 합쳐 한 줄로 보여주므로 카드보다 먼저 계산)
   let spentAmount = 0, upcomingAmount = 0;
   perfs.forEach(p=>{
-    if(isCancelled(p)) return; // 취소된 공연은 금액 집계에서 제외
+    if(!hasSeat(p)) return; // 취소·숨긴 티켓은 금액 집계에서 제외
     const price = ticketPriceOf(p.seat, p.ticketType, p.ticketFee, (p.ticketDiscount!=null?p.ticketDiscount:null), p.ticketExtra, p.reseller) || 0;
     if(isEnded(p)) spentAmount += price; else upcomingAmount += price;
   });
