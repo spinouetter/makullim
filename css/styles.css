@@ -528,6 +528,13 @@
     border:1.5px solid var(--gold); border-radius:9px;
     padding:0 6px; width:fit-content; margin:0 auto; font-weight:700;
   }
+  /* 내 막공(요청 0076): 티켓이 입력된 회차 기준 배역별 막공은 기존 강조(.last-show)를 그대로 쓰고,
+     "전체 막공"(스케줄 전체 기준)은 옅은 색 + 점선 알약으로 구분해 함께 표시 */
+  .cast-cell .name.last-show-all{
+    border:1.5px dashed color-mix(in srgb, var(--gold) 45%, transparent);
+    color:color-mix(in srgb, var(--gold) 65%, var(--ink-dim));
+    border-radius:7px; padding:0 7px; width:fit-content; margin:0 auto;
+  }
   /* 페어막만 표시(0058): 접힌 구간 — 위아래 두 줄 사이에 숨긴 공연 개수, 클릭으로 펼침/접힘 */
   #scheduleTable tbody tr.pair-collapse td{
     border-top:1px solid var(--line); border-bottom:1px solid var(--line);
@@ -555,6 +562,24 @@
   /* 페어막 조합별 묶기(combos) — 배우 상자·연결선은 SVG 오버레이(drawPairComboOverlay)가 그림.
      여기서는 상자와 이름이 겹치지 않게 이름 좌우에 살짝 여백만 준다. */
   .cast-cell .name.pair-mate{padding:0 6px; width:fit-content; margin:0 auto;}
+  /* 내 막공(0076) 모드: 페어막 오벌·주역 페어막 알약도 "전체 막공"이므로 옅은 색 + 점선으로 낮춤 */
+  #scheduleTable.my-lastshow-mode .cast-cell.pairlast::after{
+    border-top-color:color-mix(in srgb, var(--gold) 45%, transparent);
+    border-bottom-color:color-mix(in srgb, var(--gold) 45%, transparent);
+    border-top-style:dashed; border-bottom-style:dashed;
+  }
+  #scheduleTable.my-lastshow-mode .cast-cell.pairlast-start::after{
+    border-left-color:color-mix(in srgb, var(--gold) 45%, transparent); border-left-style:dashed;
+  }
+  #scheduleTable.my-lastshow-mode .cast-cell.pairlast-end::after{
+    border-right-color:color-mix(in srgb, var(--gold) 45%, transparent); border-right-style:dashed;
+  }
+  #scheduleTable.my-lastshow-mode .cast-cell .name.lead-pair,
+  #scheduleTable.my-lastshow-mode .cast-cell .name.lead-self{
+    border-color:color-mix(in srgb, var(--gold) 45%, transparent);
+    border-style:dashed;
+    color:var(--ink-dim);
+  }
   .role-head .role-name{display:block;}
   .role-head .role-sub{font-size:10px; color:var(--ink-dim); font-weight:400; text-transform:none;}
   .ticket-cell{width:96px; min-width:96px;}

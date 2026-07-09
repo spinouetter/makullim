@@ -10,7 +10,7 @@
 <!-- __SHOW__ --><!-- 배포 시 GitHub Action이 slug 스텁(<slug>/index.html)을 만들며 위 마커를
      <script>window.MAKULLIM_SHOW_ID="<id>";window.MAKULLIM_BUILD="<커밋SHA>";</script> 로 치환한다.
      루트는 빌드 버전만 주입. BUILD는 데이터(JSON) 요청의 캐시 버스터(?v=) — 로컬 개발(미주입)은 no-store로 항상 최신. -->
-<link rel="stylesheet" href="/css/styles.css?v=143">
+<link rel="stylesheet" href="/css/styles.css?v=144">
 </head>
 <body>
 
@@ -431,6 +431,7 @@
       <div style="font-size:14px; color:var(--gold); font-weight:700;">막공 표시</div>
       <button id="lastShowCloseBtn" style="font-size:12px; padding:4px 10px;">닫기</button>
     </div>
+    <label class="opt-row" style="margin-bottom:8px;"><input type="checkbox" id="myLastShowToggle"><span><b>내 막공</b> — 원래(전체 스케줄 기준) 막공과 별개로, 티켓이 입력된 회차 중에서의 막공도 함께 표시합니다. 켜면 내 막공은 지금 색 그대로, 전체 막공(페어막 포함)은 옅은 점선으로 표시됩니다. 두 막공이 같은 회차인데 그 티켓이 숨김 상태면 둘 다 표시합니다.</span></label>
     <label class="opt-row" style="margin-bottom:8px;"><input type="checkbox" id="lastShowRoleToggle"><span><b>배역별 막공</b> — 각 배우가 그 배역으로 서는 마지막 회차를 강조합니다.</span></label>
     <label class="opt-row"><input type="checkbox" id="lastShowPairToggle"><span><b>페어막</b> — 아래에서 고른 배역 조합이 마지막으로 함께 서는 회차를 하나로 묶어 표시합니다. 켜면 선택한 배역이 표 맨 앞으로 오고, 배역 숨김은 무시됩니다.</span></label>
     <div id="lastShowPairPicker" style="margin-top:10px;"></div>
@@ -447,7 +448,7 @@
 </div>
 
 <script src="/js/config.js?v=2"></script>
-<script src="/js/app.js?v=196"></script>
+<script src="/js/app.js?v=197"></script>
 <script src="/js/dropbox.js?v=6"></script>
 <script src="/js/finale.js?v=45"></script>
 </body>
