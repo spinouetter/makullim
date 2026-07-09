@@ -5590,6 +5590,7 @@ function tmCommit(){
   renderSchedule();
   renderStats();    // 맨 위 티켓이 통계/좌석맵에 반영되므로 함께 갱신(좌석 변경·순서변경·삭제 시)
   renderSeatMap(true); // 좌석맵 줌/위치 유지
+  renderTickets();  // Tickets 탭 카드도 함께 갱신
 }
 /* === 티켓 취소·양도 이력 창 — 요청 0064 ===
    행: 좌석번호·등급 / [취소|양도 배지] / 비용 / 내용 / 삭제 */
@@ -5654,7 +5655,7 @@ function renderTicketHistory(){
   }
   bodyEl.innerHTML = rowsHTML + overlay;
 
-  const delHist = hi=>{ p.ticketHistory.splice(hi, 1); thEditHi=-1; renderTicketHistory(); renderSchedule(); saveState(); };
+  const delHist = hi=>{ p.ticketHistory.splice(hi, 1); thEditHi=-1; renderTicketHistory(); renderSchedule(); renderTickets(); saveState(); };
   bodyEl.querySelectorAll(".th-del").forEach(btn=> btn.addEventListener("click", ()=> delHist(+btn.dataset.hi)));
   bodyEl.querySelectorAll(".th-edit-open").forEach(btn=>
     btn.addEventListener("click", ()=>{ thEditHi = +btn.dataset.hi; renderTicketHistory(); }));
@@ -5714,7 +5715,7 @@ function renderTicketHistory(){
       if(kindSel) kindSel.addEventListener("change", ()=>{ commit(); renderTicketHistory(); });
       pop.querySelectorAll(".tk-extra, .tk-custom-name, .tk-custom-rate, .tk-hist-note, .tk-hist-cost").forEach(inp=>
         inp.addEventListener("keydown", e=>{ if(e.key==="Enter"){ e.preventDefault(); inp.blur(); } }));
-      const sv=pop.querySelector(".tk-save"); if(sv) sv.addEventListener("click", e=>{ e.stopPropagation(); commit(); thEditHi=-1; renderTicketHistory(); renderSchedule(); saveState(); });
+      const sv=pop.querySelector(".tk-save"); if(sv) sv.addEventListener("click", e=>{ e.stopPropagation(); commit(); thEditHi=-1; renderTicketHistory(); renderSchedule(); renderTickets(); saveState(); });
       const cl=pop.querySelector(".tk-clear"); if(cl) cl.addEventListener("click", e=>{ e.stopPropagation(); delHist(thEditHi); });
       const cx=pop.querySelector(".tk-cancel"); if(cx) cx.addEventListener("click", e=>{ e.stopPropagation(); thEditHi=-1; renderTicketHistory(); });
     }
