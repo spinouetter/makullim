@@ -6605,7 +6605,7 @@
 					<rect x="0" y="1373.16" width="26.9291" height="13.9789" class="st4"/>
 					<text x="2.35" y="1384.43" class="st20" v:langID="1042" id="fn-name-mr_braithwaite-0"><v:paragraph v:horizAlign="2"/><v:tabList/>이진하</text>				</g>
 			</g>
-			<g id="group6721-3050" transform="translate(0,-104.882)" v:mID="6721" v:groupContext="group">
+			<g id="group6721-3050" transform="translate(-50.5512,-104.882)" v:mID="6721" v:groupContext="group">
 				<title>시트.6721</title>
 				<g id="shape6722-3051" v:mID="6722" v:groupContext="shape" transform="translate(0,2.27374E-13)">
 					<title>시트.6722</title>
@@ -6616,7 +6616,7 @@
 					<text x="0" y="1362.22" class="st23" v:langID="1042"><v:paragraph/><v:tabList/>MR. <tspan x="0" dy="1.2em" class="st14">BRAITHWAITE</tspan></text>				</g>
 				<g id="shape6723-3056" v:mID="6723" v:groupContext="shape" transform="translate(-1.59872E-14,-2.83465)">
 					<title>시트.6723</title>
-					<rect x="0" y="1384.3" width="69.4488" height="2.83465" class="st18"/>
+					<rect x="0" y="1384.3" width="120" height="2.83465" class="st18"/>
 				</g>
 			</g>
 		</g>
