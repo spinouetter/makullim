@@ -490,13 +490,7 @@
       const measure = s => { ctx.font = (BASE_PX*s) + "px 'Anton', sans-serif"; return ctx.measureText(full).width; };
       let scale = 1.0, guard = 0;
       while(measure(scale) > availW && scale > 0.4 && guard++ < 100){ scale -= 0.01; }  // 라벨 너비 = 언더라인 너비
-      if(full === "BRAITHWAITE"){
-        // 100% 유지: 언더라인 우변에 오른쪽 정렬하고 왼쪽 글자는 셀 밖(비어 있는 SMALL BOY 위 공간)으로 넘김.
-        // 밑줄·사진 위치는 그대로.
-        scale = 1.0;
-        t.setAttribute("x", availW.toFixed(2));
-        t.removeAttribute("text-anchor"); t.style.textAnchor = "end";
-      } else if(scale < 0.999){
+      if(scale < 0.999){
         t.style.fontSize = (2*scale).toFixed(3) + "em";
       }
       report.push(full + " → " + Math.round(scale*100) + "%");
