@@ -2095,13 +2095,12 @@ function renderSchedule(){
   updateFloatOverlay();
 
   // 페이지 최초 로드/새로고침 시, 현재·다음 공연이 위에서 4번째 줄에 오도록 한 번만 스크롤.
-  // '막공만 표시'로 지금 공연이 접혀 있으면 먼저 펼친다(0081). 펼침은 동기 재렌더로 DOM을 다시
-  // 그리지만, 이 블록은 scheduleAutoScrolled 가드로 재진입하지 않으므로 스크롤은 여기서 한 번만 건다.
+  // '막공만 표시'로 지금 공연이 접혀 있으면 기본은 숨긴 채로 둔다(자동으로 펼치지 않음) — 요청 0081.
+  // 지금 공연이 접혀 있으면 '지금' 버튼이 활성으로 남고(updateNowBtn), 눌러야 펼쳐 보인다(goToNow).
   if(!scheduleAutoScrolled){
     scheduleAutoScrolled = true;
-    ensureCurrentPerfVisible();
     requestAnimationFrame(()=>{
-      scrollToCurrentPerf();
+      scrollToCurrentPerf();  // 접혀 있으면 .current-perf 가 없어 스크롤 없음(그대로 둠)
       const w = document.querySelector("#page-schedule .table-scroll-wrap");
       scheduleHomeScrollTop = w ? w.scrollTop : 0; // '지금' 버튼 비교용 홈 위치
       updateNowBtn();
