@@ -10,7 +10,7 @@
 <!-- __SHOW__ --><!-- 배포 시 GitHub Action이 slug 스텁(<slug>/index.html)을 만들며 위 마커를
      <script>window.MAKULLIM_SHOW_ID="<id>";window.MAKULLIM_BUILD="<커밋SHA>";</script> 로 치환한다.
      루트는 빌드 버전만 주입. BUILD는 데이터(JSON) 요청의 캐시 버스터(?v=) — 로컬 개발(미주입)은 no-store로 항상 최신. -->
-<link rel="stylesheet" href="/css/styles.css?v=147">
+<link rel="stylesheet" href="/css/styles.css?v=148">
 </head>
 <body>
 
@@ -41,7 +41,7 @@
         <button class="floor-toggle-btn" id="nowBtn" disabled>지금</button>
         <button class="floor-toggle-btn" id="lastShowBtn">막공</button>
         <button class="floor-toggle-btn" id="castHistoryToggleBtn">변경 내역</button>
-        <button class="floor-toggle-btn" id="filterClearBtn" disabled>필터 해제</button>
+        <button class="floor-toggle-btn" id="viewOptBtn">보기 옵션</button>
         <button class="floor-toggle-btn" id="clearHighlightBtn" style="display:none;">선택 해제</button>
       </div>
     </div>
@@ -235,22 +235,6 @@
       <label class="opt-row"><input type="checkbox" id="optMultiTicket"><span><b>다중 티켓 관리 모드</b> — 한 공연에 여러 장의 티켓(좌석)을 관리</span></label>
       <p style="color:var(--ink-dim); font-size:13px; margin:6px 0 0;">켜면 좌석 입력칸 옆에 <b>+</b> 버튼이 생겨 티켓을 추가·정렬할 수 있습니다. 맨 위 티켓이 스케줄에 표시됩니다.</p>
       <p style="color:var(--ink-dim); font-size:13px; margin:4px 0 0;"><b>통계·가격·좌석표에는 맨 위 티켓만 반영</b>됩니다. 추가 티켓은 관리·기록용이며 총 금액이나 관극 횟수에 합산되지 않습니다.</p>
-    </div>
-    <div class="stat-section">
-      <h2>스케줄 컬럼 표시</h2>
-      <div class="col-toggle-group">
-        <button type="button" class="floor-toggle-btn col-toggle" data-col="__num__">순번</button>
-        <button type="button" class="floor-toggle-btn col-toggle" data-col="__seat__">좌석</button>
-        <button type="button" class="floor-toggle-btn col-toggle" data-col="__ticket__">티켓</button>
-        <button type="button" class="floor-toggle-btn col-toggle" data-col="__price__">가격</button>
-        <button type="button" class="floor-toggle-btn" id="optExtraCost">기타 비용</button>
-        <button type="button" class="floor-toggle-btn col-toggle" data-col="__memo__">메모</button>
-      </div>
-      <div class="col-toggle-sub">배역</div>
-      <div class="col-toggle-group" id="roleColToggles"></div>
-      <p style="color:var(--ink-dim); font-size:13px; margin:8px 0 0;">막공 표시의 <b>페어막·주역 페어막으로 선택된 배역</b>은 여기서 꺼도 스케줄 표에는 항상 표시됩니다.</p>
-      <div class="col-toggle-sub" id="matchColSub" style="display:none;">대결</div>
-      <div class="col-toggle-group" id="matchColToggles"></div>
     </div>
     <div class="stat-section">
       <h2>개발 중인 기능 보기</h2>
@@ -447,8 +431,50 @@
   </div>
 </div>
 
+<!-- 보기 옵션(스케줄 컬럼 표시 + 배역별 필터) 오버레이 — 요청 0081 -->
+<div id="viewOptModal" class="seat-overlay" style="display:none;">
+  <div class="seat-overlay-content" style="width:520px; max-width:92vw;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+      <div style="font-size:14px; color:var(--gold); font-weight:700;">보기 옵션</div>
+      <button id="viewOptCloseBtn" style="font-size:12px; padding:4px 10px;">닫기</button>
+    </div>
+
+    <div class="vo-section">
+      <div class="vo-h">스케줄 컬럼 표시</div>
+      <div class="col-toggle-group">
+        <button type="button" class="floor-toggle-btn col-toggle" data-col="__num__">순번</button>
+        <button type="button" class="floor-toggle-btn col-toggle" data-col="__seat__">좌석</button>
+        <button type="button" class="floor-toggle-btn col-toggle" data-col="__ticket__">티켓</button>
+        <button type="button" class="floor-toggle-btn col-toggle" data-col="__price__">가격</button>
+        <button type="button" class="floor-toggle-btn" id="optExtraCost">기타 비용</button>
+        <button type="button" class="floor-toggle-btn col-toggle" data-col="__memo__">메모</button>
+      </div>
+      <div class="col-toggle-sub">배역</div>
+      <div class="col-toggle-group" id="roleColToggles"></div>
+      <p style="color:var(--ink-dim); font-size:13px; margin:8px 0 0;">막공 표시의 <b>페어막·주역 페어막으로 선택된 배역</b>은 여기서 꺼도 스케줄 표에는 항상 표시됩니다.</p>
+      <div class="col-toggle-sub" id="matchColSub" style="display:none;">대결</div>
+      <div class="col-toggle-group" id="matchColToggles"></div>
+    </div>
+
+    <hr style="border:none; border-top:1px dashed var(--line); margin:16px 0;">
+
+    <div class="vo-section">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2px;">
+        <div class="vo-h" style="margin:0;">배역별 필터</div>
+        <button id="viewOptFilterClearBtn" style="font-size:12px; padding:4px 10px;" disabled>필터 해제</button>
+      </div>
+      <p style="color:var(--ink-dim); font-size:13px; margin:2px 0 10px;">배우를 누르면 그 배우가 나오는 회차만 남깁니다. 같은 배역 안 여러 배우는 <b>OR</b>, 다른 배역 사이는 <b>AND</b>입니다. 컬럼을 숨긴 배역은 목록에도 나오지 않습니다.</p>
+      <div id="viewOptRoleFilter"></div>
+    </div>
+
+    <div style="display:flex; gap:8px; margin-top:16px;">
+      <button id="viewOptApplyBtn" style="flex:1; border-color:var(--gold); color:var(--gold);">확인</button>
+    </div>
+  </div>
+</div>
+
 <script src="/js/config.js?v=2"></script>
-<script src="/js/app.js?v=204"></script>
+<script src="/js/app.js?v=205"></script>
 <script src="/js/dropbox.js?v=6"></script>
 <script src="/js/finale.js?v=47"></script>
 </body>

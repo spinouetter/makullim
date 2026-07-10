@@ -1165,6 +1165,14 @@
   /* 스케줄 컬럼 표시 토글(설정) — 공통 토글 버튼을 줄바꿈 배치 */
   .col-toggle-group{ display:flex; flex-wrap:wrap; gap:8px; }
   .col-toggle-sub{ font-size:11px; color:var(--ink-dim); font-weight:700; margin:12px 0 7px; letter-spacing:0.04em; }
+  /* 보기 옵션 모달(0081): 스케줄 컬럼 표시 + 배역별 필터 */
+  #viewOptModal .vo-h{ font-size:13px; font-weight:700; color:var(--gold); margin:0 0 8px; }
+  #viewOptModal .vo-section{ max-height:none; }
+  #viewOptModal .vo-role{ border-top:1px solid var(--line); padding:8px 0; }
+  #viewOptModal .vo-role:first-child{ border-top:none; }
+  #viewOptModal .vo-role-title{ font-size:12px; font-weight:700; color:var(--ink-dim); margin-bottom:7px; }
+  #viewOptModal .vo-role-title.on{ color:var(--gold); }
+  #viewOptModal .vo-role .combo-actor-chips{ gap:6px; }
   /* 스케줄 옵션 버튼: 모바일에서 잘리지 않도록 작게 */
   #page-schedule .floor-toggle-bar .floor-toggle-btn{ padding:3px 8px; font-size:11px; }
 
