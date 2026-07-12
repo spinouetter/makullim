@@ -6236,11 +6236,6 @@ function setupScheduleOptions(){
     }
     multiTicketMode = mt.checked; saveState(); renderSchedule();
   });
-  const fv = document.getElementById("optFinaleView");
-  if(fv){
-    fv.checked = finaleViewOn;
-    fv.addEventListener("change", ()=>{ finaleViewOn = fv.checked; saveState(); applyFinaleVisibility(); });
-  }
   const df = document.getElementById("optDevFeat");
   if(df){
     df.checked = devFeatOn;
@@ -6294,15 +6289,11 @@ function refreshColumnSettings(){
   if(ec) ec.classList.toggle("active", showExtraCost);
 }
 
-// Finale 탭 표시/숨김. 숨길 때 그 탭이 활성이면 스케줄로 되돌린다.
+// Finale 탭은 항상 표시(상시 기능 — 개발 중 토글 제거). 0084
 function applyFinaleVisibility(){
   const tab = document.querySelector('.tab-btn[data-page="finale"]');
   if(!tab) return;
-  tab.style.display = finaleViewOn ? "" : "none";
-  if(!finaleViewOn && tab.classList.contains("active")){
-    const home = document.querySelector('.tab-btn[data-page="schedule"]');
-    if(home) home.click();
-  }
+  tab.style.display = "";
   adjustNavCompact();
 }
 

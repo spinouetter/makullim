@@ -4,6 +4,7 @@
 
 | 날짜 | 요청 | 요약 |
 |------|------|------|
+| 2026-07-13 | [0084](0084.md) | Finale 탭 상시 표시 — 개발 중 기능(Settings의 `optFinaleView` 토글)에서 승격, 항상 노출. 토글·와이어링 제거 |
 | 2026-07-13 | [0083](0083.md) | Finale 갤러리에 등록된 모든 보드 표시(멀티 보드) — 보드별 `<style>`를 svg id로 스코프해 클래스 전역 충돌 방지, 카드 클릭=그 보드 오버레이. placeholder 2개·"디자인 모집 중". 보드 def `preview:true` → 대각선 "PREVIEW" 워터마크 |
 | 2026-07-13 | [0082](0082.md) | Finale 좌석도(injectSeatmap) 패널·층 외곽선 테두리 색 옵션 — `panel.stroke`/`strokeWidth` 지원, 층 외곽선을 그 색과 통일(무회귀). billy 2026 좌석맵에 회색 테두리 + 미관극 등급색(gradeRamp) 상향 |
 | 2026-07-13 | — | 빌리 Finale 새 캐스트보드(2026 new) 추가 — new-style.svg를 태깅해 `finale-board-2026.svg` 생성(슬롯 fn-name/fn-cnt/fn-photo·팀 합계 fn-group·TOTAL·부제 id 부여, casts.json id로 슬롯 매핑, 배역 라벨 교정 SMALL BOY·BRAITHWAITE·WILKINSON·ASHINGTON/BEDLINGTON, 헤딩 Anton). 보드 정의 `billy-casting-board-2026.json` + 레지스트리 등록(기본값은 기존 유지). finale.js 미변경(데이터 주도). SVG `<image>`는 `xlink:href`만 사용해 Firefox 사진 렌더 이슈 회피 |
