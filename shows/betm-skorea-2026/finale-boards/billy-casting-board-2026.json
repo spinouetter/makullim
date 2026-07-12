@@ -1,0 +1,61 @@
+{
+  "preview": true,
+
+  "background": {
+    "type": "svg",
+    "src": "images/finale-board-2026.svg?v=1",
+    "viewBox": [0, 0, 610.199, 1219.65]
+  },
+
+  "fonts": [
+    { "family": "Anton",                 "woff2": "/fonts/Anton-400.woff2",          "ttf": "/fonts/Anton-400.ttf" },
+    { "family": "IBM Plex Sans KR Medm", "woff2": "/fonts/IBMPlexSansKR-Medm.woff2", "ttf": "/fonts/IBMPlexSansKR-Medm.ttf" },
+    { "family": "IBM Plex Sans KR",      "woff2": "/fonts/IBMPlexSansKR-Regular.woff2" }
+  ],
+
+  "styles": {
+    "name":      { "fontFamily": "IBM Plex Sans KR Medm", "fill": "#f2f2f2" },
+    "roleLabel": { "fontFamily": "Anton" },
+    "count": {
+      "numerator":   { "fontFamily": "IBM Plex Sans KR Medm", "fill": "#ba1e23" },
+      "denominator": { "fontFamily": "IBM Plex Sans KR Medm", "fill": "#8a8a8a", "prefix": " / " }
+    },
+    "groupTotal": {
+      "numerator":   { "fontFamily": "IBM Plex Sans KR Medm", "fill": "#3f3f3f" },
+      "denominator": { "fontFamily": "IBM Plex Sans KR Medm", "fill": "#8a8a8a", "prefix": " / " }
+    },
+    "total": {
+      "numerator":   { "fontFamily": "IBM Plex Sans KR Medm", "fill": "#ba1e23" },
+      "denominator": { "fontFamily": "IBM Plex Sans KR Medm", "fill": "#ba1e23", "prefix": " / " }
+    },
+    "subtitle":  { "fontFamily": "IBM Plex Sans KR Medm", "fill": "#000000" }
+  },
+
+  "photos": { "pattern": "images/{name}.jpeg", "placeholder": "images/플레이스홀더.jpeg" },
+
+  "slotTemplate": {
+    "fields": [
+      { "type": "text",  "id": "fn-name-{slot}-{i}",  "bind": "$item.name", "style": "name" },
+      { "type": "count", "id": "fn-cnt-{slot}-{i}",   "bind": "$item.stat", "style": "count" },
+      { "type": "photo", "id": "fn-photo-{slot}-{i}", "bind": "$item.name" }
+    ],
+    "groupCount": { "id": "fn-group-{actor}", "style": "groupTotal" }
+  },
+
+  "onUnplaced": "warn",
+
+  "totalCount": { "svgId": "fn-total",    "style": "total" },
+  "subtitle":   { "svgId": "fn-subtitle", "style": "subtitle" },
+  "headings":   { "selector": "text.st3", "style": "roleLabel" },
+
+  "seatmap": {
+    "target":    { "rect": { "x": 340.53, "y": 595.65, "w": 226.77, "h": 226.77 } },
+    "panel":     { "fill": "none", "rx": 8.5, "stroke": "#7f7f7f", "strokeWidth": 0.75 },
+    "heat":      ["#4aa3ff", "#2fd0c8", "#46c84e", "#c2d92a", "#ffd21f", "#ff9a1f", "#ff6322", "#ef3b2f", "#d81e4a", "#b3126e"],
+    "gradeRamp": { "VIP": 0.30, "R": 0.42, "S": 0.54, "A": 0.64, "default": 0.68 },
+    "floorGap":  { "default": -2, "3": -2.5 },
+    "padding":   { "x": 10, "top": 10, "legendZone": 26 },
+    "legend":    { "count": 10 },
+    "stage":     { "fill": "#f2e8d5", "textFill": "#9c1a1a", "label": "STAGE" }
+  }
+}
