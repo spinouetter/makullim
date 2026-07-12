@@ -376,6 +376,27 @@
         const v = periodVenueVal(mani.subtitle.sep); if(v) el.textContent = v; }
     }
     if(mani.seatmap) injectSeatmap(svg, mani.seatmap);              // 좌석 히트맵
+    if(mani.preview) injectPreviewWatermark(svg);                   // preview:true → 대각선 "PREVIEW" 워터마크
+  }
+  // 보드 전체를 대각선으로 가르는 검은 볼드 "PREVIEW" 워터마크(미확정 보드 표시용).
+  function injectPreviewWatermark(svg){
+    const vbAttr=(svg.getAttribute("viewBox")||"").split(/[\s,]+/).map(Number);
+    const [x,y,w,h] = (vbAttr.length===4 && vbAttr.every(n=>!isNaN(n)))
+      ? vbAttr : [0,0,parseFloat(svg.getAttribute("width"))||1000, parseFloat(svg.getAttribute("height"))||1000];
+    const cx=x+w/2, cy=y+h/2;
+    const g=document.createElementNS(SVGNS,"g");
+    g.setAttribute("id","fn-preview-wm");
+    g.setAttribute("transform",`rotate(-30 ${cx.toFixed(1)} ${cy.toFixed(1)})`);
+    g.setAttribute("pointer-events","none");
+    const t=document.createElementNS(SVGNS,"text");
+    t.setAttribute("x",cx.toFixed(1)); t.setAttribute("y",cy.toFixed(1));
+    t.setAttribute("text-anchor","middle"); t.setAttribute("dominant-baseline","central");
+    t.setAttribute("font-family","Anton, Arial, sans-serif"); t.setAttribute("font-weight","700");
+    t.setAttribute("font-size",(w*0.2).toFixed(1));
+    t.setAttribute("letter-spacing",(w*0.012).toFixed(1));
+    t.setAttribute("fill","#000000"); t.setAttribute("fill-opacity","0.28");
+    t.textContent="PREVIEW";
+    g.appendChild(t); svg.appendChild(g);
   }
 
   // ---- 좌석 다이어그램 교체 (모든 렌더 파라미터는 seatmap 바인딩 cfg에서) ----
@@ -430,13 +451,17 @@
 
     const panelFill = (cfg.panel && cfg.panel.fill) || "#de6363";
     const panelRx = (cfg.panel && cfg.panel.rx != null) ? cfg.panel.rx : 10;
+    // 패널(외곽) 테두리: cfg.panel.stroke 있으면 그림. 층 외곽선도 같은 색을 쓴다(없으면 기존 흰색).
+    const panelStroke = (cfg.panel && cfg.panel.stroke) || null;
+    const panelStrokeW = (cfg.panel && cfg.panel.strokeWidth != null) ? cfg.panel.strokeWidth : 1;
+    const outlineStroke = panelStroke || "rgba(255,255,255,0.6)";
     const stageFill = (cfg.stage && cfg.stage.fill) || "#f2e8d5";
     const stageText = (cfg.stage && cfg.stage.textFill) || "#9c1a1a";
-    let mk = `<rect x="${cover.x}" y="${cover.y}" width="${cover.w}" height="${cover.h}" rx="${panelRx}" fill="${panelFill}"/>`;
+    let mk = `<rect x="${cover.x}" y="${cover.y}" width="${cover.w}" height="${cover.h}" rx="${panelRx}" fill="${panelFill}"${panelStroke ? ` stroke="${panelStroke}" stroke-width="${panelStrokeW}"` : ""}/>`;
     placed.forEach(b=>{
       const Y=y=>offY+(b.top+(y-b.fMinY))*scale;
       (b.fm.outline||[]).forEach(poly=>{
-        mk += `<polyline points="${poly.map(p=>X(p[0]).toFixed(1)+','+Y(p[1]).toFixed(1)).join(' ')}" fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="0.8"/>`;
+        mk += `<polyline points="${poly.map(p=>X(p[0]).toFixed(1)+','+Y(p[1]).toFixed(1)).join(' ')}" fill="none" stroke="${outlineStroke}" stroke-width="0.8"/>`;
       });
       const sz=Math.max(1.4, 0.82*scale);
       b.fs.forEach(s=>{
@@ -589,91 +614,116 @@
         if(sel) sel.value = finaleMode;
       }
     }
-    buildThumbs();
-    // 프리뷰가 없으면 폴백(라이브 보드)이 필요하므로, 무거운 보드 렌더를 미리 시작해 첫 표시를 앞당김.
-    previewExists().then(ok=>{ if(!ok) ensureBoardRendered(); });
+    await buildThumbs();
     const ov = document.getElementById("finaleOverlay");
-    if(ov && ov.style.display !== "none"){ await ensureBoardRendered(); fitBoard(); }
+    if(ov && ov.style.display !== "none" && _activeEntry){ await openFinaleOverlay(_activeEntry); }
   }
 
-  // ---- 디자인 썸네일(현재 캐스트보드 1종 + placeholder 여러 개) ----
-  let DESIGNS = null, designOrder = null, lastLayoutW = -1;
-  function ensureDesigns(){
-    if(DESIGNS) return;
-    DESIGNS = [{ real:true, ar: VB_W/VB_H }];   // 실제 보드는 원래 비율(세로형)
-    for(let i=0;i<5;i++){
-      // placeholder 가로세로 비율 랜덤 — 0.75~1.35(줄 높이 통일 시 면적 차 최소화)
-      const ar = 0.75 + Math.random() * (1.35 - 0.75);
-      // 색은 다양하게(색상 전체 범위, 다크 UI에 맞게 채도·명도는 낮게)
-      const color = `hsl(${Math.floor(Math.random()*360)} ${24+Math.floor(Math.random()*20)}% ${22+Math.floor(Math.random()*12)}%)`;
-      DESIGNS.push({ real:false, ar, color });
+  // ---- 보드 갤러리: 등록된 모든 보드를 각각 라이브 렌더 + placeholder 2개 ----
+  let lastLayoutW = -1;
+  let _activeEntry = null, _activeManifest = null;   // 현재 오버레이에 열린 보드
+  let _boardScopeN = 0;                              // 렌더 인스턴스마다 고유 스코프 id
+  const _defCache = new Map(), _svgTextCache = new Map(), _fontCssCache = new Map();
+  let _randomViewingsApplied = false;
+  function applyRandomViewingsOnce(){ if(_randomViewingsApplied) return; _randomViewingsApplied = true; applyRandomViewings(); }
+
+  async function maniFor(entry){
+    if(!_defCache.has(entry.id)){
+      const def = await (await fetch(window.showUrl(entry.def))).json();
+      _defCache.set(entry.id, Object.assign({ id:entry.id, name:entry.name, hidden:!!entry.hidden }, def));
     }
-    designOrder = DESIGNS.map((_,i)=>i);
-    for(let i=designOrder.length-1;i>0;i--){         // Fisher–Yates: refresh마다 랜덤 순서
-      const j = Math.floor(Math.random()*(i+1));
-      [designOrder[i],designOrder[j]] = [designOrder[j],designOrder[i]];
-    }
+    return _defCache.get(entry.id);
   }
-  // CI가 만든 정적 미리보기(images/finale-preview.jpg) 존재 여부를 1회만 화면 밖에서 확인해 캐시.
-  // <img>를 DOM에 넣어 404를 기다리면 '깨진 이미지 아이콘'이 잠깐 보이므로, 오프-DOM Image로 미리 판별.
-  let _previewOk = null, _previewProbe = null;
-  function previewExists(){
-    if(RANDOM_MODE) return Promise.resolve(false);        // 랜덤 데이터 모드는 항상 라이브 보드
-    if(_previewOk !== null) return Promise.resolve(_previewOk);
-    if(!_previewProbe){
-      _previewProbe = new Promise(res=>{
-        const im = new Image();
-        im.onload  = ()=>{ _previewOk = im.naturalWidth > 0; res(_previewOk); };
-        im.onerror = ()=>{ _previewOk = false; res(false); };
-        im.src = previewImg();
+  async function svgTextFor(mani){
+    const src = window.showUrl(mani.background.src);
+    if(!_svgTextCache.has(src)) _svgTextCache.set(src, await (await fetch(src)).text());
+    return _svgTextCache.get(src);
+  }
+  async function fontCssFor(mani){
+    if(!_fontCssCache.has(mani.id)){
+      const parts = await Promise.all(((mani && mani.fonts) || []).map(async f=>{
+        try{ const r=await fetch(f.woff2); const b=new Uint8Array(await r.arrayBuffer()); let s=""; for(let i=0;i<b.length;i++) s+=String.fromCharCode(b[i]);
+          return `@font-face{font-family:'${f.family}';src:url(data:font/woff2;base64,${btoa(s)}) format('woff2');}`; }
+        catch(e){ return ""; }
+      }));
+      _fontCssCache.set(mani.id, parts.join(""));
+    }
+    return _fontCssCache.get(mani.id);
+  }
+  // 여러 보드를 동시에 DOM에 두면 각 보드 <style>의 .stN 규칙이 전역 충돌한다(보드마다 뜻이 다름).
+  // → 그 보드 <style>의 셀렉터를 루트 id로 스코프해 자기 보드에만 적용시킨다.
+  //   (클래스 속성은 그대로 두므로 renderManifest의 querySelector(.stN)는 계속 동작.)
+  function scopeBoardStyles(svg){
+    const sid = svg.id; if(!sid) return;
+    svg.querySelectorAll("style").forEach(st=>{
+      let css = st.textContent || "";
+      if(/@font-face/.test(css)) return;                 // 폰트(@font-face)는 전역 유지
+      css = css.replace(/<!\[CDATA\[|\]\]>/g, "");        // HTML 파서가 남긴 CDATA 마커 제거
+      css = css.replace(/([^{}]+)\{([^{}]*)\}/g, (m, sel, body)=>{
+        const scoped = sel.split(",").map(s=>{ s=s.trim(); if(!s) return null;
+          return s[0]==="." ? `#${sid} ${s}, #${sid}${s}` : `#${sid} ${s}`; }).filter(Boolean).join(", ");
+        return `${scoped}{${body}}`;
       });
+      st.textContent = css;
+    });
+  }
+  // 한 보드를 container 안에 라이브 렌더(사진·좌석·통계 채움). asId 주면 svg에 그 id 부여(오버레이용).
+  async function renderBoardInto(container, entry, asId){
+    if(!dataReady()) return null;
+    const mani = await maniFor(entry);
+    const [txt, css] = await Promise.all([svgTextFor(mani), fontCssFor(mani)]);
+    container.innerHTML = txt;
+    const svg = container.querySelector("svg"); if(!svg) return null;
+    svg.id = asId || ("fnbd-" + (_boardScopeN++));
+    svg.style.fontSize = "12px";                          // Visio 루트 클래스의 em 기준(스코프 후 유실 방지)
+    if(css){ const fst=document.createElementNS(SVGNS,"style"); fst.textContent=css; svg.insertBefore(fst, svg.firstChild); }
+    scopeBoardStyles(svg);                                // 보드 <style>를 이 svg에만 한정(전역 충돌 방지)
+    svg.removeAttribute("width"); svg.removeAttribute("height");
+    let vbX=0, vbY=0, vbW, vbH;
+    const vb = mani.background && mani.background.viewBox;
+    if(Array.isArray(vb) && vb.length===4){ [vbX,vbY,vbW,vbH]=vb; svg.setAttribute("viewBox", vb.join(" ")); }
+    else {
+      const own=(svg.getAttribute("viewBox")||"").split(/[\s,]+/).map(Number);
+      if(own.length===4 && own.every(n=>!isNaN(n))){ [vbX,vbY,vbW,vbH]=own; }
+      else { vbW=parseFloat(svg.getAttribute("width"))||1000; vbH=parseFloat(svg.getAttribute("height"))||1000; svg.setAttribute("viewBox",`0 0 ${vbW} ${vbH}`); }
     }
-    return _previewProbe;
+    { const bg=document.createElementNS(SVGNS,"rect"); bg.setAttribute("x",vbX); bg.setAttribute("y",vbY);
+      bg.setAttribute("width",vbW); bg.setAttribute("height",vbH); bg.setAttribute("fill","#ffffff"); svg.insertBefore(bg, svg.firstChild); }
+    if(randomModeActive()) applyRandomViewingsOnce();
+    renderManifest(svg, mani);
+    if(css){ try{ if(document.fonts && document.fonts.load) await document.fonts.load('20px "Anton"'); }catch(e){} fitRoleLabels(svg); }
+    return { svg, mani, vbX, vbY, vbW, vbH };
   }
-  // 라이브 보드를 (지연) 렌더해 카드에 클론으로 삽입(프리뷰가 없을 때의 폴백).
-  async function liveCloneInto(card){
-    const svg = await ensureBoardRendered();
-    if(!svg || !card.isConnected || card.querySelector("svg")) return;   // 카드가 교체됐거나 이미 채워졌으면 skip
-    const clone = svg.cloneNode(true); clone.removeAttribute("id"); clone.removeAttribute("style");
-    card.insertBefore(clone, card.firstChild);
-  }
-  function buildThumbs(){
-    ensureDesigns();
-    const wrap = document.getElementById("finaleThumbs");
-    if(!wrap) return;
+
+  async function buildThumbs(){
+    const wrap = document.getElementById("finaleThumbs"); if(!wrap) return;
+    const reg = await loadRegistry();
+    const boards = visibleBoards(reg);
     wrap.innerHTML = "";
-    designOrder.forEach(idx=>{
-      const d = DESIGNS[idx];
+    boards.forEach(entry=>{
       const card = document.createElement("div");
-      card.className = "finale-thumb " + (d.real ? "real" : "placeholder");
-      card.dataset.ar = d.ar;                        // 저스티파이드 레이아웃용 비율
-      if(d.real){
-        // 프리뷰 존재 여부를 먼저 확정(오프-DOM). 있으면 정적 이미지, 없으면 라이브 보드 클론.
-        (async ()=>{
-          const ok = await previewExists();
-          if(!card.isConnected) return;
-          if(ok){
-            const img = document.createElement("img");
-            img.className = "finale-thumb-img"; img.alt = "관극 인증 이미지 미리보기";
-            // 만약을 대비: 확인 후에도 로드 실패하면 라이브 보드로 폴백
-            img.addEventListener("error", ()=>{ if(card.isConnected){ img.remove(); liveCloneInto(card); } }, { once:true });
-            img.src = previewImg();
-            card.insertBefore(img, card.firstChild);
-          } else {
-            await liveCloneInto(card);   // 프리뷰 없음(CI 미생성) → 라이브 보드
-          }
-        })();
+      card.className = "finale-thumb real";
+      card.dataset.ar = 0.5;                               // 렌더 후 실제 비율로 교체
+      card.addEventListener("click", ()=>openFinaleOverlay(entry));
+      wrap.appendChild(card);
+      renderBoardInto(card, entry).then(res=>{
+        if(!res || !card.isConnected) return;
+        card.dataset.ar = (res.vbW/res.vbH) || 0.5;
+        if(res.svg){ res.svg.style.width="100%"; res.svg.style.height="100%"; }
         const badge = document.createElement("div");
         badge.className = "finale-thumb-badge"; badge.textContent = "크게 보기";
-        card.appendChild(badge);
-        card.addEventListener("click", openFinaleOverlay);
-      } else {
-        card.style.backgroundColor = d.color;
-        card.innerHTML = '<div class="ph-inner"><span class="ph-icon">🎭</span><span class="ph-label">디자인 준비 중</span></div>';
-        // placeholder는 클릭 반응 없음(핸들러 미등록)
-      }
-      wrap.appendChild(card);
+        card.appendChild(badge);                           // svg 위에 오도록 마지막에 추가
+        layoutThumbs();
+      }).catch(()=>{});
     });
+    for(let i=0;i<2;i++){                                  // "디자인 모집 중" placeholder 2개
+      const card = document.createElement("div");
+      card.className = "finale-thumb placeholder";
+      card.dataset.ar = 0.75 + Math.random()*(1.35-0.75);
+      card.style.backgroundColor = `hsl(${Math.floor(Math.random()*360)} ${24+Math.floor(Math.random()*20)}% ${22+Math.floor(Math.random()*12)}%)`;
+      card.innerHTML = '<div class="ph-inner"><span class="ph-icon">🎭</span><span class="ph-label">디자인 모집 중</span></div>';
+      wrap.appendChild(card);
+    }
     lastLayoutW = -1;
     layoutThumbs();
   }
@@ -739,12 +789,19 @@
   }
   // 오버레이 = 실제 이미지 렌더 시점: 여기서 라이브 보드를 (지연) 렌더한다.
   let _overlayHistoryPushed = false;
-  async function openFinaleOverlay(){
+  async function openFinaleOverlay(entry){
     const ov=document.getElementById("finaleOverlay"); if(!ov) return;
+    entry = entry || _activeEntry; if(!entry) return;
     ov.style.display="flex";
     // 스마트폰 뒤로가기로 닫을 수 있도록 히스토리 항목 추가
     if(!_overlayHistoryPushed){ try{ history.pushState({ finaleOverlay:true }, ""); _overlayHistoryPushed=true; }catch(e){} }
-    await ensureBoardRendered();
+    const vp = getViewport();
+    if(vp){
+      const res = await renderBoardInto(vp, entry, "finaleBoardSvg");
+      if(res){ _activeEntry=entry; _activeManifest=res.mani;
+        VB_X=res.vbX; VB_Y=res.vbY; VB_W=res.vbW; VB_H=res.vbH;
+        if(res.svg){ res.svg.style.width=""; res.svg.style.height=""; res.svg.dataset.w=VB_W; res.svg.dataset.h=VB_H; } }
+    }
     requestAnimationFrame(fitBoard);   // 표시 후 뷰포트 크기 확정된 뒤 맞춤
   }
   function hideOverlay(){ const ov=document.getElementById("finaleOverlay"); if(ov) ov.style.display="none"; }
@@ -919,7 +976,7 @@
     const label=btn?btn.textContent:""; if(btn){ btn.disabled=true; btn.textContent="PDF 생성 중…"; }
     try{
       await ensurePdfLibs(); const { jsPDF }=window.jspdf;
-      const mani=await loadManifest();
+      const mani=_activeManifest || await loadManifest();
       const krTtf=ttfUrlFor(mani, PDF_KR_FAM), antonTtf=ttfUrlFor(mani, "Anton");
       const doc=new jsPDF({ orientation: VB_W>VB_H?"l":"p", unit:"pt", format:[VB_W,VB_H] });
       let fontName=null;
@@ -983,7 +1040,13 @@
   }
 
   window.renderFinale = function(){ renderFinale(); };
-  window.renderFinaleBoard = function(){ return ensureBoardRendered(); };   // CI 썸네일 생성용(라이브 보드 렌더)
+  window.renderFinaleBoard = async function(){   // CI 썸네일 생성용(기본/지정 보드를 뷰포트에 렌더)
+    const reg = await loadRegistry(); const entry = resolveEntry(reg);
+    const vp = getViewport(); if(!vp || !entry) return null;
+    const res = await renderBoardInto(vp, entry, "finaleBoardSvg");
+    if(res){ _activeEntry=entry; _activeManifest=res.mani; VB_X=res.vbX; VB_Y=res.vbY; VB_W=res.vbW; VB_H=res.vbH; }
+    return res ? res.svg : null;
+  };
   if(document.readyState==="loading") document.addEventListener("DOMContentLoaded", init);
   else init();
 })();

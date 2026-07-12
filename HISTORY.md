@@ -4,6 +4,8 @@
 
 | 날짜 | 요청 | 요약 |
 |------|------|------|
+| 2026-07-13 | [0083](0083.md) | Finale 갤러리에 등록된 모든 보드 표시(멀티 보드) — 보드별 `<style>`를 svg id로 스코프해 클래스 전역 충돌 방지, 카드 클릭=그 보드 오버레이. placeholder 2개·"디자인 모집 중". 보드 def `preview:true` → 대각선 "PREVIEW" 워터마크 |
+| 2026-07-13 | [0082](0082.md) | Finale 좌석도(injectSeatmap) 패널·층 외곽선 테두리 색 옵션 — `panel.stroke`/`strokeWidth` 지원, 층 외곽선을 그 색과 통일(무회귀). billy 2026 좌석맵에 회색 테두리 + 미관극 등급색(gradeRamp) 상향 |
 | 2026-07-13 | — | 빌리 Finale 새 캐스트보드(2026 new) 추가 — new-style.svg를 태깅해 `finale-board-2026.svg` 생성(슬롯 fn-name/fn-cnt/fn-photo·팀 합계 fn-group·TOTAL·부제 id 부여, casts.json id로 슬롯 매핑, 배역 라벨 교정 SMALL BOY·BRAITHWAITE·WILKINSON·ASHINGTON/BEDLINGTON, 헤딩 Anton). 보드 정의 `billy-casting-board-2026.json` + 레지스트리 등록(기본값은 기존 유지). finale.js 미변경(데이터 주도). SVG `<image>`는 `xlink:href`만 사용해 Firefox 사진 렌더 이슈 회피 |
 | 2026-07-10 | [0081](0081.md) | 지금 공연 자동 펼침 + 스케줄 "필터 해제"를 "보기 옵션" 모달로 통합 — '막공만 표시'로 지금 공연이 접혀 있으면 로드 시 자동으로(그리고 '지금' 버튼으로도) 펼쳐 보이게 함. 툴바 "필터 해제"를 "보기 옵션" 모달로 바꿔 Settings의 "스케줄 컬럼 표시" 이동 + 배역별 단추형 필터(컬럼 숨김과 동기화) + 필터 해제를 한곳에 통합 |
 | 2026-07-10 | [0080](0080.md) | 대결 컬럼 숨김도 Settings로 통합, 스케줄 탭 "숨김 바" 완전 삭제 — 순번·좌석·티켓·가격·기타비용·메모·배역처럼 대결 컬럼도 Settings에서 전역으로 켜고 끄도록 통일. 이제 안 쓰는 스케줄 탭 자체의 "숨김 바"(복원용 드롭박스) 기능을 HTML/JS/CSS 전부 삭제 |
