@@ -10,7 +10,8 @@
   "fonts": [
     { "family": "Anton",                 "woff2": "/fonts/Anton-400.woff2",          "ttf": "/fonts/Anton-400.ttf" },
     { "family": "IBM Plex Sans KR Medm", "woff2": "/fonts/IBMPlexSansKR-Medm.woff2", "ttf": "/fonts/IBMPlexSansKR-Medm.ttf" },
-    { "family": "IBM Plex Sans KR",      "woff2": "/fonts/IBMPlexSansKR-Regular.woff2" }
+    { "family": "IBM Plex Sans KR",      "woff2": "/fonts/IBMPlexSansKR-Regular.woff2" },
+    { "family": "Handlee",               "woff2": "/fonts/Handlee-400.woff2",        "ttf": "/fonts/Handlee-400.ttf" }
   ],
 
   "styles": {
@@ -25,8 +26,8 @@
       "denominator": { "fontFamily": "IBM Plex Sans KR Medm", "fill": "#8a8a8a", "prefix": " / " }
     },
     "total": {
-      "numerator":   { "fontFamily": "IBM Plex Sans KR Medm", "fill": "#ba1e23" },
-      "denominator": { "fontFamily": "IBM Plex Sans KR Medm", "fill": "#ba1e23", "prefix": " / " }
+      "numerator":   { "fontFamily": "Handlee", "fill": "#ba1e23" },
+      "denominator": { "fontFamily": "Handlee", "fill": "#ba1e23", "prefix": " / ", "fontSize": "0.744em" }
     },
     "subtitle":  { "fontFamily": "IBM Plex Sans KR Medm", "fill": "#000000" }
   },
