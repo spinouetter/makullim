@@ -978,18 +978,29 @@
   // 폰트: 배역 헤딩(계산 폰트가 Anton)은 좁은 Anton 그대로(레이아웃 유지), 나머지
   // (한글 배우명·숫자)는 미리보기와 동일한 IBM Plex Sans KR. @font-face는 굽기 후 제거.
   const PDF_KR_FAM = "IBM Plex Sans KR Medm";
+  const HANGUL = /[가-힣ᄀ-ᇿ㄰-㆏]/;
   const BAKE_PROPS=["fill","fill-opacity","fill-rule","stroke","stroke-width","stroke-opacity",
     "stroke-linecap","stroke-linejoin","stroke-miterlimit","stroke-dasharray","opacity",
     "font-size","font-weight","font-style","text-anchor"];
-  function bakeStyles(root){
+  // PDF에 쓸 폰트 결정: 한글이 있으면 반드시 한글 폰트(글리프 보장), 아니면 계산된 글꼴이
+  // PDF에 등록된(ttf 임베드) 폰트면 그대로, 아니면 한글 폰트로 폴백.
+  function bakedFamily(cs, text, registered){
+    if(HANGUL.test(text||"")) return PDF_KR_FAM;
+    const first = ((cs.fontFamily||"").split(",")[0]||"").replace(/['"]/g,"").trim();
+    if(registered.has(first)) return first;
+    for(const r of registered){ if(r!==PDF_KR_FAM &&
+        new RegExp(r.replace(/[.*+?^${}()|[\]\\]/g,"\\$&"),"i").test(cs.fontFamily||"")) return r; }
+    return PDF_KR_FAM;
+  }
+  function bakeStyles(root, registered){
+    registered = registered || new Set([PDF_KR_FAM]);
     root.querySelectorAll("*").forEach(el=>{
       const tag=el.tagName.toLowerCase();
       if(tag==="style"||tag==="clippath"||tag==="defs") return;
       const cs=getComputedStyle(el);
       BAKE_PROPS.forEach(p=>{ const v=cs.getPropertyValue(p); if(v) el.setAttribute(p, v); });
       if(tag==="text"||tag==="tspan"){
-        const anton=/Anton/i.test(cs.fontFamily||"");
-        el.setAttribute("font-family", anton ? "Anton" : PDF_KR_FAM);
+        el.setAttribute("font-family", bakedFamily(cs, el.textContent, registered));
         el.removeAttribute("style");
       }
     });
@@ -1001,22 +1012,28 @@
     try{
       await ensurePdfLibs(); const { jsPDF }=window.jspdf;
       const mani=_activeManifest || await loadManifest();
-      const krTtf=ttfUrlFor(mani, PDF_KR_FAM), antonTtf=ttfUrlFor(mani, "Anton");
+      const krTtf=ttfUrlFor(mani, PDF_KR_FAM);
       const doc=new jsPDF({ orientation: VB_W>VB_H?"l":"p", unit:"pt", format:[VB_W,VB_H] });
+      const registered=new Set();
       let fontName=null;
       try{ if(!krTtf) throw new Error("no ttf"); const b64=await fontB64(krTtf); doc.addFileToVFS("IBMPlexKR.ttf",b64);
         doc.addFont("IBMPlexKR.ttf",PDF_KR_FAM,"normal"); doc.addFont("IBMPlexKR.ttf",PDF_KR_FAM,"bold");
-        doc.setFont(PDF_KR_FAM); fontName=PDF_KR_FAM; }catch(fe){}
+        doc.setFont(PDF_KR_FAM); fontName=PDF_KR_FAM; registered.add(PDF_KR_FAM); }catch(fe){}
       if(!fontName) throw new Error("한글 폰트 로드 실패");   // 깨진 벡터 대신 래스터 폴백
-      try{ if(antonTtf){ const ab=await fontB64(antonTtf); doc.addFileToVFS("Anton.ttf",ab);
-        doc.addFont("Anton.ttf","Anton","normal"); doc.addFont("Anton.ttf","Anton","bold"); } }catch(fe){}
+      // 매니페스트의 나머지 폰트(ttf 있는 것) 모두 등록 → 헤딩 Anton·TOTAL Handlee 등 라틴 글자를 그 글꼴로.
+      for(const f of (mani.fonts||[])){
+        if(!f.ttf || f.family===PDF_KR_FAM || registered.has(f.family)) continue;
+        try{ const ab=await fontB64(ttfUrlFor(mani, f.family)); const vfs=f.family.replace(/[^A-Za-z0-9]/g,"")+".ttf";
+          doc.addFileToVFS(vfs,ab); doc.addFont(vfs,f.family,"normal"); doc.addFont(vfs,f.family,"bold");
+          registered.add(f.family); }catch(fe){}
+      }
       const svgForPdf=el.cloneNode(true);
       svgForPdf.removeAttribute("style");
       svgForPdf.style.position="absolute"; svgForPdf.style.left="-99999px"; svgForPdf.style.top="0";
       svgForPdf.style.width=VB_W+"px"; svgForPdf.style.height=VB_H+"px";
       document.body.appendChild(svgForPdf);
       try{ if(document.fonts&&document.fonts.ready) await document.fonts.ready; }catch(e){}
-      bakeStyles(svgForPdf);            // CSS 클래스 색·획을 속성으로 굽기 + 폰트 지정
+      bakeStyles(svgForPdf, registered);   // CSS 클래스 색·획을 속성으로 굽기 + 폰트 지정(등록 폰트 기준)
       document.body.removeChild(svgForPdf);
       svgForPdf.querySelectorAll("style").forEach(s=>s.remove());   // @font-face 제거
       await inlinePhotos(svgForPdf, true);                           // 사진 임베드+슬롯 비율 크롭
