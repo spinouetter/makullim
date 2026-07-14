@@ -66,6 +66,15 @@ async function capture(page, port, id, board) {
       document.body.prepend(box);
       [...document.body.children].forEach(el => { if (el !== box) el.style.display = "none"; });
       document.documentElement.style.background = "#fff"; document.body.style.cssText = "margin:0;background:#fff;";
+      // 보드 루트 svg가 overflow:visible이라 내용(하단 폴라로이드·태그라인 등)이 뷰박스 아래로 넘칠 수 있다.
+      // height:auto는 뷰박스 높이까지만 잡으므로, 실제 최하단 콘텐츠까지 capbox를 늘려 하단이 잘리지 않게 한다.
+      const top = box.getBoundingClientRect().top;
+      let maxB = 0;
+      svg.querySelectorAll("text, image, rect, path, polyline").forEach(e => {
+        const r = e.getBoundingClientRect(); if (r.width || r.height) maxB = Math.max(maxB, r.bottom);
+      });
+      const need = Math.ceil(maxB - top) + 4;   // 여유 4px
+      if (need > box.getBoundingClientRect().height) box.style.height = need + "px";
     });
     await page.waitForTimeout(200);
     const el = await page.$("#capbox");
@@ -88,7 +97,9 @@ srv.listen(0, "127.0.0.1", async () => {
   const launchOpts = process.env.PW_CHROMIUM ? { executablePath: process.env.PW_CHROMIUM, args: ["--no-sandbox"] } : {};
   const browser = await chromium.launch(launchOpts);
   // 썸네일(갤러리용)이라 고해상도 불필요 — dpr 1로 캡처해 파일 크기를 ~1/4로 줄인다(로딩 지연 완화).
-  const page = await browser.newPage({ viewport: { width: 900, height: 1400 }, deviceScaleFactor: 1 });
+  // 뷰포트 높이는 보드(760px 폭 → 최대 ~1520px 높이)보다 크게: 뷰포트 아래 영역은 페인트되지 않아
+  // 캡처 시 하단(폴라로이드·태그라인)이 흰색으로 잘리는 것을 방지.
+  const page = await browser.newPage({ viewport: { width: 900, height: 1700 }, deviceScaleFactor: 1 });
   const ids = JSON.parse(fs.readFileSync(path.join(ROOT, "shows", "index.json"), "utf8")).shows || [];
   let fail = 0, total = 0;
   for (const id of ids) {
