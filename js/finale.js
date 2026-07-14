@@ -695,6 +695,19 @@
     return { svg, mani, vbX, vbY, vbW, vbH };
   }
 
+  // 보드별 정적 미리보기 이미지(CI가 생성): images/finale-preview-<boardId>.jpg
+  function previewUrlFor(id){ return window.showUrl("images/finale-preview-" + encodeURIComponent(id) + ".jpg"); }
+  // 존재 여부를 오프-DOM Image로 판별(있으면 이미지 반환) — DOM에 넣어 404 대기하면 깨진 아이콘이 잠깐 보임.
+  function probePreview(url){
+    if(RANDOM_MODE) return Promise.resolve(null);         // 랜덤 데이터 모드는 항상 라이브 보드
+    return new Promise(res=>{ const im=new Image();
+      im.onload=()=>res(im.naturalWidth>0?im:null); im.onerror=()=>res(null); im.src=url; });
+  }
+  async function liveThumbInto(card, entry){              // 정적 미리보기 없을 때: 라이브 보드 렌더 폴백
+    const res = await renderBoardInto(card, entry);
+    if(res && card.isConnected){ card.dataset.ar=(res.vbW/res.vbH)||0.5;
+      if(res.svg){ res.svg.style.width="100%"; res.svg.style.height="100%"; } layoutThumbs(); }
+  }
   async function buildThumbs(){
     const wrap = document.getElementById("finaleThumbs"); if(!wrap) return;
     const reg = await loadRegistry();
@@ -706,15 +719,26 @@
       card.dataset.ar = 0.5;                               // 렌더 후 실제 비율로 교체
       card.addEventListener("click", ()=>openFinaleOverlay(entry));
       wrap.appendChild(card);
-      renderBoardInto(card, entry).then(res=>{
-        if(!res || !card.isConnected) return;
-        card.dataset.ar = (res.vbW/res.vbH) || 0.5;
-        if(res.svg){ res.svg.style.width="100%"; res.svg.style.height="100%"; }
+      (async ()=>{
+        // 1) CI가 만든 정적 미리보기(1장) 우선 — 개별 사진 다운로드·라이브 렌더 없이 빠르게 표시.
+        const im = await probePreview(previewUrlFor(entry.id));
+        if(!card.isConnected) return;
+        if(im){
+          card.dataset.ar = (im.naturalWidth/im.naturalHeight) || 0.5;
+          const img = document.createElement("img");
+          img.className = "finale-thumb-img"; img.alt = "Finale 보드 미리보기";
+          img.addEventListener("error", ()=>{ if(card.isConnected){ img.remove(); liveThumbInto(card, entry); } }, {once:true});
+          img.src = previewUrlFor(entry.id);
+          card.insertBefore(img, card.firstChild);
+        } else {
+          await liveThumbInto(card, entry);                // 2) 미리보기 없으면 라이브 폴백
+        }
+        if(!card.isConnected) return;
         const badge = document.createElement("div");
         badge.className = "finale-thumb-badge"; badge.textContent = "크게 보기";
-        card.appendChild(badge);                           // svg 위에 오도록 마지막에 추가
+        card.appendChild(badge);                           // 이미지/보드 위에 오도록 마지막에 추가
         layoutThumbs();
-      }).catch(()=>{});
+      })();
     });
     for(let i=0;i<2;i++){                                  // "디자인 모집 중" placeholder 2개
       const card = document.createElement("div");

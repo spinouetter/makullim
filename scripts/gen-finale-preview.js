@@ -1,7 +1,7 @@
 /* 피날레 '관극 인증 이미지' 미리보기 썸네일 생성기 (GitHub Action용)
- * - 앱을 정적 서버로 띄우고 ?show=<id>&randomData=<시드> 로 보드를 렌더(관극수·좌석수 랜덤, 사진 없으면 플레이스홀더)
- * - shows/index.json의 모든 공연을 순회, 렌더된 보드 SVG를 PNG로 캡처해
- *   shows/<id>/images/finale-preview.jpg 에 저장
+ * - 앱을 정적 서버로 띄우고 ?show=<id>&board=<boardId>&randomData=<시드> 로 보드를 렌더(관극수·좌석수 랜덤, 사진 없으면 플레이스홀더)
+ * - shows/index.json의 모든 공연 × 각 보드(finale-boards.json의 visible)를 순회, 렌더된 보드 SVG를 캡처해
+ *   shows/<id>/images/finale-preview-<boardId>.jpg 에 저장(갤러리 썸네일이 이 1장을 받아 씀 → 개별 사진 다운로드/라이브 렌더 회피)
  * 로컬 실행:  PW_CHROMIUM=/path/to/chrome node scripts/gen-finale-preview.js
  * CI 실행:    npx playwright install chromium && node scripts/gen-finale-preview.js
  */
@@ -25,9 +25,9 @@ const srv = http.createServer((q, r) => {
   });
 });
 
-// 공연 1개 렌더·캡처 (page는 재사용)
-async function capture(page, port, id) {
-  const OUT = path.join(ROOT, "shows", id, "images", "finale-preview.jpg");
+// 보드 1개 렌더·캡처 (page는 재사용)
+async function capture(page, port, id, board) {
+  const OUT = path.join(ROOT, "shows", id, "images", `finale-preview-${board.id}.jpg`);
   const errs = [];
   const onErr = e => errs.push(e.message);
   page.on("pageerror", onErr);
@@ -43,10 +43,10 @@ async function capture(page, port, id) {
       pool.forEach(p => { const k = (p.date || "") + " " + (p.time || ""); if (k > last) last = k; });
       return last.trim() || "makullim-finale";
     });
-    console.log(`[${id}] 시드(마지막 공연 id):`, seed);
+    console.log(`[${id}/${board.id}] 시드(마지막 공연 id):`, seed);
 
-    // 2) 시드 기반 랜덤 데이터로 보드 렌더
-    await page.goto(`http://127.0.0.1:${port}/index.html?show=${encodeURIComponent(id)}&randomData=${encodeURIComponent(seed)}`, { waitUntil: "networkidle" });
+    // 2) 시드 기반 랜덤 데이터로 이 보드 렌더(?board=로 지정)
+    await page.goto(`http://127.0.0.1:${port}/index.html?show=${encodeURIComponent(id)}&board=${encodeURIComponent(board.id)}&randomData=${encodeURIComponent(seed)}`, { waitUntil: "networkidle" });
     await page.evaluate(() => {
       document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
       document.getElementById("page-finale").classList.add("active");
@@ -72,10 +72,10 @@ async function capture(page, port, id) {
     fs.mkdirSync(path.dirname(OUT), { recursive: true });
     await el.screenshot({ path: OUT, type: "jpeg", quality: 82 });   // 사진 많은 보드 → JPG가 PNG보다 훨씬 작음
     const kb = Math.round(fs.statSync(OUT).size / 1024);
-    console.log(`[${id}] finale-preview.jpg 생성 완료 (${kb} KB)` + (errs.length ? `  [pageErrors: ${errs.slice(0,2).join(" | ")}]` : ""));
+    console.log(`[${id}/${board.id}] ${path.basename(OUT)} 생성 완료 (${kb} KB)` + (errs.length ? `  [pageErrors: ${errs.slice(0,2).join(" | ")}]` : ""));
     return true;
   } catch (e) {
-    console.error(`[${id}] 생성 실패:`, e.message, errs.slice(0, 3));
+    console.error(`[${id}/${board.id}] 생성 실패:`, e.message, errs.slice(0, 3));
     return false;
   } finally {
     page.off("pageerror", onErr);
@@ -90,15 +90,15 @@ srv.listen(0, "127.0.0.1", async () => {
   // 썸네일(갤러리용)이라 고해상도 불필요 — dpr 1로 캡처해 파일 크기를 ~1/4로 줄인다(로딩 지연 완화).
   const page = await browser.newPage({ viewport: { width: 900, height: 1400 }, deviceScaleFactor: 1 });
   const ids = JSON.parse(fs.readFileSync(path.join(ROOT, "shows", "index.json"), "utf8")).shows || [];
-  let fail = 0;
+  let fail = 0, total = 0;
   for (const id of ids) {
     // Finale 보드가 없는 공연은 썸네일 대상이 아님 — 건너뜀
     let boards = [];
     try { boards = (JSON.parse(fs.readFileSync(path.join(ROOT, "shows", id, "finale-boards.json"), "utf8")).boards || []).filter(b => !b.hidden); } catch {}
     if (!boards.length) { console.log(`[${id}] 보드 없음 — 건너뜀`); continue; }
-    if (!(await capture(page, port, id))) fail++;
+    for (const board of boards) { total++; if (!(await capture(page, port, id, board))) fail++; }
   }
   await browser.close(); srv.close();
-  console.log(`공연 ${ids.length}개 중 ${ids.length - fail}개 썸네일 생성`);
+  console.log(`보드 ${total}개 중 ${total - fail}개 썸네일 생성`);
   process.exit(fail ? 1 : 0);
 });
