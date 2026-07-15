@@ -10,7 +10,7 @@
 	<![CDATA[
 		.st1 {fill:none;stroke:none;stroke-linecap:round;stroke-linejoin:round;stroke-width:0.75}
 		.st2 {stroke:#bfbfbf;stroke-linecap:round;stroke-linejoin:round;stroke-width:0.75}
-		.st3 {fill:#ba1e23;font-family:Bebas Neue;font-size:1.5em}
+		.st3 {fill:#ba1e23;font-family:Bebas Neue;font-size:1.15em}
 		.st4 {fill:#000000;font-family:맑은 고딕;font-size:0.75em}
 		.st5 {fill:none;stroke:#7f7f7f;stroke-width:0.75}
 		.st6 {fill:#000000;fill-opacity:0.54;stroke:none;stroke-linecap:round;stroke-linejoin:round;stroke-width:0.75}
@@ -38,7 +38,8 @@
 			<image x="0" y="0.749939" width="609.449" height="1218.9" preserveAspectRatio="none" xlink:href="/shows/betm-skorea-2026/images/finale-board-2026-bg.jpg"/>
 			<rect v:rectContext="foreign" x="0" y="0.749939" width="609.449" height="1218.9" class="st1"/>
 		</g>
-		<g id="shape2283-5" v:mID="2283" v:groupContext="shape" transform="translate(1453.88,723.21) rotate(90)">
+		<rect id="fn-seatbox" x="305" y="688.5" width="262.3" height="266.7" class="st1"/>
+		<g id="shape2283-5" v:mID="2283" v:groupContext="shape" transform="translate(1524.75,563.723) rotate(90)">
 			<title>시트.2283</title>
 			<path d="M21.277 1219.65 L77.969 1219.65" class="st2"/>
 		</g>
@@ -58,7 +59,7 @@
 				<v:textBlock v:margins="rect(4,4,2,0)" v:tabSpace="42.5197" v:verticalAlign="2"/>
 				<v:textRect cx="60.2362" cy="1205.47" width="120.48" height="28.3465"/>
 				<rect x="0" y="1191.3" width="120.472" height="28.3465" class="st1"/>
-				<text x="0" y="1212.25" class="st3" v:langID="1042"><v:paragraph/><v:tabList/>BILLY</text>			</g>
+				<text x="0" y="1214.75" class="st3" v:langID="1042"><v:paragraph/><v:tabList/>BILLY</text>			</g>
 			<g id="group1900-18" v:mID="1900" v:groupContext="group">
 				<title>시트.1900</title>
 				<g id="shape1661-19" v:mID="1661" v:groupContext="shape">
@@ -156,7 +157,7 @@
 				<v:textBlock v:margins="rect(4,4,2,0)" v:tabSpace="42.5197" v:verticalAlign="2"/>
 				<v:textRect cx="60.2362" cy="1205.47" width="120.48" height="28.3465"/>
 				<rect x="0" y="1191.3" width="120.472" height="28.3465" class="st1"/>
-				<text x="0" y="1212.25" class="st3" v:langID="1042"><v:paragraph/><v:tabList/>MICHAEL</text>			</g>
+				<text x="0" y="1214.75" class="st3" v:langID="1042"><v:paragraph/><v:tabList/>MICHAEL</text>			</g>
 			<g id="group1916-58" v:mID="1916" v:groupContext="group">
 				<title>시트.1916</title>
 				<g id="shape1917-59" v:mID="1917" v:groupContext="shape">
@@ -246,7 +247,7 @@
 					<text id="fn-name-michael-3" text-anchor="middle" x="27.9213" y="1215.26" class="st7" v:langID="1042"><v:paragraph v:horizAlign="1"/><v:tabList/></text>				</g>
 			</g>
 		</g>
-		<g id="group1951-94" transform="translate(42.8947,-758.643)" v:mID="1951" v:groupContext="group">
+		<g id="group1951-94" transform="translate(42.8947,-771.643)" v:mID="1951" v:groupContext="group">
 			<title>시트.1951</title>
 			<g id="shape1952-95" v:mID="1952" v:groupContext="shape" transform="translate(6.39488E-14,-85.0394)">
 				<title>시트.1952</title>
@@ -254,7 +255,7 @@
 				<v:textBlock v:margins="rect(4,4,2,0)" v:tabSpace="42.5197" v:verticalAlign="2"/>
 				<v:textRect cx="60.2362" cy="1205.47" width="120.48" height="28.3465"/>
 				<rect x="0" y="1191.3" width="120.472" height="28.3465" class="st1"/>
-				<text x="0" y="1212.25" class="st3" v:langID="1042"><v:paragraph/><v:tabList/>DEBBIE</text>			</g>
+				<text x="0" y="1214.75" class="st3" v:langID="1042"><v:paragraph/><v:tabList/>DEBBIE</text>			</g>
 			<g id="group1953-98" v:mID="1953" v:groupContext="group">
 				<title>시트.1953</title>
 				<g id="shape1954-99" v:mID="1954" v:groupContext="shape">
@@ -322,7 +323,7 @@
 					<text id="fn-name-debbie-2" text-anchor="middle" x="27.9213" y="1215.26" class="st7" v:langID="1042"><v:paragraph v:horizAlign="1"/><v:tabList/></text>				</g>
 			</g>
 		</g>
-		<g id="group1965-125" transform="translate(383.903,-758.643)" v:mID="1965" v:groupContext="group">
+		<g id="group1965-125" transform="translate(383.903,-771.643)" v:mID="1965" v:groupContext="group">
 			<title>시트.1965</title>
 			<g id="shape1966-126" v:mID="1966" v:groupContext="shape" transform="translate(6.39488E-14,-85.0394)">
 				<title>시트.1966</title>
@@ -330,7 +331,7 @@
 				<v:textBlock v:margins="rect(4,4,2,0)" v:tabSpace="42.5197" v:verticalAlign="2"/>
 				<v:textRect cx="60.2362" cy="1205.47" width="120.48" height="28.3465"/>
 				<rect x="0" y="1191.3" width="120.472" height="28.3465" class="st1"/>
-				<text x="0" y="1212.25" class="st3" v:langID="1042"><v:paragraph/><v:tabList/>OLD BILLY</text>			</g>
+				<text x="0" y="1214.75" class="st3" v:langID="1042"><v:paragraph/><v:tabList/>OLD BILLY</text>			</g>
 			<g id="group1967-129" v:mID="1967" v:groupContext="group">
 				<title>시트.1967</title>
 				<g id="shape1968-130" v:mID="1968" v:groupContext="shape">
@@ -398,7 +399,7 @@
 					<text id="fn-name-old_billy-2" text-anchor="middle" x="27.9213" y="1215.26" class="st7" v:langID="1042"><v:paragraph v:horizAlign="1"/><v:tabList/></text>				</g>
 			</g>
 		</g>
-		<g id="group1994-156" transform="translate(244.863,-758.643)" v:mID="1994" v:groupContext="group">
+		<g id="group1994-156" transform="translate(244.863,-771.643)" v:mID="1994" v:groupContext="group">
 			<title>시트.1994</title>
 			<g id="shape1995-157" v:mID="1995" v:groupContext="shape" transform="translate(6.39488E-14,-85.0394)">
 				<title>시트.1995</title>
@@ -406,7 +407,7 @@
 				<v:textBlock v:margins="rect(4,4,2,0)" v:tabSpace="42.5197" v:verticalAlign="2"/>
 				<v:textRect cx="60.2362" cy="1205.47" width="120.48" height="28.3465"/>
 				<rect x="0" y="1191.3" width="120.472" height="28.3465" class="st1"/>
-				<text x="0" y="1212.25" class="st3" v:langID="1042"><v:paragraph/><v:tabList/>MRS. WILKINSON</text>			</g>
+				<text x="0" y="1214.75" class="st3" v:langID="1042"><v:paragraph/><v:tabList/>MRS. WILKINSON</text>			</g>
 			<g id="group1996-160" v:mID="1996" v:groupContext="group">
 				<title>시트.1996</title>
 				<g id="shape1997-161" v:mID="1997" v:groupContext="shape">
@@ -452,7 +453,7 @@
 					<text id="fn-name-mrs_wilkinson-1" text-anchor="middle" x="27.9213" y="1215.26" class="st7" v:langID="1042"><v:paragraph v:horizAlign="1"/><v:tabList/></text>				</g>
 			</g>
 		</g>
-		<g id="group2011-178" transform="translate(43.6034,-638.17)" v:mID="2011" v:groupContext="group">
+		<g id="group2011-178" transform="translate(43.6034,-664.17)" v:mID="2011" v:groupContext="group">
 			<title>시트.2011</title>
 			<g id="shape2012-179" v:mID="2012" v:groupContext="shape" transform="translate(1.27898E-13,-85.0394)">
 				<title>시트.2012</title>
@@ -460,7 +461,7 @@
 				<v:textBlock v:margins="rect(4,4,2,0)" v:tabSpace="42.5197" v:verticalAlign="2"/>
 				<v:textRect cx="27.9213" cy="1205.47" width="55.85" height="28.3465"/>
 				<rect x="0" y="1191.3" width="55.8425" height="28.3465" class="st1"/>
-				<text x="0" y="1212.25" class="st3" v:langID="1042"><v:paragraph/><v:tabList/>TONY</text>			</g>
+				<text x="0" y="1214.75" class="st3" v:langID="1042"><v:paragraph/><v:tabList/>TONY</text>			</g>
 			<g id="group2013-182" v:mID="2013" v:groupContext="group">
 				<title>시트.2013</title>
 				<g id="shape2014-183" v:mID="2014" v:groupContext="shape">
@@ -484,7 +485,7 @@
 					<text id="fn-name-tony-0" text-anchor="middle" x="27.9213" y="1215.26" class="st7" v:langID="1042"><v:paragraph v:horizAlign="1"/><v:tabList/></text>				</g>
 			</g>
 		</g>
-		<g id="group2017-191" transform="translate(113.761,-638.17)" v:mID="2017" v:groupContext="group">
+		<g id="group2017-191" transform="translate(113.761,-664.17)" v:mID="2017" v:groupContext="group">
 			<title>시트.2017</title>
 			<g id="shape2018-192" v:mID="2018" v:groupContext="shape" transform="translate(6.39488E-14,-85.0394)">
 				<title>시트.2018</title>
@@ -492,7 +493,7 @@
 				<v:textBlock v:margins="rect(4,4,2,0)" v:tabSpace="42.5197" v:verticalAlign="2"/>
 				<v:textRect cx="60.2362" cy="1205.47" width="120.48" height="28.3465"/>
 				<rect x="0" y="1191.3" width="120.472" height="28.3465" class="st1"/>
-				<text x="0" y="1212.25" class="st3" v:langID="1042"><v:paragraph/><v:tabList/>DAD</text>			</g>
+				<text x="0" y="1214.75" class="st3" v:langID="1042"><v:paragraph/><v:tabList/>DAD</text>			</g>
 			<g id="group2019-195" v:mID="2019" v:groupContext="group">
 				<title>시트.2019</title>
 				<g id="shape2020-196" v:mID="2020" v:groupContext="shape">
@@ -538,7 +539,7 @@
 					<text id="fn-name-dad-1" text-anchor="middle" x="27.9213" y="1215.26" class="st7" v:langID="1042"><v:paragraph v:horizAlign="1"/><v:tabList/></text>				</g>
 			</g>
 		</g>
-		<g id="group2027-213" transform="translate(248.548,-638.17)" v:mID="2027" v:groupContext="group">
+		<g id="group2027-213" transform="translate(248.548,-664.17)" v:mID="2027" v:groupContext="group">
 			<title>시트.2027</title>
 			<g id="shape2028-214" v:mID="2028" v:groupContext="shape" transform="translate(6.39488E-14,-85.0394)">
 				<title>시트.2028</title>
@@ -546,7 +547,7 @@
 				<v:textBlock v:margins="rect(4,4,2,0)" v:tabSpace="42.5197" v:verticalAlign="2"/>
 				<v:textRect cx="60.2362" cy="1205.47" width="120.48" height="28.3465"/>
 				<rect x="0" y="1191.3" width="120.472" height="28.3465" class="st1"/>
-				<text x="0" y="1212.25" class="st3" v:langID="1042"><v:paragraph/><v:tabList/>DEAD MOM</text>			</g>
+				<text x="0" y="1214.75" class="st3" v:langID="1042"><v:paragraph/><v:tabList/>DEAD MOM</text>			</g>
 			<g id="group2029-217" v:mID="2029" v:groupContext="group">
 				<title>시트.2029</title>
 				<g id="shape2030-218" v:mID="2030" v:groupContext="shape">
@@ -592,7 +593,7 @@
 					<text id="fn-name-dead_mum-1" text-anchor="middle" x="27.9213" y="1215.26" class="st7" v:langID="1042"><v:paragraph v:horizAlign="1"/><v:tabList/></text>				</g>
 			</g>
 		</g>
-		<g id="group2037-235" transform="translate(383.903,-638.17)" v:mID="2037" v:groupContext="group">
+		<g id="group2037-235" transform="translate(383.903,-664.17)" v:mID="2037" v:groupContext="group">
 			<title>시트.2037</title>
 			<g id="shape2038-236" v:mID="2038" v:groupContext="shape" transform="translate(6.39488E-14,-85.0394)">
 				<title>시트.2038</title>
@@ -600,7 +601,7 @@
 				<v:textBlock v:margins="rect(4,4,2,0)" v:tabSpace="42.5197" v:verticalAlign="2"/>
 				<v:textRect cx="60.2362" cy="1205.47" width="120.48" height="28.3465"/>
 				<rect x="0" y="1191.3" width="120.472" height="28.3465" class="st1"/>
-				<text x="0" y="1212.25" class="st3" v:langID="1042"><v:paragraph/><v:tabList/>GRANDMA</text>			</g>
+				<text x="0" y="1214.75" class="st3" v:langID="1042"><v:paragraph/><v:tabList/>GRANDMA</text>			</g>
 			<g id="group2039-239" v:mID="2039" v:groupContext="group">
 				<title>시트.2039</title>
 				<g id="shape2040-240" v:mID="2040" v:groupContext="shape">
@@ -668,7 +669,7 @@
 					<text id="fn-name-grandma-2" text-anchor="middle" x="27.9213" y="1215.26" class="st7" v:langID="1042"><v:paragraph v:horizAlign="1"/><v:tabList/></text>				</g>
 			</g>
 		</g>
-		<g id="group2052-266" transform="translate(42.8947,-517.698)" v:mID="2052" v:groupContext="group">
+		<g id="group2052-266" transform="translate(42.8947,-556.698)" v:mID="2052" v:groupContext="group">
 			<title>시트.2052</title>
 			<g id="shape2053-267" v:mID="2053" v:groupContext="shape" transform="translate(1.27898E-13,-85.0394)">
 				<title>시트.2053</title>
@@ -676,7 +677,7 @@
 				<v:textBlock v:margins="rect(4,4,2,0)" v:tabSpace="42.5197" v:verticalAlign="2"/>
 				<v:textRect cx="27.9213" cy="1205.47" width="55.85" height="28.3465"/>
 				<rect x="0" y="1191.3" width="55.8425" height="28.3465" class="st1"/>
-				<text x="0" y="1212.25" class="st3" v:langID="1042"><v:paragraph/><v:tabList/>GEORGE</text>			</g>
+				<text x="0" y="1214.75" class="st3" v:langID="1042"><v:paragraph/><v:tabList/>GEORGE</text>			</g>
 			<g id="group2054-270" v:mID="2054" v:groupContext="group">
 				<title>시트.2054</title>
 				<g id="shape2055-271" v:mID="2055" v:groupContext="shape">
@@ -700,7 +701,7 @@
 					<text id="fn-name-george-0" text-anchor="middle" x="27.9213" y="1215.26" class="st7" v:langID="1042"><v:paragraph v:horizAlign="1"/><v:tabList/></text>				</g>
 			</g>
 		</g>
-		<g id="group2058-279" transform="translate(113.761,-517.698)" v:mID="2058" v:groupContext="group">
+		<g id="group2058-279" transform="translate(114.033,-556.698)" v:mID="2058" v:groupContext="group">
 			<title>시트.2058</title>
 			<g id="shape2059-280" v:mID="2059" v:groupContext="shape" transform="translate(6.39488E-14,-85.0394)">
 				<title>시트.2059</title>
@@ -708,7 +709,7 @@
 				<v:textBlock v:margins="rect(4,4,2,0)" v:tabSpace="42.5197" v:verticalAlign="2"/>
 				<v:textRect cx="60.2362" cy="1205.47" width="120.48" height="28.3465"/>
 				<rect x="0" y="1191.3" width="120.472" height="28.3465" class="st1"/>
-				<text x="-0" y="1212.25" class="st3" v:langID="1042"><v:paragraph/><v:tabList/>TALL BOY</text>			</g>
+				<text x="-0" y="1214.75" class="st3" v:langID="1042"><v:paragraph/><v:tabList/>TALL BOY</text>			</g>
 			<g id="group2060-283" v:mID="2060" v:groupContext="group">
 				<title>시트.2060</title>
 				<g id="shape2061-284" v:mID="2061" v:groupContext="shape">
@@ -776,7 +777,7 @@
 					<text id="fn-name-tall_boy-2" text-anchor="middle" x="27.9213" y="1215.26" class="st7" v:langID="1042"><v:paragraph v:horizAlign="1"/><v:tabList/></text>				</g>
 			</g>
 		</g>
-		<g id="group2073-310" transform="translate(42.8947,-397.225)" v:mID="2073" v:groupContext="group">
+		<g id="group2073-310" transform="translate(312.731,-556.698)" v:mID="2073" v:groupContext="group">
 			<title>시트.2073</title>
 			<g id="shape2074-311" v:mID="2074" v:groupContext="shape" transform="translate(6.39488E-14,-85.0394)">
 				<title>시트.2074</title>
@@ -784,7 +785,7 @@
 				<v:textBlock v:margins="rect(4,4,2,0)" v:tabSpace="42.5197" v:verticalAlign="2"/>
 				<v:textRect cx="60.2362" cy="1205.47" width="120.48" height="28.3465"/>
 				<rect x="0" y="1191.3" width="120.472" height="28.3465" class="st1"/>
-				<text x="0" y="1212.25" class="st3" v:langID="1042"><v:paragraph/><v:tabList/>SMALL BOY</text>			</g>
+				<text x="0" y="1214.75" class="st3" v:langID="1042"><v:paragraph/><v:tabList/>SMALL BOY</text>			</g>
 			<g id="group2075-314" v:mID="2075" v:groupContext="group">
 				<title>시트.2075</title>
 				<g id="shape2076-315" v:mID="2076" v:groupContext="shape">
@@ -852,7 +853,7 @@
 					<text id="fn-name-small_boy-2" text-anchor="middle" x="27.9213" y="1215.26" class="st7" v:langID="1042"><v:paragraph v:horizAlign="1"/><v:tabList/></text>				</g>
 			</g>
 		</g>
-		<g id="group2087-341" transform="translate(242.17,-397.225)" v:mID="2087" v:groupContext="group">
+		<g id="group2087-341" transform="translate(511.429,-556.698)" v:mID="2087" v:groupContext="group">
 			<title>시트.2087</title>
 			<g id="shape2088-342" v:mID="2088" v:groupContext="shape" transform="translate(-15.874,-85.0394)">
 				<title>시트.2088</title>
@@ -860,7 +861,7 @@
 				<v:textBlock v:margins="rect(4,0,2,0)" v:tabSpace="42.5197" v:verticalAlign="2"/>
 				<v:textRect cx="35.8583" cy="1205.47" width="71.72" height="28.3465"/>
 				<rect x="0" y="1191.3" width="71.7165" height="28.3465" class="st1"/>
-				<text x="6.18" y="1212.25" class="st3" v:langID="1042"><v:paragraph v:horizAlign="2"/><v:tabList/>BRAITHWAITE</text>			</g>
+				<text x="71.73" y="1214.75" text-anchor="end" class="st3" v:langID="1042"><v:paragraph v:horizAlign="2"/><v:tabList/>MR. BRAITHWAITE</text>			</g>
 			<g id="group2089-345" v:mID="2089" v:groupContext="group">
 				<title>시트.2089</title>
 				<g id="shape2090-346" v:mID="2090" v:groupContext="shape">
@@ -884,7 +885,7 @@
 					<text id="fn-name-mr_braithwaite-0" text-anchor="middle" x="27.9213" y="1215.26" class="st7" v:langID="1042"><v:paragraph v:horizAlign="1"/><v:tabList/></text>				</g>
 			</g>
 		</g>
-		<g id="group2152-354" transform="translate(42.8947,-305.099)" v:mID="2152" v:groupContext="group">
+		<g id="group2152-354" transform="translate(42.8947,-477.5)" v:mID="2152" v:groupContext="group">
 			<title>시트.2152</title>
 			<g id="group2095-355" transform="translate(6.39488E-14,-1.74596E-06)" v:mID="2095" v:groupContext="group">
 				<title>시트.2095</title>
@@ -907,7 +908,7 @@
 				<v:textBlock v:margins="rect(0,4,2,0)" v:tabSpace="42.5197" v:verticalAlign="2"/>
 				<v:textRect cx="95.6693" cy="1205.47" width="191.34" height="28.3465"/>
 				<rect x="0" y="1191.3" width="191.339" height="28.3465" class="st1"/>
-				<text x="0" y="1212.25" class="st3" v:langID="1042"><v:paragraph/><v:tabList/>BALLET GIRLS (ASHINGTON)</text>			</g>
+				<text x="0" y="1214.75" class="st3" v:langID="1042"><v:paragraph/><v:tabList/>BALLET GIRLS (ASHINGTON)</text>			</g>
 			<g id="shape2105-364" v:mID="2105" v:groupContext="shape" transform="translate(191.339,-56.6929)">
 				<title>시트.2105</title>
 				<desc>count</desc>
@@ -976,7 +977,7 @@
 					<text id="fn-name-ballet_girls_ashington-4" text-anchor="middle" x="21.2599" y="1216.68" class="st7b" v:langID="1042"><v:paragraph v:horizAlign="1"/><v:tabList/></text>				</g>
 			</g>
 		</g>
-		<g id="group2153-391" transform="translate(326.359,-305.099)" v:mID="2153" v:groupContext="group">
+		<g id="group2153-391" transform="translate(42.8947,-391.495)" v:mID="2153" v:groupContext="group">
 			<title>시트.2153</title>
 			<g id="group2154-392" transform="translate(6.39488E-14,-1.74596E-06)" v:mID="2154" v:groupContext="group">
 				<title>시트.2154</title>
@@ -999,7 +1000,7 @@
 				<v:textBlock v:margins="rect(0,4,2,0)" v:tabSpace="42.5197" v:verticalAlign="2"/>
 				<v:textRect cx="95.6693" cy="1205.47" width="191.34" height="28.3465"/>
 				<rect x="0" y="1191.3" width="191.339" height="28.3465" class="st1"/>
-				<text x="-0" y="1212.25" class="st3" v:langID="1042"><v:paragraph/><v:tabList/>BALLET GIRLS (BEDLINGTON)</text>			</g>
+				<text x="-0" y="1214.75" class="st3" v:langID="1042"><v:paragraph/><v:tabList/>BALLET GIRLS (BEDLINGTON)</text>			</g>
 			<g id="shape2158-401" v:mID="2158" v:groupContext="shape" transform="translate(191.339,-56.6929)">
 				<title>시트.2158</title>
 				<desc>count</desc>
@@ -1068,7 +1069,7 @@
 					<text id="fn-name-ballet_girls_bedlington-4" text-anchor="middle" x="21.2599" y="1216.68" class="st7b" v:langID="1042"><v:paragraph v:horizAlign="1"/><v:tabList/></text>				</g>
 			</g>
 		</g>
-		<g id="group2186-428" transform="translate(375.966,-212.973)" v:mID="2186" v:groupContext="group">
+		<g id="group2186-428" transform="translate(42.8947,-305.49)" v:mID="2186" v:groupContext="group">
 			<title>시트.2186</title>
 			<g id="group2172-429" transform="translate(9.19265E-14,-1.74596E-06)" v:mID="2172" v:groupContext="group">
 				<title>시트.2172</title>
@@ -1091,7 +1092,7 @@
 				<v:textBlock v:margins="rect(0,4,2,0)" v:tabSpace="42.5197" v:verticalAlign="2"/>
 				<v:textRect cx="95.6693" cy="1205.47" width="191.34" height="28.3465"/>
 				<rect x="0" y="1191.3" width="191.339" height="28.3465" class="st1"/>
-				<text x="-0" y="1212.25" class="st3" v:langID="1042"><v:paragraph/><v:tabList/>BALLET GIRLS (ADULT)</text>			</g>
+				<text x="-0" y="1214.75" class="st3" v:langID="1042"><v:paragraph/><v:tabList/>BALLET GIRLS (ADULT)</text>			</g>
 			<g id="group2177-438" transform="translate(49.6063,2.27374E-13)" v:mID="2177" v:groupContext="group">
 				<title>시트.2177</title>
 				<g id="shape2178-439" v:mID="2178" v:groupContext="shape">
@@ -1138,7 +1139,7 @@
 					<text id="fn-name-ballet_girls-3" text-anchor="middle" x="21.2599" y="1216.68" class="st7b" v:langID="1042"><v:paragraph v:horizAlign="1"/><v:tabList/></text>				</g>
 			</g>
 		</g>
-		<g id="group2188-456" transform="translate(42.8947,-212.973)" v:mID="2188" v:groupContext="group">
+		<g id="group2188-456" transform="translate(42.8947,-221.453)" v:mID="2188" v:groupContext="group">
 			<title>시트.2188</title>
 			<g id="shape2189-457" v:mID="2189" v:groupContext="shape">
 				<title>시트.2189</title>
@@ -1153,14 +1154,14 @@
 				<rect x="0" y="1208.31" width="42.5197" height="11.3386" class="st6b"/>
 				<text id="fn-name-ensemble-0" text-anchor="middle" x="21.2599" y="1216.68" class="st7b" v:langID="1042"><v:paragraph v:horizAlign="1"/><v:tabList/></text>			</g>
 		</g>
-		<g id="shape2191-462" v:mID="2191" v:groupContext="shape" transform="translate(42.8947,-269.666)">
+		<g id="shape2191-462" v:mID="2191" v:groupContext="shape" transform="translate(42.8947,-278.146)">
 			<title>시트.2191</title>
 			<desc>ENSEMBLE</desc>
 			<v:textBlock v:margins="rect(0,4,2,0)" v:tabSpace="42.5197" v:verticalAlign="2"/>
 			<v:textRect cx="95.6693" cy="1205.47" width="191.34" height="28.3465"/>
 			<rect x="0" y="1191.3" width="191.339" height="28.3465" class="st1"/>
-			<text x="0" y="1212.25" class="st3" v:langID="1042"><v:paragraph/><v:tabList/>ENSEMBLE</text>		</g>
-		<g id="group2193-465" transform="translate(92.501,-212.973)" v:mID="2193" v:groupContext="group">
+			<text x="0" y="1214.75" class="st3" v:langID="1042"><v:paragraph/><v:tabList/>ENSEMBLE</text>		</g>
+		<g id="group2193-465" transform="translate(92.501,-221.453)" v:mID="2193" v:groupContext="group">
 			<title>시트.2193</title>
 			<g id="shape2194-466" v:mID="2194" v:groupContext="shape">
 				<title>시트.2194</title>
@@ -1175,7 +1176,7 @@
 				<rect x="0" y="1208.31" width="42.5197" height="11.3386" class="st6b"/>
 				<text id="fn-name-ensemble-1" text-anchor="middle" x="21.2599" y="1216.68" class="st7b" v:langID="1042"><v:paragraph v:horizAlign="1"/><v:tabList/></text>			</g>
 		</g>
-		<g id="group2196-471" transform="translate(142.107,-212.973)" v:mID="2196" v:groupContext="group">
+		<g id="group2196-471" transform="translate(142.107,-221.453)" v:mID="2196" v:groupContext="group">
 			<title>시트.2196</title>
 			<g id="shape2197-472" v:mID="2197" v:groupContext="shape">
 				<title>시트.2197</title>
@@ -1190,7 +1191,7 @@
 				<rect x="0" y="1208.31" width="42.5197" height="11.3386" class="st6b"/>
 				<text id="fn-name-ensemble-2" text-anchor="middle" x="21.2599" y="1216.68" class="st7b" v:langID="1042"><v:paragraph v:horizAlign="1"/><v:tabList/></text>			</g>
 		</g>
-		<g id="group2199-477" transform="translate(191.714,-212.973)" v:mID="2199" v:groupContext="group">
+		<g id="group2199-477" transform="translate(191.714,-221.453)" v:mID="2199" v:groupContext="group">
 			<title>시트.2199</title>
 			<g id="shape2200-478" v:mID="2200" v:groupContext="shape">
 				<title>시트.2200</title>
@@ -1205,7 +1206,7 @@
 				<rect x="0" y="1208.31" width="42.5197" height="11.3386" class="st6b"/>
 				<text id="fn-name-ensemble-3" text-anchor="middle" x="21.2599" y="1216.68" class="st7b" v:langID="1042"><v:paragraph v:horizAlign="1"/><v:tabList/></text>			</g>
 		</g>
-		<g id="group2202-483" transform="translate(241.32,-212.973)" v:mID="2202" v:groupContext="group">
+		<g id="group2202-483" transform="translate(241.32,-221.453)" v:mID="2202" v:groupContext="group">
 			<title>시트.2202</title>
 			<g id="shape2203-484" v:mID="2203" v:groupContext="shape">
 				<title>시트.2203</title>
@@ -1220,7 +1221,7 @@
 				<rect x="0" y="1208.31" width="42.5197" height="11.3386" class="st6b"/>
 				<text id="fn-name-ensemble-4" text-anchor="middle" x="21.2599" y="1216.68" class="st7b" v:langID="1042"><v:paragraph v:horizAlign="1"/><v:tabList/></text>			</g>
 		</g>
-		<g id="group2238-489" transform="translate(290.926,-212.973)" v:mID="2238" v:groupContext="group">
+		<g id="group2238-489" transform="translate(42.8947,-157.674)" v:mID="2238" v:groupContext="group">
 			<title>시트.2238</title>
 			<g id="shape2239-490" v:mID="2239" v:groupContext="shape">
 				<title>시트.2239</title>
@@ -1235,7 +1236,7 @@
 				<rect x="0" y="1208.31" width="42.5197" height="11.3386" class="st6b"/>
 				<text id="fn-name-ensemble-5" text-anchor="middle" x="21.2599" y="1216.68" class="st7b" v:langID="1042"><v:paragraph v:horizAlign="1"/><v:tabList/></text>			</g>
 		</g>
-		<g id="group2241-495" transform="translate(42.8947,-149.194)" v:mID="2241" v:groupContext="group">
+		<g id="group2241-495" transform="translate(92.501,-157.674)" v:mID="2241" v:groupContext="group">
 			<title>시트.2241</title>
 			<g id="shape2242-496" v:mID="2242" v:groupContext="shape">
 				<title>시트.2242</title>
@@ -1250,7 +1251,7 @@
 				<rect x="0" y="1208.31" width="42.5197" height="11.3386" class="st6b"/>
 				<text id="fn-name-ensemble-6" text-anchor="middle" x="21.2599" y="1216.68" class="st7b" v:langID="1042"><v:paragraph v:horizAlign="1"/><v:tabList/></text>			</g>
 		</g>
-		<g id="group2244-501" transform="translate(92.501,-149.194)" v:mID="2244" v:groupContext="group">
+		<g id="group2244-501" transform="translate(142.107,-157.674)" v:mID="2244" v:groupContext="group">
 			<title>시트.2244</title>
 			<g id="shape2245-502" v:mID="2245" v:groupContext="shape">
 				<title>시트.2245</title>
@@ -1265,7 +1266,7 @@
 				<rect x="0" y="1208.31" width="42.5197" height="11.3386" class="st6b"/>
 				<text id="fn-name-ensemble-7" text-anchor="middle" x="21.2599" y="1216.68" class="st7b" v:langID="1042"><v:paragraph v:horizAlign="1"/><v:tabList/></text>			</g>
 		</g>
-		<g id="group2247-507" transform="translate(142.107,-149.194)" v:mID="2247" v:groupContext="group">
+		<g id="group2247-507" transform="translate(191.714,-157.674)" v:mID="2247" v:groupContext="group">
 			<title>시트.2247</title>
 			<g id="shape2248-508" v:mID="2248" v:groupContext="shape">
 				<title>시트.2248</title>
@@ -1280,7 +1281,7 @@
 				<rect x="0" y="1208.31" width="42.5197" height="11.3386" class="st6b"/>
 				<text id="fn-name-ensemble-8" text-anchor="middle" x="21.2599" y="1216.68" class="st7b" v:langID="1042"><v:paragraph v:horizAlign="1"/><v:tabList/></text>			</g>
 		</g>
-		<g id="group2250-513" transform="translate(191.714,-149.194)" v:mID="2250" v:groupContext="group">
+		<g id="group2250-513" transform="translate(241.32,-157.674)" v:mID="2250" v:groupContext="group">
 			<title>시트.2250</title>
 			<g id="shape2251-514" v:mID="2251" v:groupContext="shape">
 				<title>시트.2251</title>
@@ -1295,7 +1296,7 @@
 				<rect x="0" y="1208.31" width="42.5197" height="11.3386" class="st6b"/>
 				<text id="fn-name-ensemble-9" text-anchor="middle" x="21.2599" y="1216.68" class="st7b" v:langID="1042"><v:paragraph v:horizAlign="1"/><v:tabList/></text>			</g>
 		</g>
-		<g id="group2253-519" transform="translate(241.32,-149.194)" v:mID="2253" v:groupContext="group">
+		<g id="group2253-519" transform="translate(290.926,-157.674)" v:mID="2253" v:groupContext="group">
 			<title>시트.2253</title>
 			<g id="shape2254-520" v:mID="2254" v:groupContext="shape">
 				<title>시트.2254</title>
@@ -1310,7 +1311,7 @@
 				<rect x="0" y="1208.31" width="42.5197" height="11.3386" class="st6b"/>
 				<text id="fn-name-ensemble-10" text-anchor="middle" x="21.2599" y="1216.68" class="st7b" v:langID="1042"><v:paragraph v:horizAlign="1"/><v:tabList/></text>			</g>
 		</g>
-		<g id="group2256-525" transform="translate(290.926,-149.194)" v:mID="2256" v:groupContext="group">
+		<g id="group2256-525" transform="translate(42.8947,-93.8944)" v:mID="2256" v:groupContext="group">
 			<title>시트.2256</title>
 			<g id="shape2257-526" v:mID="2257" v:groupContext="shape">
 				<title>시트.2257</title>
@@ -1325,7 +1326,7 @@
 				<rect x="0" y="1208.31" width="42.5197" height="11.3386" class="st6b"/>
 				<text id="fn-name-ensemble-11" text-anchor="middle" x="21.2599" y="1216.68" class="st7b" v:langID="1042"><v:paragraph v:horizAlign="1"/><v:tabList/></text>			</g>
 		</g>
-		<g id="group2259-531" transform="translate(42.8947,-85.4144)" v:mID="2259" v:groupContext="group">
+		<g id="group2259-531" transform="translate(92.501,-93.8944)" v:mID="2259" v:groupContext="group">
 			<title>시트.2259</title>
 			<g id="shape2260-532" v:mID="2260" v:groupContext="shape">
 				<title>시트.2260</title>
@@ -1340,7 +1341,7 @@
 				<rect x="0" y="1208.31" width="42.5197" height="11.3386" class="st6b"/>
 				<text id="fn-name-ensemble-12" text-anchor="middle" x="21.2599" y="1216.68" class="st7b" v:langID="1042"><v:paragraph v:horizAlign="1"/><v:tabList/></text>			</g>
 		</g>
-		<g id="group2262-537" transform="translate(92.501,-85.4144)" v:mID="2262" v:groupContext="group">
+		<g id="group2262-537" transform="translate(142.107,-93.8944)" v:mID="2262" v:groupContext="group">
 			<title>시트.2262</title>
 			<g id="shape2263-538" v:mID="2263" v:groupContext="shape">
 				<title>시트.2263</title>
@@ -1355,7 +1356,7 @@
 				<rect x="0" y="1208.31" width="42.5197" height="11.3386" class="st6b"/>
 				<text id="fn-name-ensemble-13" text-anchor="middle" x="21.2599" y="1216.68" class="st7b" v:langID="1042"><v:paragraph v:horizAlign="1"/><v:tabList/></text>			</g>
 		</g>
-		<g id="group2265-543" transform="translate(142.107,-85.4144)" v:mID="2265" v:groupContext="group">
+		<g id="group2265-543" transform="translate(191.714,-93.8944)" v:mID="2265" v:groupContext="group">
 			<title>시트.2265</title>
 			<g id="shape2266-544" v:mID="2266" v:groupContext="shape">
 				<title>시트.2266</title>
@@ -1370,7 +1371,7 @@
 				<rect x="0" y="1208.31" width="42.5197" height="11.3386" class="st6b"/>
 				<text id="fn-name-ensemble-14" text-anchor="middle" x="21.2599" y="1216.68" class="st7b" v:langID="1042"><v:paragraph v:horizAlign="1"/><v:tabList/></text>			</g>
 		</g>
-		<g id="group2268-549" transform="translate(191.714,-85.4144)" v:mID="2268" v:groupContext="group">
+		<g id="group2268-549" transform="translate(241.32,-93.8944)" v:mID="2268" v:groupContext="group">
 			<title>시트.2268</title>
 			<g id="shape2269-550" v:mID="2269" v:groupContext="shape">
 				<title>시트.2269</title>
@@ -1385,7 +1386,7 @@
 				<rect x="0" y="1208.31" width="42.5197" height="11.3386" class="st6b"/>
 				<text id="fn-name-ensemble-15" text-anchor="middle" x="21.2599" y="1216.68" class="st7b" v:langID="1042"><v:paragraph v:horizAlign="1"/><v:tabList/></text>			</g>
 		</g>
-		<g id="group2271-555" transform="translate(241.32,-85.4144)" v:mID="2271" v:groupContext="group">
+		<g id="group2271-555" transform="translate(290.926,-93.8944)" v:mID="2271" v:groupContext="group">
 			<title>시트.2271</title>
 			<g id="shape2272-556" v:mID="2272" v:groupContext="shape">
 				<title>시트.2272</title>
@@ -1400,7 +1401,7 @@
 				<rect x="0" y="1208.31" width="42.5197" height="11.3386" class="st6b"/>
 				<text id="fn-name-ensemble-16" text-anchor="middle" x="21.2599" y="1216.68" class="st7b" v:langID="1042"><v:paragraph v:horizAlign="1"/><v:tabList/></text>			</g>
 		</g>
-		<g id="group2274-561" transform="translate(290.926,-85.4144)" v:mID="2274" v:groupContext="group">
+		<g id="group2274-561" transform="translate(290.926,-137.4144)" style="display:none" v:mID="2274" v:groupContext="group">
 			<title>시트.2274</title>
 			<g id="shape2275-562" v:mID="2275" v:groupContext="shape">
 				<title>시트.2275</title>
@@ -1415,55 +1416,55 @@
 				<rect x="0" y="1208.31" width="42.5197" height="11.3386" class="st6b"/>
 				<text id="fn-name-ensemble-17" text-anchor="middle" x="21.2599" y="1216.68" class="st7b" v:langID="1042"><v:paragraph v:horizAlign="1"/><v:tabList/></text>			</g>
 		</g>
-		<g id="shape2277-567" v:mID="2277" v:groupContext="shape" transform="translate(1455.23,361.792) rotate(90)">
+		<g id="shape2277-567" v:mID="2277" v:groupContext="shape" transform="translate(1455.23,348.792) rotate(90)">
 			<title>시트.2277</title>
 			<path d="M21.295 1219.65 L77.987 1219.65" class="st2"/>
 		</g>
-		<g id="shape2278-570" v:mID="2278" v:groupContext="shape" transform="translate(1594.27,361.792) rotate(90)">
+		<g id="shape2278-570" v:mID="2278" v:groupContext="shape" transform="translate(1594.27,348.792) rotate(90)">
 			<title>시트.2278</title>
 			<path d="M21.295 1219.65 L77.987 1219.65" class="st2"/>
 		</g>
-		<g id="shape2279-573" v:mID="2279" v:groupContext="shape" transform="translate(1326.32,482.265) rotate(90)">
+		<g id="shape2279-573" v:mID="2279" v:groupContext="shape" transform="translate(1326.32,456.265) rotate(90)">
 			<title>시트.2279</title>
 			<path d="M21.222 1219.65 L77.914 1219.65" class="st2"/>
 		</g>
-		<g id="shape2280-576" v:mID="2280" v:groupContext="shape" transform="translate(1460.97,482.265) rotate(90)">
+		<g id="shape2280-576" v:mID="2280" v:groupContext="shape" transform="translate(1460.97,456.265) rotate(90)">
 			<title>시트.2280</title>
 			<path d="M21.222 1219.65 L77.914 1219.65" class="st2"/>
 		</g>
-		<g id="shape2281-579" v:mID="2281" v:groupContext="shape" transform="translate(1595.61,482.265) rotate(90)">
+		<g id="shape2281-579" v:mID="2281" v:groupContext="shape" transform="translate(1595.61,456.265) rotate(90)">
 			<title>시트.2281</title>
 			<path d="M21.222 1219.65 L77.914 1219.65" class="st2"/>
 		</g>
-		<g id="shape2282-582" v:mID="2282" v:groupContext="shape" transform="translate(1326.32,602.737) rotate(90)">
+		<g id="shape2282-582" v:mID="2282" v:groupContext="shape" transform="translate(1326.05,563.737) rotate(90)">
 			<title>시트.2282</title>
 			<path d="M21.250 1219.65 L77.942 1219.65" class="st2"/>
 		</g>
-		<g id="shape2285-585" v:mID="2285" v:groupContext="shape" transform="translate(1574.35,935.808) rotate(90)">
+		<g id="shape2285-585" v:mID="2285" v:groupContext="shape" transform="translate(1723.45,563.723) rotate(90)">
 			<title>시트.2285</title>
-			<path d="M19.861 1219.65 L65.216 1219.65" class="st2"/>
+			<path d="M21.277 1219.65 L77.969 1219.65" class="st2"/>
 		</g>
-		<g id="shape2286-588" v:mID="2286" v:groupContext="shape" transform="translate(35.8081,-751.556)">
+		<g id="shape2286-588" v:mID="2286" v:groupContext="shape" transform="translate(35.8081,-764.556)">
 			<title>시트.2286</title>
 			<path d="M0 1219.65 L538.58 1219.65" class="st2" style="display:none"/>
 		</g>
-		<g id="shape2287-591" v:mID="2287" v:groupContext="shape" transform="translate(35.8081,-631.084)">
+		<g id="shape2287-591" v:mID="2287" v:groupContext="shape" transform="translate(35.8081,-657.084)">
 			<title>시트.2287</title>
 			<path d="M0 1219.65 L538.58 1219.65" class="st2" style="display:none"/>
 		</g>
-		<g id="shape2288-594" v:mID="2288" v:groupContext="shape" transform="translate(35.8081,-510.611)">
+		<g id="shape2288-594" v:mID="2288" v:groupContext="shape" transform="translate(35.8081,-549.611)">
 			<title>시트.2288</title>
 			<path d="M0 1219.65 L269.29 1219.65" class="st2" style="display:none"/>
 		</g>
-		<g id="shape2289-597" v:mID="2289" v:groupContext="shape" transform="translate(35.8081,-390.139)">
+		<g id="shape2289-597" v:mID="2289" v:groupContext="shape" transform="translate(35.8081,-442.139)">
 			<title>시트.2289</title>
 			<path d="M0 1219.65 L538.58 1219.65" class="st2" style="display:none"/>
 		</g>
-		<g id="shape2290-600" v:mID="2290" v:groupContext="shape" transform="translate(35.8081,-298.013)">
+		<g id="shape2290-600" v:mID="2290" v:groupContext="shape" transform="translate(35.8081,-350.013)">
 			<title>시트.2290</title>
 			<path d="M0 1219.65 L538.58 1219.65" class="st2" style="display:none"/>
 		</g>
-		<g id="shape2291-603" v:mID="2291" v:groupContext="shape" transform="translate(340.532,-397.225)">
+		<g id="shape2291-603" v:mID="2291" v:groupContext="shape" transform="translate(340.532,-449.225)">
 			<title>시트.2291</title>
 			<desc>Seat map</desc>
 			<v:textBlock v:margins="rect(4,4,4,4)" v:tabSpace="42.5197"/>
@@ -1498,6 +1499,6 @@
 			<v:textBlock v:margins="rect(0,0,0,0)" v:tabSpace="42.5197" v:verticalAlign="2"/>
 			<v:textRect cx="133.228" cy="1206.89" width="266.46" height="25.5118"/>
 			<rect x="0" y="1194.14" width="266.457" height="25.5118" class="st1"/>
-			<text id="fn-subtitle" x="0" y="1216.05" class="st14" v:langID="1042"><v:paragraph/><v:tabList/>블루스퀘어 우리은행홀  2026.4.12 ~ 2026.7.26</text>		</g>
+			<text id="fn-subtitle" x="0" y="1214.05" class="st14" v:langID="1042"><v:paragraph/><v:tabList/>블루스퀘어 우리은행홀  2026.4.12 ~ 2026.7.26</text>		</g>
 	</g>
 </svg>
