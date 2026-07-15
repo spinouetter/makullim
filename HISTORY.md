@@ -4,6 +4,7 @@
 
 | 날짜 | 요청 | 요약 |
 |------|------|------|
+| 2026-07-15 | [0086](0086.md) | Finale 코어 2건 — (1) 부제 월 0패딩 제거 옵션(`subtitle.padMonth:false`, 원본 ISO 유지) (2) 시트맵 타깃을 `target.rect` 대신 SVG placeholder id(`target.svgId`)로 지정(속성 직접 읽기, getBBox 비의존). finale.js v54 |
 | 2026-07-15 | [0085](0085.md) | Finale PDF 내보내기 글꼴 일반화 — 매니페스트의 ttf 폰트를 모두 PDF에 등록하고, bake 시 한글은 IBM Plex Sans KR, 라틴(숫자 등)은 등록된 자기 글꼴 유지. 빌리 2026 TOTAL 숫자(Handlee)가 PDF에도 반영되도록. `Handlee-400.ttf` 번들 |
 | 2026-07-13 | [0084](0084.md) | Finale 탭 상시 표시 — 개발 중 기능(Settings의 `optFinaleView` 토글)에서 승격, 항상 노출. 토글·와이어링 제거 |
 | 2026-07-13 | [0083](0083.md) | Finale 갤러리에 등록된 모든 보드 표시(멀티 보드) — 보드별 `<style>`를 svg id로 스코프해 클래스 전역 충돌 방지, 카드 클릭=그 보드 오버레이. placeholder 2개·"디자인 모집 중". 보드 def `preview:true` → 대각선 "PREVIEW" 워터마크 |

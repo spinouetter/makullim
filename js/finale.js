@@ -129,9 +129,16 @@
     });
   }
 
-  function periodStr(){
+  // 공연 기간 문자열. opts.padMonth===false 면 월을 0패딩 없이("%f": 04→4, 07→7) 표기(기본은 유지).
+  function periodStr(opts){
+    const padMonth = !opts || opts.padMonth !== false;
     const s = performanceData.startDate, e = performanceData.endDate;
-    const f = d => (d||"").replace(/-/g, ".");
+    const f = d => {
+      const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec((d||"").trim());
+      if(!m) return (d||"").replace(/-/g, ".");
+      const mon = padMonth ? m[2] : String(parseInt(m[2], 10));
+      return `${m[1]}.${mon}.${m[3]}`;
+    };
     return (s && e) ? `${f(s)} ~ ${f(e)}` : "";
   }
   function seatWatchCount(id){
@@ -218,8 +225,9 @@
     const ps = performanceData.performances || [];
     return { w: ps.filter(p=>isEnded(p) && hasSeat(p)).length, t: ps.length };
   }
-  function periodVenueVal(sep){          // 공연 기간 + 장소
-    return [periodStr(), (seatmapData && seatmapData.theater) || ""].filter(Boolean).join(sep || "  ");
+  function periodVenueVal(sub){          // 공연 기간 + 장소 (sub = mani.subtitle: sep·padMonth 등)
+    sub = sub || {};
+    return [periodStr(sub), (seatmapData && seatmapData.theater) || ""].filter(Boolean).join(sub.sep || "  ");
   }
   // count 스타일 + (선택)라벨 스타일 → setCount opts
   function countOpts(mani, styleName, labelStyleName){
@@ -373,7 +381,7 @@
     if(mani.subtitle && mani.subtitle.svgId){                       // 공연 기간·장소
       const el = svg.querySelector("#" + mani.subtitle.svgId);
       if(el){ applyStyleAttrs(el, resolveStyle(mani, mani.subtitle.style));
-        const v = periodVenueVal(mani.subtitle.sep); if(v) el.textContent = v; }
+        const v = periodVenueVal(mani.subtitle); if(v) el.textContent = v; }
     }
     if(mani.seatmap) injectSeatmap(svg, mani.seatmap);              // 좌석 히트맵
     if(mani.preview) injectPreviewWatermark(svg);                   // preview:true → 대각선 "PREVIEW" 워터마크
@@ -422,7 +430,22 @@
     svg.querySelectorAll("text").forEach(t=>{ const s=(t.textContent||"").trim();
       if([stageLabel,"1F","2F","3F","1회","2회","3회","4회 이상"].includes(s)) t.remove(); });
 
-    const r = (cfg.target && cfg.target.rect) || { x:396, y:664, w:278, h:284 };
+    // 타깃 영역: cfg.target.svgId 가 있으면 SVG 안의 안보이는 placeholder(<rect id=…>)의
+    // 위치·크기를 타깃으로 사용(읽은 뒤 제거). 없으면 cfg.target.rect 폴백.
+    // 보드는 숨긴 컨테이너에서 렌더되므로 getBBox()가 0이 됨 → 속성(x/y/width/height)을 직접 읽는다.
+    // (placeholder는 transform 없는 페이지 레벨에 두어야 좌표=board 좌표)
+    let r = (cfg.target && cfg.target.rect) || null;
+    if(!r && cfg.target && cfg.target.svgId){
+      const box = svg.querySelector("#" + cfg.target.svgId);
+      if(box){
+        const num = (a) => { const v = parseFloat(box.getAttribute(a)); return isNaN(v) ? null : v; };
+        const bx=num("x"), by=num("y"), bw=num("width"), bh=num("height");
+        if(bw>0 && bh>0){ r = { x:bx||0, y:by||0, w:bw, h:bh }; }
+        else { try{ const g=box.getBBox(); if(g.width>0) r={ x:g.x, y:g.y, w:g.width, h:g.height }; }catch(e){} }
+        box.remove();
+      }
+    }
+    r = r || { x:396, y:664, w:278, h:284 };
     const cover = { x:r.x, y:r.y, w:r.w, h:r.h };           // 좌석 패널 영역
     const floors = [...new Set(sm.seats.map(s=>s.floor))].sort((a,b)=>a-b);
     // 층 사이 간격(음수=겹침): cfg.floorGap { default, "<층>": n }
