@@ -1519,6 +1519,17 @@
 /* 펼침 시 커버와 도장판이 맞닿는 모서리를 각지게 해 여백 없이 이어지게 */
 .stamp-card.open .stamp-cover-box{ border-bottom-left-radius:0; border-bottom-right-radius:0; }
 .stamp-card.open .stamp-board-wrap .stamp-imgbox{ border-top-left-radius:0; border-top-right-radius:0; }
+/* 커버 스프링 위에 오버레이되는 동그란 아이콘 버튼 */
+.stamp-icons{ position:absolute; top:1.2cqi; right:2cqi; display:flex; gap:1.4cqi; z-index:3; }
+.stamp-ic{ width:9cqi; height:9cqi; min-width:26px; min-height:26px; padding:0; border:none; border-radius:50%;
+  display:flex; align-items:center; justify-content:center; cursor:pointer;
+  background:rgba(255,255,255,.85); color:#2b3a67; box-shadow:0 1px 3px rgba(0,0,0,.28); transition:transform .1s, background .12s; }
+.stamp-ic:hover{ background:#fff; transform:translateY(-1px); }
+.stamp-ic svg{ width:60%; height:60%; fill:currentColor; }
+.stamp-ic svg text{ fill:currentColor; }
+.stamp-ic.ghost{ color:#c0392b; }
+.stamp-ic.auto.active{ background:#2b3a67; color:#fff; }
+.stamp-ic.auto.disabled, .stamp-ic:disabled{ opacity:.4; cursor:default; }
 .stamp-card.open .stamp-cover-box{ box-shadow:none; }  /* 펼침 시 커버-도장판 사이 그림자 제거(여백 없이 붙게) */
 
 .stamp-overlay{ position:absolute; inset:0; }
@@ -1607,7 +1618,7 @@
 .stamp-pick-btn:hover{ border-color:var(--gold); }
 .stamp-pick-btn.arb{ position:sticky; left:0; z-index:1; background:var(--panel); border-color:var(--gold); color:var(--gold); font-weight:700; box-shadow:6px 0 6px -4px rgba(0,0,0,.4); }
 .stamp-pick-btn.hc{ color:#2f6fb0; border-color:#2f6fb0; }
-.stamp-cover-count{ position:absolute; top:6.5%; right:5%; background:rgba(43,58,103,.88); color:#fff;
+.stamp-cover-count{ position:absolute; bottom:3.2%; right:5%; background:rgba(43,58,103,.88); color:#fff;
   font-size:12px; font-weight:800; padding:3px 9px; border-radius:12px; letter-spacing:.3px; }
 
 /* 표지 위 이름/번호 오버레이 (컨테이너 쿼리 단위로 카드 폭에 비례) */

@@ -38,7 +38,7 @@
   function loadConfig(){
     if(CFG) return Promise.resolve(CFG);
     if(cfgPromise) return cfgPromise;
-    var url = (typeof showUrl==="function") ? showUrl("stamp.json?v=7") : "stamp.json";
+    var url = (typeof showUrl==="function") ? showUrl("stamp.json?v=8") : "stamp.json";
     cfgPromise = fetch(url).then(function(r){ if(!r.ok) throw new Error("no stamp.json"); return r.json(); })
       .then(function(j){ CFG = normalizeCfg(j); return CFG; })
       .catch(function(){ CFG = normalizeCfg(null); return CFG; });
@@ -119,8 +119,7 @@
     st.boards.push(b);
     return b;
   }
-  function newBoardAsTarget(){ var nb = newBoard(); st.autoTargetId = nb.id; return nb; }
-  // 이름이 비어 있던(옛) 도장판에 '기본제목 #n'을 명시적으로 부여
+  // 이름이 비어 있던(옛) 재관카드에 '기본제목 #n'을 명시적으로 부여
   function migrateNames(){
     var changed = false;
     st.boards.forEach(function(b){
@@ -128,31 +127,10 @@
     });
     if(changed) saveState();
   }
-  // 자동이 채울 대상 도장판을 고른다.
-  //  - 지정된 기본 도장판(autoTargetId)이 있고 자동채움 on이면 그걸 쓴다(꽉 차 있으면 새로 만든다).
-  //  - 지정이 없으면 자동채움 on이면서 안 찬 최신 도장판을 쓴다.
-  //  - 그래도 없으면(모두 꽉 참/자동 제외) 새 도장판을 만든다. 자동 제외 도장판에는 절대 채우지 않는다.
-  function autoTargetBoard(){
+  // 유효한 자동 대상(지정됐고 빈칸이 남은 재관카드)
+  function validTarget(){
     var t = st.autoTargetId ? st.boards.filter(function(b){return b.id===st.autoTargetId;})[0] : null;
-    if(t && t.autoFill!==false){
-      if(!isFull(t)) return t;
-      return newBoardAsTarget();          // 대상이 꽉 참 → 새 도장판(다른 판으로 넘기지 않음)
-    }
-    for(var i=st.boards.length-1;i>=0;i--){
-      var b = st.boards[i];
-      if(b.autoFill!==false && !isFull(b)) return b;
-    }
-    return newBoardAsTarget();
-  }
-  // 도장을 하나 찍는다: 자동 대상 도장판의 다음 빈칸 → 꽉 차면 새 도장판.
-  function placeStamp(entry){
-    var b = autoTargetBoard();
-    var i = b.slots.findIndex(function(s){ return !s; });
-    if(i < 0){ b = newBoardAsTarget(); i = 0; }
-    b.slots[i] = entry;
-    // 방금 채워서 10칸이 다 찼으면 자동으로 닫는다(표지 상태)
-    if(isFull(b)) b.open = false;
-    return b;
+    return (t && !isFull(t)) ? t : null;
   }
 
   /* ---------- 날짜/규칙 ---------- */
@@ -220,21 +198,41 @@
 
   /* ---------- 자동 도장 ---------- */
   function autoStamp(){
-    var list = watchedList();
-    if(!list.length){ toast("관극(종료·좌석 입력)한 공연이 없습니다."); return; }
+    var target = validTarget();
+    if(!target){ toast("자동으로 채울 재관카드를 오토(A) 아이콘으로 먼저 선택하세요."); return; }
     var done = stampedSids();
+    var list = watchedList().filter(function(w){ return !done.has(w.sid); }); // 오래된 순
+    if(!list.length){ toast("새로 찍을 관극 기록이 없습니다. (이미 모두 도장 완료)"); return; }
+
+    var fill = target;
+    var decision;   // undefined=미결정, true=남은 재관카드에 채우기, false=새 재관카드
     var added = 0;
-    list.forEach(function(w){
-      if(done.has(w.sid)) return;
-      var type = stampTypeForDate(w.date);
-      var cnt = stampCountForDate(w.date);
+    for(var li=0; li<list.length; li++){
+      var w = list[li];
+      var type = stampTypeForDate(w.date), cnt = stampCountForDate(w.date);
       for(var k=0;k<cnt;k++){
-        placeStamp({ stamp:type, date:w.dateLabel, sid:w.sid });
+        if(isFull(fill)){
+          var others = st.boards.filter(function(x){ return !isFull(x); });
+          if(others.length){
+            if(decision===undefined){
+              decision = confirm("자동 대상이 다 찼습니다.\n남아 있는 재관카드에 마저 채울까요?\n\n[확인] 남은 재관카드에 채우기\n[취소] 새 재관카드 만들기");
+            }
+            if(decision){
+              others.sort(function(a,c){ return st.boards.indexOf(a) - st.boards.indexOf(c); });
+              fill = others[0];
+            } else {
+              fill = newBoard(); st.autoTargetId = fill.id;
+            }
+          } else {
+            fill = newBoard(); st.autoTargetId = fill.id;
+          }
+        }
+        var i = fill.slots.findIndex(function(s){ return !s; });
+        fill.slots[i] = { stamp:type, date:w.dateLabel, sid:w.sid };
+        if(isFull(fill)) fill.open = false;
         added++;
       }
-      done.add(w.sid);
-    });
-    if(!added){ toast("새로 찍을 관극 기록이 없습니다. (이미 모두 도장 완료)"); return; }
+    }
     saveState(); render();
     toast(added + "개의 도장을 찍었습니다.");
   }
@@ -271,25 +269,31 @@
     var done = stampedSids();
     var remain = 0, extra = 0;
     list.forEach(function(w){ if(!done.has(w.sid)){ remain++; extra += (stampCountForDate(w.date)-1); } });
-    var tgt = st.autoTargetId ? st.boards.filter(function(b){return b.id===st.autoTargetId;})[0] : null;
-    var tgtName = tgt ? boardTitle(tgt, st.boards.indexOf(tgt)) : "최신 도장판";
+    var tgt = validTarget();
+    var tgtName = tgt ? boardTitle(tgt, st.boards.indexOf(tgt)) : "없음";
     el.textContent = "관극 " + list.length + "회 · 안 찍은 회차 " + remain + (extra? " (+더블 "+extra+")" : "") + " · 자동 대상: " + tgtName;
+    // 유효한 대상이 없으면 '자동 채우기' 버튼 비활성
+    var ab = document.getElementById("stampAutoBtn");
+    if(ab) ab.disabled = !tgt;
   }
 
-  // 자동 대상/자동 제외 배지 — 꽉 찬 도장판은 자동 대상이 될 수 없어 숨김
-  function boardBadge(b){
-    if(isFull(b)) return '';
-    if(st.autoTargetId===b.id) return '<span class="stamp-badge tgt">자동 대상</span>';
-    if(b.autoFill===false) return '<span class="stamp-badge off">자동 제외</span>';
-    return '';
-  }
-  // 자동 대상 지정 · 자동 채움 on/off 버튼 — 꽉 찬 도장판에는 자동 메뉴를 숨긴다
-  function boardCtlHtml(b){
-    if(isFull(b)) return '';
-    var isTarget = st.autoTargetId===b.id;
-    var autoOff = b.autoFill===false;
-    return '<button class="stamp-btn tgt'+(isTarget?' active':'')+'" data-act="autotarget" title="자동이 이 도장판부터 채웁니다">자동 대상</button>' +
-           '<button class="stamp-btn'+(autoOff?' off':'')+'" data-act="autofill" title="끄면 이 도장판은 자동에서 제외됩니다">'+(autoOff?'자동 채움: 끔':'자동 채움: 켬')+'</button>';
+  // 커버(스프링)에 오버레이하는 동그란 아이콘들
+  var IC = {
+    auto:  '<svg viewBox="0 0 24 24"><path d="M12 6v3l4-4-4-4v3c-4.42 0-8 3.58-8 8 0 1.57.46 3.03 1.24 4.26L6.7 14.8c-.45-.83-.7-1.79-.7-2.8 0-3.31 2.69-6 6-6zm6.76 1.74L17.3 9.2c.44.84.7 1.79.7 2.8 0 3.31-2.69 6-6 6v-3l-4 4 4 4v-3c4.42 0 8-3.58 8-8 0-1.57-.46-3.03-1.24-4.26z"/><text x="12" y="15" text-anchor="middle" font-size="9" font-weight="900" stroke="none">A</text></svg>',
+    pencil:'<svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>',
+    eraser:'<svg viewBox="0 0 24 24"><path d="M15.14 3.5a2 2 0 0 1 2.83 0l2.53 2.53a2 2 0 0 1 0 2.83L12.7 17.7H21v2H8.5l-4.98-4.98a2 2 0 0 1 0-2.83L15.14 3.5zm-.7 2.83L6.36 14.4l3.24 3.24 8.08-8.08-3.24-3.24z"/></svg>',
+    trash: '<svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>'
+  };
+  // 오토(A) 아이콘: 자동 채우기 대상. 빈칸 있을 때만 선택 가능, 꽉 차면 비활성.
+  function coverIcons(b, idx){
+    var full = isFull(b);
+    var isTgt = st.autoTargetId===b.id;
+    return '<div class="stamp-icons">' +
+      '<button class="stamp-ic auto'+(isTgt?' active':'')+(full?' disabled':'')+'" data-act="autotarget"'+(full?' disabled':'')+' title="자동 채우기 대상">'+IC.auto+'</button>' +
+      '<button class="stamp-ic" data-act="rename" title="이름 변경">'+IC.pencil+'</button>' +
+      '<button class="stamp-ic" data-act="clear" title="비우기">'+IC.eraser+'</button>' +
+      '<button class="stamp-ic ghost" data-act="delete" title="삭제">'+IC.trash+'</button>' +
+    '</div>';
   }
 
   function escapeRe(s){ return String(s).replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); }
@@ -334,15 +338,9 @@
     var img = CFG.coverImage ? (typeof showUrl==="function"?showUrl(CFG.coverImage):CFG.coverImage) : "";
     var filled = b.slots.filter(Boolean).length;
     card.innerHTML =
-      '<div class="stamp-card-foot">' +
-        '<div class="stamp-card-name">'+ boardBadge(b) +'</div>' +
-        boardCtlHtml(b) +
-        '<button class="stamp-btn" data-act="rename">이름 변경</button>' +
-        '<button class="stamp-btn" data-act="clear">비우기</button>' +
-        '<button class="stamp-btn ghost" data-act="delete">삭제</button>' +
-      '</div>' +
       '<div class="stamp-imgbox stamp-cover-box" style="padding-top:'+pad+'%" title="'+(b.open?'접기':'펼치기')+'">' +
         (img? '<img class="stamp-img" src="'+esc(img)+'" alt="'+esc(boardTitle(b,idx))+'">':'') +
+        coverIcons(b, idx) +
         '<div class="stamp-cover-count">'+ filled +'/'+ slotCount() +'</div>' +
         coverNameOverlay(b, idx) +
       '</div>' +
@@ -385,7 +383,6 @@
         else if(act==="clear"){ clearBoard(b); }
         else if(act==="delete"){ deleteBoard(b, idx); }
         else if(act==="autotarget"){ setAutoTarget(b); }
-        else if(act==="autofill"){ toggleAutoFill(b); }
       });
     });
     // 표지 클릭 = 아래 도장판 펼치기/접기(표지는 유지)
@@ -402,7 +399,7 @@
   }
 
   function renameBoard(b, idx){
-    var name = prompt("도장판 이름", b.name || boardTitle(b, idx));
+    var name = prompt("재관카드 이름", b.name || boardTitle(b, idx));
     if(name==null) return;
     name = name.trim();
     if(!name) return;   // 빈 이름 불가 — 이름은 항상 명시적으로 유지
@@ -410,35 +407,28 @@
     saveState(); render();
   }
   function deleteBoard(b, idx){
-    if(!confirm("이 도장판을 삭제할까요? 찍힌 도장도 함께 지워집니다.")) return;
+    if(!confirm("이 재관카드를 삭제할까요? 찍힌 도장도 함께 지워집니다.")) return;
     if(st.autoTargetId===b.id) st.autoTargetId = null;
     st.boards.splice(idx,1);
     if(!st.boards.length) newBoard();
     saveState(); render();
   }
-  // 자동 대상 지정(토글): 다시 누르면 지정 해제(기본=최신 도장판)
+  // 자동 채우기 대상 지정(토글): 빈칸 있을 때만, 다시 누르면 해제(대상 없음=자동 비활성).
   function setAutoTarget(b){
-    if(st.autoTargetId===b.id){ st.autoTargetId = null; }
-    else { st.autoTargetId = b.id; b.autoFill = true; } // 대상은 자동 채움 on이어야 함
+    if(isFull(b)) return;
+    st.autoTargetId = (st.autoTargetId===b.id) ? null : b.id;
     saveState(); render();
   }
-  // 자동 채움 on/off. 끄면 자동에서 제외되고, 대상이었다면 지정 해제.
-  function toggleAutoFill(b){
-    b.autoFill = (b.autoFill===false);
-    if(b.autoFill===false && st.autoTargetId===b.id) st.autoTargetId = null;
-    saveState(); render();
-  }
-  // 도장판 비우기: 찍힌 도장·선물 체크만 지우고 도장판(이름)은 유지
+  // 재관카드 비우기: 찍힌 도장만 지우고 재관카드(이름)는 유지
   function clearBoard(b){
-    if(!confirm("이 도장판의 도장·선물 체크를 모두 지울까요? (도장판은 남습니다)")) return;
+    if(!confirm("이 재관카드의 도장을 모두 지울까요? (재관카드는 남습니다)")) return;
     b.slots = b.slots.map(function(){ return null; });
-    b.gifts = {};
     b.open = true;
     saveState(); render();
   }
-  // 전체 지우기: 모든 도장판 삭제 후 빈 도장판 하나로 초기화
+  // 모두 삭제: 모든 재관카드 삭제 후 빈 재관카드 하나로 초기화
   function clearAll(){
-    if(!confirm("모든 도장판을 지울까요? 되돌릴 수 없습니다.")) return;
+    if(!confirm("모든 재관카드를 지울까요? 되돌릴 수 없습니다.")) return;
     st.boards = []; st.seq = 0; st.autoTargetId = null;
     newBoard();
     saveState(); render();
@@ -550,40 +540,6 @@
     return s + '</div>';
   }
 
-  /* ---------- "다른 도장 찍기" (임의 날짜 + 메모) ---------- */
-  function openArbitraryStamp(anchorEl){
-    closePop();
-    var pop = document.createElement("div");
-    pop.className = "stamp-pop";
-    pop.innerHTML =
-      '<div class="stamp-pop-h">다른 도장 찍기</div>' +
-      stampTypeButtons(CFG.defaultStamp) +
-      '<label class="stamp-pop-field">날짜 <input type="text" class="sp-date" value="" placeholder="7/14"></label>' +
-      '<label class="stamp-pop-field">메모 <input type="text" class="sp-memo" value="" placeholder="(선택)"></label>' +
-      '<div class="stamp-pop-actions">' +
-        '<button class="stamp-btn primary" data-sp="save">찍기</button>' +
-        '<button class="stamp-btn" data-sp="cancel">취소</button>' +
-      '</div>';
-    document.body.appendChild(pop);
-    positionPop(pop, anchorEl);
-    var chosen = { stamp: CFG.defaultStamp||"excellent" };
-    pop.querySelectorAll("[data-st]").forEach(function(btn){
-      btn.addEventListener("click", function(){
-        chosen.stamp = btn.dataset.st;
-        pop.querySelectorAll("[data-st]").forEach(function(x){ x.classList.toggle("active", x===btn); });
-      });
-    });
-    pop.querySelectorAll("[data-sp]").forEach(function(btn){
-      btn.addEventListener("click", function(){
-        if(btn.dataset.sp==="cancel"){ closePop(); return; }
-        var date = pop.querySelector(".sp-date").value.trim();
-        var memo = pop.querySelector(".sp-memo").value.trim();
-        placeStamp({ stamp:chosen.stamp, date:date, memo:memo });
-        saveState(); render(); closePop();
-      });
-    });
-  }
-
   var curPop = null, curDocDown = null;
   function closePop(){
     if(curDocDown){ document.removeEventListener("mousedown", curDocDown, true); curDocDown=null; }
@@ -649,8 +605,6 @@
       if(!dataReady()){ toast("공연 데이터를 불러오는 중입니다. 잠시 후 다시 눌러주세요."); waitForData(); return; }
       ensureCfgState().then(autoStamp);
     });
-    var otherBtn = document.getElementById("stampOtherBtn");
-    if(otherBtn) otherBtn.addEventListener("click", function(){ ensureCfgState().then(function(){ openArbitraryStamp(otherBtn); }); });
     var addBtn = document.getElementById("stampNewBtn");
     if(addBtn) addBtn.addEventListener("click", function(){ ensureCfgState().then(function(){ newBoard(); saveState(); render(); }); });
     var clearAllBtn = document.getElementById("stampClearAllBtn");
