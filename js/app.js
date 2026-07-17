@@ -32,11 +32,16 @@ let currentShowId = "";   // 현재 공연 id(=meta.id) — 공연 전환 드롭
 function showUrl(p){ return /^(\/|https?:)/.test(p) ? p : SHOW_BASE + p; }
 window.showUrl = showUrl;   // finale.js 등에서 사용
 
-/* 데이터(JSON) URL에 배포 빌드 버전을 붙인다 — js?v=NN과 같은 캐시 버스팅.
-   데이터 파일은 커밋 시점에 확정되므로, 배포 시 Action이 주입하는 커밋 버전
-   (window.MAKULLIM_BUILD) 하나면 충분하다. 배포가 새로 되면 URL이 바뀌어 항상 최신,
-   같은 배포 안에서는 브라우저 캐시가 그대로 쓰인다. 로컬 개발(미주입)은 원경로 유지. */
+/* 데이터(JSON) URL에 캐시 버스팅 버전을 붙인다 — js?v=NN과 같은 원리.
+   1순위: 배포 시 Action이 주입한 콘텐츠 해시 맵(window.MAKULLIM_ASSET_VER = { "/절대경로": "해시" }).
+          파일 내용이 바뀔 때만 해시가 바뀌므로, 실제로 바뀐 파일만 다시 받아오고 나머지는 캐시 재사용.
+   2순위(맵에 없을 때): 커밋 짧은 SHA(window.MAKULLIM_BUILD) — 매 배포마다 바뀌는 폴백.
+   로컬 개발(둘 다 미주입): 원경로 유지(fetch 쪽 no-store가 최신을 보장). */
 function dataUrl(p){
+  const m = window.MAKULLIM_ASSET_VER;
+  if(m && Object.prototype.hasOwnProperty.call(m, p)){
+    return p + (p.includes("?") ? "&" : "?") + "v=" + m[p];
+  }
   const v = window.MAKULLIM_BUILD;
   return v ? p + (p.includes("?") ? "&" : "?") + "v=" + encodeURIComponent(v) : p;
 }

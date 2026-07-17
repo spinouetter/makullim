@@ -4,6 +4,7 @@
 
 | 날짜 | 요청 | 요약 |
 |------|------|------|
+| 2026-07-17 | [0088](0088.md) | 캐시 버스팅을 커밋 SHA→콘텐츠 기반으로 통일. stamp.js `no-store` 제거(`?v=CFG_VER`만), finale.js `FIN_VER`+`verUrl()`(레지스트리·보드정의·사진에 부착, SVG 자체 `?v`는 존중), app.js `dataUrl()`이 빌드 시 주입되는 콘텐츠 해시 맵(`MAKULLIM_ASSET_VER`)을 1순위로 사용(빌드 SHA 폴백)·pages.yml이 데이터 JSON sha1로 맵 생성·주입 → 내용 바뀐 파일만 재다운로드. app.js v209·finale.js v55·stamp.js v24 |
 | 2026-07-17 | [0087](0087.md) | 재관카드(Stamp) 신규 — 빌리 Billy's Diary 도장판. 관극마다 도장(EXCELLENT/HOME COMING), 10칸·선물 체크(3·7·10), 자동 채우기(관극 sid 기준)·더블데이(5/12–5/17 ×2)·HOME COMING(6/16–6/21)·같은 날 `-1/-2`. 표지/도장판은 제공 이미지 그대로 쓰고 그 위에 도장·날짜·선물✓ 오버레이. 닫힘(표지)/펼침 토글·이름 변경(#n)·다른 도장 찍기(임의 날짜+메모)·비우기/전체 지우기/삭제. 독립 모듈 `js/stamp.js`+설정 `shows/<id>/stamp.json`(데이터 주도), 상태는 자체 localStorage. 개발 중: `#stamp`/`?stamp`로만 접근 |
 | 2026-07-15 | [0086](0086.md) | Finale 코어 2건 — (1) 부제 월 0패딩 제거 옵션(`subtitle.padMonth:false`, 원본 ISO 유지) (2) 시트맵 타깃을 `target.rect` 대신 SVG placeholder id(`target.svgId`)로 지정(속성 직접 읽기, getBBox 비의존). finale.js v54 |
 | 2026-07-15 | [0085](0085.md) | Finale PDF 내보내기 글꼴 일반화 — 매니페스트의 ttf 폰트를 모두 PDF에 등록하고, bake 시 한글은 IBM Plex Sans KR, 라틴(숫자 등)은 등록된 자기 글꼴 유지. 빌리 2026 TOTAL 숫자(Handlee)가 PDF에도 반영되도록. `Handlee-400.ttf` 번들 |

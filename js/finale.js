@@ -17,7 +17,12 @@
   // 코드는 '값 계산(provider)'만 갖고, "무슨 값을 배경 어디에" 매핑은 전부 JSON이 규정한다.
   // 공연 파일 안의 경로는 공연 폴더 기준 상대경로 → window.showUrl(app.js)로 해석("/" 시작은 사이트 루트).
   //   주의: showUrl은 loadData()가 SHOW_BASE를 채운 뒤에만 유효 — 아래 fetch들은 전부 데이터 로드 후 실행됨.
-  const BOARDS_URL = "finale-boards.json?v=1";
+  const BOARDS_URL = "finale-boards.json";
+  // finale 자원 콘텐츠 버전 — SVG 보드·정의(JSON)·배우 사진을 실제로 바꿀 때만 올린다.
+  //   (커밋 SHA로 매 배포 버스트하지 않고, 내용이 그대로면 브라우저 캐시를 재사용한다.)
+  const FIN_VER = 1;
+  //   경로에 이미 ?v= 등 자체 버전 쿼리가 있으면(예: background.src="finale-board.svg?v=28") 그걸 존중하고, 없을 때만 FIN_VER를 붙인다.
+  function verUrl(p){ const u = window.showUrl(p); return u.indexOf("?")>=0 ? u : (u + "?v=" + FIN_VER); }
   const JSPDF_URL   = "https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js";
   const SVG2PDF_URL = "https://cdn.jsdelivr.net/npm/svg2pdf.js@2.2.3/dist/svg2pdf.umd.min.js";
 
@@ -36,7 +41,7 @@
   let _registry = null, _registryPromise = null;
   function loadRegistry(){
     if(_registry) return Promise.resolve(_registry);
-    if(!_registryPromise) _registryPromise = fetch(window.showUrl(BOARDS_URL)).then(r=>r.json()).then(reg=>{ _registry=reg; return reg; });
+    if(!_registryPromise) _registryPromise = fetch(verUrl(BOARDS_URL)).then(r=>r.json()).then(reg=>{ _registry=reg; return reg; });
     return _registryPromise;
   }
   // 갤러리에 노출할 보드(숨김 제외). ?board= 없을 땐 default(숨김이면 보이는 첫 보드로 폴백)를 활성으로.
@@ -55,7 +60,7 @@
       _manifestPromise = (async ()=>{
         const reg = await loadRegistry();
         const entry = resolveEntry(reg);
-        const def = await (await fetch(window.showUrl(entry.def))).json();
+        const def = await (await fetch(verUrl(entry.def))).json();
         _manifest = Object.assign({ id: entry.id, name: entry.name, hidden: !!entry.hidden }, def);
         return _manifest;
       })();
@@ -200,8 +205,8 @@
   //   placeholder: 사진 없을 때 대체 이미지
   const XLINK = "http://www.w3.org/1999/xlink";
   const DEF_PHOTOS = { pattern: "images/{name}.jpeg", placeholder: "images/" + encodeURIComponent("플레이스홀더") + ".jpeg" };
-  function photoUrlFrom(photos, name){ return window.showUrl(((photos && photos.pattern) || DEF_PHOTOS.pattern).replace("{name}", encodeURIComponent(name))); }
-  function placeholderUrl(photos){ return window.showUrl((photos && photos.placeholder) || DEF_PHOTOS.placeholder); }
+  function photoUrlFrom(photos, name){ return verUrl(((photos && photos.pattern) || DEF_PHOTOS.pattern).replace("{name}", encodeURIComponent(name))); }
+  function placeholderUrl(photos){ return verUrl((photos && photos.placeholder) || DEF_PHOTOS.placeholder); }
   // 실제 사진은 위쪽 정렬(YMin: 얼굴 상단), 플레이스홀더는 세로 중앙(YMid)
   function setPhoto(el, name, photos){
     if(!el) return;
@@ -554,7 +559,7 @@
 
   let boardText = null, boardTextSrc = null;
   async function loadBoard(mani){
-    const src = window.showUrl(mani.background.src);
+    const src = verUrl(mani.background.src);
     if(boardText==null || boardTextSrc!==src){ const r=await fetch(src); boardText = await r.text(); boardTextSrc = src; }
     return boardText;
   }
@@ -652,13 +657,13 @@
 
   async function maniFor(entry){
     if(!_defCache.has(entry.id)){
-      const def = await (await fetch(window.showUrl(entry.def))).json();
+      const def = await (await fetch(verUrl(entry.def))).json();
       _defCache.set(entry.id, Object.assign({ id:entry.id, name:entry.name, hidden:!!entry.hidden }, def));
     }
     return _defCache.get(entry.id);
   }
   async function svgTextFor(mani){
-    const src = window.showUrl(mani.background.src);
+    const src = verUrl(mani.background.src);
     if(!_svgTextCache.has(src)) _svgTextCache.set(src, await (await fetch(src)).text());
     return _svgTextCache.get(src);
   }

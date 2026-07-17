@@ -40,6 +40,19 @@ jobs:
         run: |
           set -e
           build="${GITHUB_SHA::7}"
+          # 데이터(JSON) 콘텐츠 해시 맵 — 파일 내용이 바뀔 때만 값이 바뀌므로 dataUrl이 ?v=<해시>로
+          # 실제로 바뀐 파일만 캐시 버스트한다(커밋 SHA처럼 매 배포 전체를 버스트하지 않음).
+          # 앱이 dataUrl로 요청하는 절대경로(/shows/…, /theatres/…, /data/…)를 그대로 키로 쓴다.
+          asset="{"
+          first=1
+          for f in $(find shows theatres data -type f -name '*.json' 2>/dev/null | sort); do
+            h=$(sha1sum "$f" | cut -c1-10)
+            [ $first -eq 1 ] || asset="$asset,"
+            asset="$asset\"/$f\":\"$h\""
+            first=0
+          done
+          asset="$asset}"
+          echo "asset-ver 맵 항목 수: $(find shows theatres data -type f -name '*.json' 2>/dev/null | wc -l)"
           for id in $(jq -r '.shows[]' shows/index.json); do
             slug=$(jq -r '.slug // empty' "shows/$id.json")
             if [ -z "$slug" ]; then echo "slug 없음: $id — 스텁 생략"; continue; fi
@@ -49,12 +62,12 @@ jobs:
                 echo "::error::slug '$slug'($id)는 예약된 폴더명과 충돌합니다."; exit 1;;
             esac
             mkdir -p "$slug"
-            sed "s|<!-- __SHOW__ -->|<script>window.MAKULLIM_SHOW_ID=\"$id\";window.MAKULLIM_BUILD=\"$build\";</script>|" index.html > "$slug/index.html"
+            sed "s|<!-- __SHOW__ -->|<script>window.MAKULLIM_SHOW_ID=\"$id\";window.MAKULLIM_BUILD=\"$build\";window.MAKULLIM_ASSET_VER=$asset;</script>|" index.html > "$slug/index.html"
             echo "스텁 생성: /$slug/ ← $id (build $build)"
           done
-          # 루트 index.html에도 빌드 버전만 주입(공연 id는 없음 — 리다이렉트/로컬 선택용).
+          # 루트 index.html에도 빌드 버전·자원 해시 맵 주입(공연 id는 없음 — 리다이렉트/로컬 선택용).
           # 스텁 생성이 원본 마커를 읽은 뒤에 치환해야 하므로 이 단계 마지막에 수행.
-          sed -i "s|<!-- __SHOW__ -->|<script>window.MAKULLIM_BUILD=\"$build\";</script>|" index.html
+          sed -i "s|<!-- __SHOW__ -->|<script>window.MAKULLIM_BUILD=\"$build\";window.MAKULLIM_ASSET_VER=$asset;</script>|" index.html
 
       - name: Inject Dropbox App key
         env:

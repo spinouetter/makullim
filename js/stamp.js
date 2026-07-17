@@ -37,8 +37,8 @@
 
   // SHOW_BASE가 준비돼 showUrl이 절대경로(/shows/<id>/…)를 주는지. 준비 전엔 슬러그 상대경로(/billy/…)로 나가 404가 난다.
   function baseReady(){ return typeof showUrl==="function" && showUrl("_").charAt(0)==="/"; }
-  function noStore(){ return (typeof window!=="undefined" && window.MAKULLIM_BUILD) ? undefined : { cache:"no-store" }; }
   // stamp.json 콘텐츠 버전 — 커밋 SHA(BUILD)로 매 배포 버스트하지 않고, 이 설정 파일을 실제로 바꿀 때만 올린다.
+  // 버전이 소스(여기)에 박혀 있어 로컬·배포 모두 ?v가 붙으므로 no-store가 필요 없다.
   var CFG_VER = 10;
   function loadConfig(){
     if(CFG) return Promise.resolve(CFG);
@@ -48,10 +48,9 @@
       (function attempt(){
         // SHOW_BASE 준비 전 fetch 금지(슬러그 경로 404 → 설정 실패가 캐시되는 버그 방지)
         if(!baseReady() && tries++ < 120){ setTimeout(attempt, 80); return; }
-        // 콘텐츠 버전(?v=CFG_VER, 내용 바뀔 때만 증가) + 로컬 no-store
-        var path = "stamp.json?v=" + CFG_VER;
+        var path = "stamp.json?v=" + CFG_VER;   // 콘텐츠 버전(내용 바뀔 때만 증가)
         var url = baseReady() ? showUrl(path) : path;
-        fetch(url, noStore()).then(function(r){ if(!r.ok) throw new Error("no stamp.json"); return r.json(); })
+        fetch(url).then(function(r){ if(!r.ok) throw new Error("no stamp.json"); return r.json(); })
           .then(function(j){ CFG = normalizeCfg(j); resolve(CFG); })
           .catch(function(){ CFG = normalizeCfg(null); resolve(CFG); });
       })();
