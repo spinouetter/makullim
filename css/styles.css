@@ -1498,6 +1498,7 @@
 }
 .stamp-btn:hover{ border-color:var(--gold); }
 .stamp-btn.primary{ border-color:var(--gold); color:var(--gold); font-weight:700; }
+.stamp-btn:disabled{ opacity:.4; cursor:default; }  /* 대상 없을 때 자동 채우기 등 비활성 표시 */
 .stamp-btn.ghost{ color:var(--ink-dim); }
 
 .stamp-boards{
