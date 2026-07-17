@@ -1604,6 +1604,8 @@
 .stamp-cover-num{ position:absolute; font-weight:800; line-height:1; white-space:nowrap; font-family:inherit;
   transform-origin:left center;
   text-shadow:0 1px 0 rgba(247,242,226,.6); }
-.stamp-cover-name{ position:absolute; text-align:right; font-weight:800; line-height:1.08; font-family:inherit;
+.stamp-cover-name{ position:absolute; text-align:right; font-weight:800; line-height:1.15; font-family:inherit;
   word-break:break-word;
-  transform-origin:right bottom; text-shadow:0 1px 0 rgba(247,242,226,.6); }
+  transform-origin:right bottom; text-shadow:0 1px 0 rgba(247,242,226,.6);
+  /* 도장판 아래 둥근 테두리 투명 흰색 배경 — 도안 위에서도 글씨가 구분되게 */
+  background:rgba(255,255,255,.62); border:1px solid rgba(120,120,120,.28); border-radius:9px; padding:2px 8px; }

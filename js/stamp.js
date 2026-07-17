@@ -38,7 +38,7 @@
   function loadConfig(){
     if(CFG) return Promise.resolve(CFG);
     if(cfgPromise) return cfgPromise;
-    var url = (typeof showUrl==="function") ? showUrl("stamp.json?v=2") : "stamp.json";
+    var url = (typeof showUrl==="function") ? showUrl("stamp.json?v=3") : "stamp.json";
     cfgPromise = fetch(url).then(function(r){ if(!r.ok) throw new Error("no stamp.json"); return r.json(); })
       .then(function(j){ CFG = normalizeCfg(j); return CFG; })
       .catch(function(){ CFG = normalizeCfg(null); return CFG; });
@@ -93,21 +93,41 @@
     if(!b.gifts || typeof b.gifts!=="object") b.gifts = {}; // {"3":true,...}
     return b;
   }
+  function baseTitle(){ return ((CFG && CFG.title) || "Diary").trim(); }
+  // 이름이 '기본제목 #숫자' 형태면 그 숫자, 아니면 null
+  function boardNumberOf(b){
+    var m = (b && b.name ? b.name.trim() : "").match(new RegExp("^"+escapeRe(baseTitle())+"\\s*#\\s*(\\d+)$"));
+    return m ? parseInt(m[1],10) : null;
+  }
+  // 새 도장판 번호 = 현재 '기본제목 #n'들의 최대 숫자 + 1
+  function nextBoardNumber(){
+    var mx = 0;
+    st.boards.forEach(function(b){ var n = boardNumberOf(b); if(n && n>mx) mx=n; });
+    return mx + 1;
+  }
+  // 이름은 항상 명시적으로 저장한다(기본 이름 유지 없음). 폴백만 안전용.
   function boardTitle(b, idx){
-    if(b.name && b.name.trim()) return b.name.trim();
-    var base = CFG.title || "Diary";
-    return base + " #" + (idx+1);   // 첫 판도 #1부터
+    var nm = (b.name||"").trim();
+    return nm || (baseTitle() + " #" + (idx+1));
   }
   function slotCount(){ return CFG ? CFG.slots : 10; }
   function isFull(b){ return b.slots.filter(Boolean).length >= slotCount(); }
 
   /* ---------- 도장 배치 로직 ---------- */
   function newBoard(){
-    var b = normalizeBoard({ id:"b"+(++st.seq), name:"", open:true, slots:[], gifts:{}, autoFill:true });
+    var b = normalizeBoard({ id:"b"+(++st.seq), name: baseTitle()+" #"+nextBoardNumber(), open:true, slots:[], gifts:{}, autoFill:true });
     st.boards.push(b);
     return b;
   }
   function newBoardAsTarget(){ var nb = newBoard(); st.autoTargetId = nb.id; return nb; }
+  // 이름이 비어 있던(옛) 도장판에 '기본제목 #n'을 명시적으로 부여
+  function migrateNames(){
+    var changed = false;
+    st.boards.forEach(function(b){
+      if(!(b.name && b.name.trim())){ b.name = baseTitle()+" #"+nextBoardNumber(); changed = true; }
+    });
+    if(changed) saveState();
+  }
   // 자동이 채울 대상 도장판을 고른다.
   //  - 지정된 기본 도장판(autoTargetId)이 있고 자동채움 on이면 그걸 쓴다(꽉 차 있으면 새로 만든다).
   //  - 지정이 없으면 자동채움 on이면서 안 찬 최신 도장판을 쓴다.
@@ -234,6 +254,7 @@
     if(!st) loadState();
     // 도장판이 하나도 없으면 빈 도장판 하나로 시작
     if(!st.boards.length) newBoard();
+    migrateNames();  // 이름 없던 옛 도장판에 명시적 이름 부여(기본 이름 유지 폐지)
 
     boardsEl.innerHTML = "";
     // 새로 만든 도장판이 위로 오도록 역순 표시(번호/이름은 생성 순서 idx 유지)
@@ -296,10 +317,11 @@
     var nm = cv.name || {};
     var s2 = "right:"+numOr(nm.right,9)+"%;bottom:"+numOr(nm.bottom,15)+"%;"+
              "max-width:"+numOr(nm.maxWidth,58)+"%;"+
-             "font-size:"+numOr(nm.size,6)+"cqi;"+
+             "font-size:"+numOr(nm.size,4.8)+"cqi;"+
              "color:"+(nm.color||"#1b1b19")+";"+
              "font-style:"+(nm.italic===false?"normal":"italic")+";"+
-             "transform:rotate("+numOr(nm.rotate,-6)+"deg);";
+             // dx/dy는 글꼴 크기(em) 기준 이동
+             "transform:translate("+numOr(nm.dx,0)+"em,"+numOr(nm.dy,0)+"em) rotate("+numOr(nm.rotate,0)+"deg);";
     return '<div class="stamp-cover-name" style="'+s2+'">'+ esc(name) +'</div>';
   }
 
@@ -418,10 +440,11 @@
   }
 
   function renameBoard(b, idx){
-    // 기본 이름(#n) 도장판은 빈 칸으로 열어, 그냥 확인만 눌러도 타이틀로 굳지 않게 한다.
-    var name = prompt("도장판 이름 (비우면 기본 이름 유지)", b.name || "");
+    var name = prompt("도장판 이름", b.name || boardTitle(b, idx));
     if(name==null) return;
-    b.name = name.trim();
+    name = name.trim();
+    if(!name) return;   // 빈 이름 불가 — 이름은 항상 명시적으로 유지
+    b.name = name;
     saveState(); render();
   }
   function deleteBoard(b, idx){
