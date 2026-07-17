@@ -38,7 +38,7 @@
   function loadConfig(){
     if(CFG) return Promise.resolve(CFG);
     if(cfgPromise) return cfgPromise;
-    var url = (typeof showUrl==="function") ? showUrl("stamp.json?v=1") : "stamp.json";
+    var url = (typeof showUrl==="function") ? showUrl("stamp.json?v=2") : "stamp.json";
     cfgPromise = fetch(url).then(function(r){ if(!r.ok) throw new Error("no stamp.json"); return r.json(); })
       .then(function(j){ CFG = normalizeCfg(j); return CFG; })
       .catch(function(){ CFG = normalizeCfg(null); return CFG; });
