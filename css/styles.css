@@ -1515,8 +1515,11 @@
 .stamp-img{ position:absolute; inset:0; width:100%; height:100%; object-fit:contain; display:block; }
 .stamp-cover-box{ cursor:pointer; }
 .stamp-cover-box:hover{ box-shadow:0 9px 24px rgba(20,30,55,.36); }
-.stamp-board-wrap{ margin-top:10px; }
-.stamp-card.open .stamp-cover-box{ box-shadow:0 6px 16px rgba(20,30,55,.30); }
+.stamp-board-wrap{ margin-top:0; }
+/* 펼침 시 커버와 도장판이 맞닿는 모서리를 각지게 해 여백 없이 이어지게 */
+.stamp-card.open .stamp-cover-box{ border-bottom-left-radius:0; border-bottom-right-radius:0; }
+.stamp-card.open .stamp-board-wrap .stamp-imgbox{ border-top-left-radius:0; border-top-right-radius:0; }
+.stamp-card.open .stamp-cover-box{ box-shadow:none; }  /* 펼침 시 커버-도장판 사이 그림자 제거(여백 없이 붙게) */
 
 .stamp-overlay{ position:absolute; inset:0; }
 
@@ -1552,7 +1555,7 @@
 .stamp-gift.on{ color:#a43233; }
 
 /* 카드 하단 이름·버튼 */
-.stamp-card-foot{ display:flex; flex-wrap:wrap; gap:6px; align-items:center; margin-top:10px; }
+.stamp-card-foot{ display:flex; flex-wrap:wrap; gap:6px; align-items:center; margin:0 0 8px; }
 .stamp-card-name{ font-weight:800; font-style:italic; color:var(--gold); margin-right:auto; }
 .stamp-card-foot .stamp-btn{ font-size:12px; padding:4px 9px; }
 

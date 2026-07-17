@@ -334,17 +334,17 @@
     var img = CFG.coverImage ? (typeof showUrl==="function"?showUrl(CFG.coverImage):CFG.coverImage) : "";
     var filled = b.slots.filter(Boolean).length;
     card.innerHTML =
-      '<div class="stamp-imgbox stamp-cover-box" style="padding-top:'+pad+'%" title="'+(b.open?'접기':'펼치기')+'">' +
-        (img? '<img class="stamp-img" src="'+esc(img)+'" alt="'+esc(boardTitle(b,idx))+'">':'') +
-        '<div class="stamp-cover-count">'+ filled +'/'+ slotCount() +'</div>' +
-        coverNameOverlay(b, idx) +
-      '</div>' +
       '<div class="stamp-card-foot">' +
         '<div class="stamp-card-name">'+ boardBadge(b) +'</div>' +
         boardCtlHtml(b) +
         '<button class="stamp-btn" data-act="rename">이름 변경</button>' +
         '<button class="stamp-btn" data-act="clear">비우기</button>' +
         '<button class="stamp-btn ghost" data-act="delete">삭제</button>' +
+      '</div>' +
+      '<div class="stamp-imgbox stamp-cover-box" style="padding-top:'+pad+'%" title="'+(b.open?'접기':'펼치기')+'">' +
+        (img? '<img class="stamp-img" src="'+esc(img)+'" alt="'+esc(boardTitle(b,idx))+'">':'') +
+        '<div class="stamp-cover-count">'+ filled +'/'+ slotCount() +'</div>' +
+        coverNameOverlay(b, idx) +
       '</div>' +
       (b.open ? boardBodyHtml(b, idx) : '');
     wireCard(card, b, idx);
