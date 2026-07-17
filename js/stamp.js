@@ -73,15 +73,14 @@
     return c;
   }
   function isGiftRow(n){ return CFG.giftRows.indexOf(n) >= 0; }
-  // 이미지도 config·app.js와 같은 경로 규칙(dUrl=dataUrl(showUrl)). 배포는 ?v=BUILD 자동.
-  // 이미지는 fetch가 아니라 <img>라 no-store를 못 쓰므로, 로컬(BUILD 없음)에선 imgVer로 캐시 버스트.
+  // 이미지 캐시 버스터는 커밋 SHA(BUILD)가 아니라 콘텐츠 버전(CFG.imgVer)을 쓴다.
+  // 이유: 이미지는 거의 안 바뀌므로 매 배포(커밋)마다 재다운로드하지 않고, 그림을 실제 교체하고
+  //       imgVer를 올렸을 때만 새로 받게 하기 위함. (JSON/JS/CSS는 자주 바뀌어 BUILD로 버스트)
   function imgUrl(p){
     if(!p) return "";
-    var u = dUrl(p);
-    if(!(typeof window!=="undefined" && window.MAKULLIM_BUILD)){
-      u += (u.indexOf("?")>=0 ? "&" : "?") + "v=" + encodeURIComponent((CFG && CFG.imgVer) || "1");
-    }
-    return u;
+    var u = (typeof showUrl==="function") ? showUrl(p) : p;
+    var v = (CFG && CFG.imgVer!=null) ? CFG.imgVer : 1;
+    return u + (u.indexOf("?")>=0 ? "&" : "?") + "v=" + encodeURIComponent(v);
   }
   function stampLabel(id){
     var t = (CFG.stampTypes||[]).find(function(s){ return s.id===id; });
