@@ -38,7 +38,7 @@
   function loadConfig(){
     if(CFG) return Promise.resolve(CFG);
     if(cfgPromise) return cfgPromise;
-    var url = (typeof showUrl==="function") ? showUrl("stamp.json?v=8") : "stamp.json";
+    var url = (typeof showUrl==="function") ? showUrl("stamp.json?v=9") : "stamp.json";
     cfgPromise = fetch(url).then(function(r){ if(!r.ok) throw new Error("no stamp.json"); return r.json(); })
       .then(function(j){ CFG = normalizeCfg(j); return CFG; })
       .catch(function(){ CFG = normalizeCfg(null); return CFG; });
@@ -58,6 +58,14 @@
     return c;
   }
   function isGiftRow(n){ return CFG.giftRows.indexOf(n) >= 0; }
+  // 이미지 캐시 버스터: 배포 시 커밋 SHA(MAKULLIM_BUILD), 없으면 CFG.imgVer.
+  // 파일명이 같아도(diary-board.jpg) 그림을 교체하면 ?v가 바뀌어 캐시가 갱신된다.
+  function imgUrl(p){
+    if(!p) return "";
+    var u = (typeof showUrl==="function") ? showUrl(p) : p;
+    var v = (typeof window!=="undefined" && window.MAKULLIM_BUILD) ? window.MAKULLIM_BUILD : ((CFG && CFG.imgVer) || "1");
+    return u + (u.indexOf("?")>=0 ? "&" : "?") + "v=" + encodeURIComponent(v);
+  }
   function stampLabel(id){
     var t = (CFG.stampTypes||[]).find(function(s){ return s.id===id; });
     return t ? t.label : id;
@@ -362,7 +370,7 @@
     var card = document.createElement("div");
     card.className = "stamp-card" + (b.open ? " open" : "");
     var pad = (CFG.coverAspect[1]/CFG.coverAspect[0]*100).toFixed(3);
-    var img = CFG.coverImage ? (typeof showUrl==="function"?showUrl(CFG.coverImage):CFG.coverImage) : "";
+    var img = imgUrl(CFG.coverImage);
     var filled = b.slots.filter(Boolean).length;
     card.innerHTML =
       '<div class="stamp-imgbox stamp-cover-box" style="padding-top:'+pad+'%" title="'+(b.open?'접기':'펼치기')+'">' +
@@ -379,7 +387,7 @@
   // 도장판 표(이미지 위에 도장/날짜 오버레이). 선물 칸 없음.
   function boardBodyHtml(b, idx){
     var pad = (CFG.boardAspect[1]/CFG.boardAspect[0]*100).toFixed(3);
-    var img = CFG.boardImage ? (typeof showUrl==="function"?showUrl(CFG.boardImage):CFG.boardImage) : "";
+    var img = imgUrl(CFG.boardImage);
     var g = CFG.grid;
     var ov = "";
     for(var i=0;i<slotCount();i++){
@@ -606,9 +614,14 @@
   function showPage(){
     var pg = document.getElementById("page-stamp");
     if(!pg) return;
-    document.querySelectorAll(".tab-btn").forEach(function(b){ b.classList.remove("active"); });
-    document.querySelectorAll(".page").forEach(function(p){ p.classList.remove("active"); });
-    pg.classList.add("active");
+    // 상시 탭이 있으므로 app.js activateTab으로 전환(탭 하이라이트 포함). 없으면 직접 토글.
+    if(typeof window.activateTab === "function" && document.querySelector('.tab-btn[data-page="stamp"]')){
+      window.activateTab("stamp", false);
+    } else {
+      document.querySelectorAll(".tab-btn").forEach(function(b){ b.classList.remove("active"); });
+      document.querySelectorAll(".page").forEach(function(p){ p.classList.remove("active"); });
+      pg.classList.add("active");
+    }
     if(dataReady()){ render(); }
     else { pendingActivate = true; waitForData(); }
   }

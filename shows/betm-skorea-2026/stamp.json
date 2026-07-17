@@ -3,29 +3,68 @@
   "slots": 10,
   "coverImage": "images/diary-cover.jpg",
   "boardImage": "images/diary-board.jpg",
-  "boardAspect": [945, 1355],
-  "coverAspect": [1569, 1002],
+  "boardAspect": [
+    1040,
+    1490
+  ],
+  "coverAspect": [
+    1569,
+    1002
+  ],
   "cover": {
     "baseTitle": "Billy's Diary",
-    "num":  { "x": 70, "y": 61.5, "size": 8.5, "rotate": -6, "italic": false, "color": "#a43233", "font": "Caveat", "dy": -0.3 },
-    "name": { "right": 9, "bottom": 15, "maxWidth": 58, "size": 4.8, "rotate": 0, "italic": false, "color": "#1b1b19", "dx": -0.3, "dy": 0.2 }
+    "num": {
+      "x": 70,
+      "y": 61.5,
+      "size": 8.5,
+      "rotate": -6,
+      "italic": false,
+      "color": "#a43233",
+      "font": "Caveat",
+      "dy": -0.3
+    },
+    "name": {
+      "right": 9,
+      "bottom": 15,
+      "maxWidth": 58,
+      "size": 4.8,
+      "rotate": 0,
+      "italic": false,
+      "color": "#1b1b19",
+      "dx": -0.3,
+      "dy": 0.2
+    }
   },
   "grid": {
     "rowTop": 0.1255,
     "rowH": 0.08155,
     "checkX": 0.6212,
-    "dayX": 0.8503
+    "dayX": 0.85
   },
   "giftRows": [],
   "stampTypes": [
-    { "id": "excellent", "label": "EXCELLENT" },
-    { "id": "homecoming", "label": "HOME COMING" }
+    {
+      "id": "excellent",
+      "label": "EXCELLENT"
+    },
+    {
+      "id": "homecoming",
+      "label": "HOME COMING"
+    }
   ],
   "defaultStamp": "excellent",
   "rules": [
-    { "stamp": "homecoming", "from": "2026-06-16", "to": "2026-06-21" }
+    {
+      "stamp": "homecoming",
+      "from": "2026-06-16",
+      "to": "2026-06-21"
+    }
   ],
   "doubleDates": [
-    { "from": "2026-05-12", "to": "2026-05-17" }
-  ]
+    {
+      "from": "2026-05-12",
+      "to": "2026-05-17"
+    }
+  ],
+  "imgVer": 2
 }

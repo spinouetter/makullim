@@ -176,6 +176,8 @@ function activateTab(page, push){
   if(page === "tickets") renderTickets();
   // Finale(인증 이미지): 탭을 열 때마다 최신 데이터로 포스터 SVG 생성
   if(page === "finale" && typeof window.renderFinale === "function") window.renderFinale();
+  // Stamp(재관카드): 탭을 열 때마다 최신 상태로 렌더
+  if(page === "stamp" && typeof window.renderStamp === "function") window.renderStamp();
   // 좌석맵이 처음 보일 때: 숨겨진 채 계산된 임시 초기 뷰를 실제 뷰포트 크기로 재맞춤
   if(page === "seatmap" && seatNeedsInitialFit){
     const vp = document.getElementById("svgViewport");

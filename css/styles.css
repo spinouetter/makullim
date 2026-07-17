@@ -249,10 +249,13 @@
     white-space:nowrap;
     flex:0 0 auto;
   }
-  /* Settings 탭: 기본은 라벨, 탭이 넘칠 때(nav.compact) 톱니 아이콘으로 — 0070 */
+  /* Settings·Stamp 탭: 기본은 라벨, 탭이 넘칠 때(nav.compact) 아이콘으로 — 0070, 0087 */
   .tab-icon{ display:none; font-size:17px; line-height:1; }
-  nav.compact .tab-btn[data-page="settings"] .tab-label{ display:none; }
-  nav.compact .tab-btn[data-page="settings"] .tab-icon{ display:inline; }
+  .tab-icon-stamp svg{ width:17px; height:17px; fill:currentColor; vertical-align:-3px; }
+  nav.compact .tab-btn[data-page="settings"] .tab-label,
+  nav.compact .tab-btn[data-page="stamp"] .tab-label{ display:none; }
+  nav.compact .tab-btn[data-page="settings"] .tab-icon,
+  nav.compact .tab-btn[data-page="stamp"] .tab-icon{ display:inline; }
   /* 컴팩트 시 탭 간격·패딩을 더 줄여 6탭이 좁은 폰에서도 가로 스크롤 없이 들어가게 — 0072 */
   nav.compact{ gap:1px; }
   nav.compact button{ padding:10px 8px; font-size:13px; letter-spacing:0; }
