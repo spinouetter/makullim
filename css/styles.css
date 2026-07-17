@@ -1579,3 +1579,11 @@
   opacity:0; pointer-events:none; transition:opacity .2s, transform .2s; z-index:2000;
 }
 .stamp-toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+
+/* 자동 대상/제외 배지 · 버튼 상태 */
+.stamp-badge{ display:inline-block; margin-left:8px; font-size:11px; font-weight:700; font-style:normal;
+  padding:2px 7px; border-radius:10px; vertical-align:middle; }
+.stamp-badge.tgt{ background:rgba(224,161,58,.18); color:var(--gold); border:1px solid var(--gold-dim); }
+.stamp-badge.off{ background:rgba(140,150,160,.15); color:var(--ink-dim); border:1px solid var(--line); }
+.stamp-btn.tgt.active{ border-color:var(--gold); color:var(--gold); font-weight:700; }
+.stamp-btn.off{ color:var(--ink-dim); border-style:dashed; }

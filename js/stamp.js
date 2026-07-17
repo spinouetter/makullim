@@ -69,9 +69,10 @@
       var raw = localStorage.getItem(storageKey());
       if(raw){ st = JSON.parse(raw); }
     }catch(e){ st = null; }
-    if(!st || typeof st!=="object"){ st = { boards:[], seq:0 }; }
+    if(!st || typeof st!=="object"){ st = { boards:[], seq:0, autoTargetId:null }; }
     if(!Array.isArray(st.boards)) st.boards = [];
     if(typeof st.seq!=="number") st.seq = st.boards.length;
+    if(typeof st.autoTargetId!=="string") st.autoTargetId = null; // 자동이 채울 기본 도장판 id
     st.boards.forEach(normalizeBoard);
     return st;
   }
@@ -83,6 +84,7 @@
     if(!b.id) b.id = "b" + (++st.seq);
     if(typeof b.name!=="string") b.name = "";
     if(typeof b.open!=="boolean") b.open = true;
+    if(typeof b.autoFill!=="boolean") b.autoFill = true; // 자동 채움 대상 여부(끄면 자동 제외)
     if(!Array.isArray(b.slots)) b.slots = [];
     // 슬롯 길이를 config.slots로 맞춘다(모자라면 null 채움)
     var n = CFG ? CFG.slots : 10;
@@ -101,16 +103,32 @@
 
   /* ---------- 도장 배치 로직 ---------- */
   function newBoard(){
-    var b = normalizeBoard({ id:"b"+(++st.seq), name:"", open:true, slots:[], gifts:{} });
+    var b = normalizeBoard({ id:"b"+(++st.seq), name:"", open:true, slots:[], gifts:{}, autoFill:true });
     st.boards.push(b);
     return b;
   }
-  // 도장을 하나 찍는다: 마지막(비어있는) 도장판의 다음 빈칸 → 없으면 새 도장판 생성.
+  function newBoardAsTarget(){ var nb = newBoard(); st.autoTargetId = nb.id; return nb; }
+  // 자동이 채울 대상 도장판을 고른다.
+  //  - 지정된 기본 도장판(autoTargetId)이 있고 자동채움 on이면 그걸 쓴다(꽉 차 있으면 새로 만든다).
+  //  - 지정이 없으면 자동채움 on이면서 안 찬 최신 도장판을 쓴다.
+  //  - 그래도 없으면(모두 꽉 참/자동 제외) 새 도장판을 만든다. 자동 제외 도장판에는 절대 채우지 않는다.
+  function autoTargetBoard(){
+    var t = st.autoTargetId ? st.boards.filter(function(b){return b.id===st.autoTargetId;})[0] : null;
+    if(t && t.autoFill!==false){
+      if(!isFull(t)) return t;
+      return newBoardAsTarget();          // 대상이 꽉 참 → 새 도장판(다른 판으로 넘기지 않음)
+    }
+    for(var i=st.boards.length-1;i>=0;i--){
+      var b = st.boards[i];
+      if(b.autoFill!==false && !isFull(b)) return b;
+    }
+    return newBoardAsTarget();
+  }
+  // 도장을 하나 찍는다: 자동 대상 도장판의 다음 빈칸 → 꽉 차면 새 도장판.
   function placeStamp(entry){
-    var b = st.boards.length ? st.boards[st.boards.length-1] : null;
-    if(!b || isFull(b)) b = newBoard();
+    var b = autoTargetBoard();
     var i = b.slots.findIndex(function(s){ return !s; });
-    if(i < 0){ b = newBoard(); i = 0; }
+    if(i < 0){ b = newBoardAsTarget(); i = 0; }
     b.slots[i] = entry;
     // 방금 채워서 10칸이 다 찼으면 자동으로 닫는다(표지 상태)
     if(isFull(b)) b.open = false;
@@ -214,7 +232,23 @@
     var done = stampedSids();
     var remain = 0, extra = 0;
     list.forEach(function(w){ if(!done.has(w.sid)){ remain++; extra += (stampCountForDate(w.date)-1); } });
-    el.textContent = "관극 " + list.length + "회 · 안 찍은 회차 " + remain + (extra? " (+더블 "+extra+")" : "");
+    var tgt = st.autoTargetId ? st.boards.filter(function(b){return b.id===st.autoTargetId;})[0] : null;
+    var tgtName = tgt ? boardTitle(tgt, st.boards.indexOf(tgt)) : "최신 도장판";
+    el.textContent = "관극 " + list.length + "회 · 안 찍은 회차 " + remain + (extra? " (+더블 "+extra+")" : "") + " · 자동 대상: " + tgtName;
+  }
+
+  // 자동 대상/자동 제외 배지
+  function boardBadge(b){
+    if(st.autoTargetId===b.id) return '<span class="stamp-badge tgt">자동 대상</span>';
+    if(b.autoFill===false) return '<span class="stamp-badge off">자동 제외</span>';
+    return '';
+  }
+  // 자동 대상 지정 · 자동 채움 on/off 버튼
+  function boardCtlHtml(b){
+    var isTarget = st.autoTargetId===b.id;
+    var autoOff = b.autoFill===false;
+    return '<button class="stamp-btn tgt'+(isTarget?' active':'')+'" data-act="autotarget" title="자동이 이 도장판부터 채웁니다">자동 대상</button>' +
+           '<button class="stamp-btn'+(autoOff?' off':'')+'" data-act="autofill" title="끄면 이 도장판은 자동에서 제외됩니다">'+(autoOff?'자동 채움: 끔':'자동 채움: 켬')+'</button>';
   }
 
   // 닫힌 도장판(표지) — 제공된 표지 이미지를 그대로 사용
@@ -228,8 +262,9 @@
         (img? '<img class="stamp-img" src="'+esc(img)+'" alt="'+esc(boardTitle(b,idx))+'">':'') +
       '</div>' +
       '<div class="stamp-card-foot">' +
-        '<div class="stamp-card-name">'+ esc(boardTitle(b, idx)) +'</div>' +
+        '<div class="stamp-card-name">'+ esc(boardTitle(b, idx)) + boardBadge(b) +'</div>' +
         '<button class="stamp-btn" data-act="open">열기</button>' +
+        boardCtlHtml(b) +
         '<button class="stamp-btn" data-act="rename">이름 변경</button>' +
         '<button class="stamp-btn" data-act="clear">비우기</button>' +
         '<button class="stamp-btn ghost" data-act="delete">삭제</button>' +
@@ -272,8 +307,9 @@
     }
     card.innerHTML =
       '<div class="stamp-open-head">' +
-        '<div class="stamp-open-title">'+ esc(boardTitle(b, idx)) +'</div>' +
+        '<div class="stamp-open-title">'+ esc(boardTitle(b, idx)) + boardBadge(b) +'</div>' +
         '<div class="stamp-open-actions">' +
+          boardCtlHtml(b) +
           '<button class="stamp-btn" data-act="rename">이름 변경</button>' +
           '<button class="stamp-btn" data-act="close">닫기</button>' +
           '<button class="stamp-btn" data-act="clear">비우기</button>' +
@@ -299,6 +335,8 @@
         else if(act==="rename"){ renameBoard(b, idx); }
         else if(act==="clear"){ clearBoard(b); }
         else if(act==="delete"){ deleteBoard(b, idx); }
+        else if(act==="autotarget"){ setAutoTarget(b); }
+        else if(act==="autofill"){ toggleAutoFill(b); }
       });
     });
     // 표지 클릭(이미지 영역) = 열기
@@ -333,8 +371,21 @@
   }
   function deleteBoard(b, idx){
     if(!confirm("이 도장판을 삭제할까요? 찍힌 도장도 함께 지워집니다.")) return;
+    if(st.autoTargetId===b.id) st.autoTargetId = null;
     st.boards.splice(idx,1);
     if(!st.boards.length) newBoard();
+    saveState(); render();
+  }
+  // 자동 대상 지정(토글): 다시 누르면 지정 해제(기본=최신 도장판)
+  function setAutoTarget(b){
+    if(st.autoTargetId===b.id){ st.autoTargetId = null; }
+    else { st.autoTargetId = b.id; b.autoFill = true; } // 대상은 자동 채움 on이어야 함
+    saveState(); render();
+  }
+  // 자동 채움 on/off. 끄면 자동에서 제외되고, 대상이었다면 지정 해제.
+  function toggleAutoFill(b){
+    b.autoFill = (b.autoFill===false);
+    if(b.autoFill===false && st.autoTargetId===b.id) st.autoTargetId = null;
     saveState(); render();
   }
   // 도장판 비우기: 찍힌 도장·선물 체크만 지우고 도장판(이름)은 유지
@@ -348,7 +399,7 @@
   // 전체 지우기: 모든 도장판 삭제 후 빈 도장판 하나로 초기화
   function clearAll(){
     if(!confirm("모든 도장판을 지울까요? 되돌릴 수 없습니다.")) return;
-    st.boards = []; st.seq = 0;
+    st.boards = []; st.seq = 0; st.autoTargetId = null;
     newBoard();
     saveState(); render();
   }
