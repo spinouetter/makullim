@@ -1513,8 +1513,10 @@
   box-shadow:0 6px 18px rgba(20,30,55,.28); background:#f7f2e2;
 }
 .stamp-img{ position:absolute; inset:0; width:100%; height:100%; object-fit:contain; display:block; }
-.stamp-cover .stamp-imgbox{ cursor:pointer; }
-.stamp-cover .stamp-imgbox:hover{ box-shadow:0 9px 24px rgba(20,30,55,.36); }
+.stamp-cover-box{ cursor:pointer; }
+.stamp-cover-box:hover{ box-shadow:0 9px 24px rgba(20,30,55,.36); }
+.stamp-board-wrap{ margin-top:10px; }
+.stamp-card.open .stamp-cover-box{ box-shadow:0 6px 16px rgba(20,30,55,.30); }
 
 .stamp-overlay{ position:absolute; inset:0; }
 

@@ -38,7 +38,7 @@
   function loadConfig(){
     if(CFG) return Promise.resolve(CFG);
     if(cfgPromise) return cfgPromise;
-    var url = (typeof showUrl==="function") ? showUrl("stamp.json?v=4") : "stamp.json";
+    var url = (typeof showUrl==="function") ? showUrl("stamp.json?v=6") : "stamp.json";
     cfgPromise = fetch(url).then(function(r){ if(!r.ok) throw new Error("no stamp.json"); return r.json(); })
       .then(function(j){ CFG = normalizeCfg(j); return CFG; })
       .catch(function(){ CFG = normalizeCfg(null); return CFG; });
@@ -259,8 +259,7 @@
     boardsEl.innerHTML = "";
     // 새로 만든 도장판이 위로 오도록 역순 표시(번호/이름은 생성 순서 idx 유지)
     for(var idx=st.boards.length-1; idx>=0; idx--){
-      var b = st.boards[idx];
-      boardsEl.appendChild(b.open ? renderOpenBoard(b, idx) : renderCover(b, idx));
+      boardsEl.appendChild(renderCard(st.boards[idx], idx));
     }
     updateAutoInfo();
   }
@@ -312,7 +311,8 @@
               "color:"+(n.color||"#a43233")+";"+
               (n.font ? "font-family:'"+String(n.font).replace(/['"\\;]/g,"")+"';" : "")+
               "font-style:"+(n.italic===false?"normal":"italic")+";"+
-              "transform:translateY(-50%) rotate("+numOr(n.rotate,-6)+"deg);";
+              // dx/dy(글꼴 em)로 미세 이동. translateY(-50%)로 세로 가운데 정렬 후 dy만큼 추가 이동.
+              "transform:translate("+numOr(n.dx,0)+"em,0) translateY(-50%) translateY("+numOr(n.dy,0)+"em) rotate("+numOr(n.rotate,-6)+"deg);";
       return '<div class="stamp-cover-num" style="'+s+'">#'+ esc(m[1]) +'</div>';
     }
     var nm = cv.name || {};
@@ -326,80 +326,53 @@
     return '<div class="stamp-cover-name" style="'+s2+'">'+ esc(name) +'</div>';
   }
 
-  // 닫힌 도장판(표지) — 제공된 표지 이미지를 그대로 사용
-  function renderCover(b, idx){
+  // 카드: 표지(항상) + 하단 버튼 + (펼침 시) 도장판 표. 표지를 누르면 아래 도장판을 펼치고/접는다.
+  function renderCard(b, idx){
     var card = document.createElement("div");
-    card.className = "stamp-card stamp-cover";
+    card.className = "stamp-card" + (b.open ? " open" : "");
     var pad = (CFG.coverAspect[1]/CFG.coverAspect[0]*100).toFixed(3);
     var img = CFG.coverImage ? (typeof showUrl==="function"?showUrl(CFG.coverImage):CFG.coverImage) : "";
     var filled = b.slots.filter(Boolean).length;
     card.innerHTML =
-      '<div class="stamp-imgbox" style="padding-top:'+pad+'%">' +
+      '<div class="stamp-imgbox stamp-cover-box" style="padding-top:'+pad+'%" title="'+(b.open?'접기':'펼치기')+'">' +
         (img? '<img class="stamp-img" src="'+esc(img)+'" alt="'+esc(boardTitle(b,idx))+'">':'') +
         '<div class="stamp-cover-count">'+ filled +'/'+ slotCount() +'</div>' +
         coverNameOverlay(b, idx) +
       '</div>' +
       '<div class="stamp-card-foot">' +
         '<div class="stamp-card-name">'+ boardBadge(b) +'</div>' +
-        '<button class="stamp-btn" data-act="open">열기</button>' +
         boardCtlHtml(b) +
         '<button class="stamp-btn" data-act="rename">이름 변경</button>' +
         '<button class="stamp-btn" data-act="clear">비우기</button>' +
         '<button class="stamp-btn ghost" data-act="delete">삭제</button>' +
-      '</div>';
+      '</div>' +
+      (b.open ? boardBodyHtml(b, idx) : '');
     wireCard(card, b, idx);
     return card;
   }
 
-  // 펼친 도장판 — 도장판 이미지 위에 도장/날짜/선물체크를 오버레이
-  function renderOpenBoard(b, idx){
-    var card = document.createElement("div");
-    card.className = "stamp-card stamp-open";
+  // 도장판 표(이미지 위에 도장/날짜 오버레이). 선물 칸 없음.
+  function boardBodyHtml(b, idx){
     var pad = (CFG.boardAspect[1]/CFG.boardAspect[0]*100).toFixed(3);
     var img = CFG.boardImage ? (typeof showUrl==="function"?showUrl(CFG.boardImage):CFG.boardImage) : "";
     var g = CFG.grid;
-    var gp = CFG.giftPos || {};
     var ov = "";
     for(var i=0;i<slotCount();i++){
-      var n = i+1;
-      var top = (g.rowTop + i*g.rowH)*100;
-      var h = g.rowH*100;
-      var cy = top + h/2;
+      var cy = (g.rowTop + (i+0.5)*g.rowH)*100;
       var slot = b.slots[i];
-      var gift = isGiftRow(n) ? gp[String(n)] : null;   // [x,y] 이미지 비율
-      // CHECK 칸(도장)
       var checkInner = slot ? '<span class="stamp-mark '+esc(slot.stamp)+'">'+esc(stampLabel(slot.stamp))+'</span>' : '';
       ov += '<div class="stamp-cell check'+(slot?' filled':'')+'" data-row="'+i+'" data-cell="check" '+
             'style="left:'+(g.checkX*100).toFixed(2)+'%;top:'+cy.toFixed(2)+'%">'+checkInner+'</div>';
-      // DAY 칸(날짜) — 선물 있는 행은 선물 반대쪽(위/아래)에 날짜를 둔다
-      var dayY = cy;
-      if(gift){ dayY = (gift[1]*100 > cy) ? (cy - h*0.22) : (cy + h*0.18); }
       var dayInner = slot ? ('<span class="stamp-date">'+esc(slot.date||"")+'</span>'+(slot.memo?'<span class="stamp-memo">'+esc(slot.memo)+'</span>':'')) : '';
       ov += '<div class="stamp-cell day'+(slot?' filled':'')+'" data-row="'+i+'" data-cell="day" '+
-            'style="left:'+(g.dayX*100).toFixed(2)+'%;top:'+dayY.toFixed(2)+'%">'+dayInner+'</div>';
-      // 선물 체크(3·7·10) — 이미지에 그려진 □ 위에 ✓ 토글
-      if(gift){
-        ov += '<div class="stamp-gift'+(b.gifts[String(n)]?' on':'')+'" data-gift="'+n+'" '+
-              'style="left:'+(gift[0]*100).toFixed(2)+'%;top:'+(gift[1]*100).toFixed(2)+'%">✓</div>';
-      }
+            'style="left:'+(g.dayX*100).toFixed(2)+'%;top:'+cy.toFixed(2)+'%">'+dayInner+'</div>';
     }
-    card.innerHTML =
-      '<div class="stamp-open-head">' +
-        '<div class="stamp-open-title">'+ esc(boardTitle(b, idx)) + boardBadge(b) +'</div>' +
-        '<div class="stamp-open-actions">' +
-          boardCtlHtml(b) +
-          '<button class="stamp-btn" data-act="rename">이름 변경</button>' +
-          '<button class="stamp-btn" data-act="close">닫기</button>' +
-          '<button class="stamp-btn" data-act="clear">비우기</button>' +
-          '<button class="stamp-btn ghost" data-act="delete">삭제</button>' +
+    return '<div class="stamp-board-wrap">' +
+        '<div class="stamp-imgbox" style="padding-top:'+pad+'%">' +
+          (img? '<img class="stamp-img" src="'+esc(img)+'" alt="">':'') +
+          '<div class="stamp-overlay">'+ ov +'</div>' +
         '</div>' +
-      '</div>' +
-      '<div class="stamp-imgbox" style="padding-top:'+pad+'%">' +
-        (img? '<img class="stamp-img" src="'+esc(img)+'" alt="">':'') +
-        '<div class="stamp-overlay">'+ ov +'</div>' +
       '</div>';
-    wireCard(card, b, idx);
-    return card;
   }
 
   /* ---------- 카드 이벤트 ---------- */
@@ -408,28 +381,16 @@
       btn.addEventListener("click", function(e){
         e.stopPropagation();
         var act = btn.dataset.act;
-        if(act==="open"){ b.open = true; saveState(); render(); }
-        else if(act==="close"){ b.open = false; saveState(); render(); }
-        else if(act==="rename"){ renameBoard(b, idx); }
+        if(act==="rename"){ renameBoard(b, idx); }
         else if(act==="clear"){ clearBoard(b); }
         else if(act==="delete"){ deleteBoard(b, idx); }
         else if(act==="autotarget"){ setAutoTarget(b); }
         else if(act==="autofill"){ toggleAutoFill(b); }
       });
     });
-    // 표지 클릭(이미지 영역) = 열기
-    var imgbox = card.classList.contains("stamp-cover") ? card.querySelector(".stamp-imgbox") : null;
-    if(imgbox){ imgbox.addEventListener("click", function(){ b.open = true; saveState(); render(); }); }
-    // 선물 체크(오버레이 ✓ 토글)
-    card.querySelectorAll(".stamp-gift[data-gift]").forEach(function(el){
-      el.addEventListener("click", function(e){
-        e.stopPropagation();
-        var n = el.dataset.gift;
-        b.gifts[n] = !b.gifts[n];
-        el.classList.toggle("on", b.gifts[n]);
-        saveState();
-      });
-    });
+    // 표지 클릭 = 아래 도장판 펼치기/접기(표지는 유지)
+    var cover = card.querySelector(".stamp-cover-box");
+    if(cover){ cover.addEventListener("click", function(){ b.open = !b.open; saveState(); render(); }); }
     // 도장/날짜 칸 클릭 → 편집(추가/바꾸기/지우기)
     card.querySelectorAll(".stamp-cell[data-cell]").forEach(function(cell){
       cell.addEventListener("click", function(e){
