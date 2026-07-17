@@ -5,6 +5,11 @@
   "boardImage": "images/diary-board.jpg",
   "boardAspect": [904, 1739],
   "coverAspect": [1569, 1002],
+  "cover": {
+    "baseTitle": "Billy's Diary",
+    "num":  { "x": 70, "y": 61.5, "size": 8.5, "rotate": -6, "italic": true, "color": "#a43233" },
+    "name": { "right": 9, "bottom": 15, "maxWidth": 58, "size": 6, "rotate": -6, "italic": true, "color": "#1b1b19" }
+  },
   "grid": {
     "rowTop": 0.0805,
     "rowH": 0.09126,

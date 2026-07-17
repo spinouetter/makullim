@@ -1499,7 +1499,7 @@
   gap:24px; padding:4px 4px 40px; align-items:start;
 }
 
-.stamp-card{ background:transparent; }
+.stamp-card{ background:transparent; color-scheme:only light; }  /* 다이어리는 고정 라이트 일러스트 → OS 다크모드가 색을 반전(도장 핑크·날짜 흰색)하지 않게 강제 라이트 */
 
 /* 이미지 박스: padding-top으로 비율 유지, 이미지 절대배치 */
 .stamp-imgbox{
@@ -1601,10 +1601,9 @@
 
 /* 표지 위 이름/번호 오버레이 (컨테이너 쿼리 단위로 카드 폭에 비례) */
 .stamp-imgbox{ container-type:inline-size; }
-.stamp-cover-num{ position:absolute; left:70%; top:63%; transform:translateY(-50%);
-  color:#a43233; font-style:italic; font-weight:800; font-size:8.5cqi; line-height:1;
-  font-family:"Brush Script MT","Segoe Script",cursive; text-shadow:0 1px 0 rgba(247,242,226,.7); }
-.stamp-cover-name{ position:absolute; right:5%; bottom:6.5%; max-width:64%; text-align:right;
-  color:#a43233; font-style:italic; font-weight:800; font-size:7cqi; line-height:1.06;
+.stamp-cover-num{ position:absolute; font-weight:800; line-height:1; white-space:nowrap;
+  font-family:"Brush Script MT","Segoe Script",cursive; transform-origin:left center;
+  text-shadow:0 1px 0 rgba(247,242,226,.6); }
+.stamp-cover-name{ position:absolute; text-align:right; font-weight:800; line-height:1.08;
   font-family:"Brush Script MT","Segoe Script",cursive; word-break:break-word;
-  text-shadow:0 1px 0 rgba(247,242,226,.7); }
+  transform-origin:right bottom; text-shadow:0 1px 0 rgba(247,242,226,.6); }

@@ -273,17 +273,34 @@
   }
 
   function escapeRe(s){ return String(s).replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); }
-  // 표지 위 이름 표시:
+  function numOr(v, d){ return (typeof v==="number") ? v : d; }
+  // 표지 위 이름 표시(위치·색·기울기 등 표현값은 stamp.json의 cover 설정에서 온다):
   //  - 기본 제목 그대로('Billy's Diary')면 이미지에 이미 있으므로 아무것도 안 붙임
-  //  - '기본제목 #숫자' 형태(기본 자동 이름이든 직접 그렇게 지었든)면 'Billy's Diary' 옆에 #숫자만
-  //  - 그 외 직접 지은 이름이면 스케치북 오른쪽 아래에 전체 이름
+  //  - '기본제목 #숫자' 형태(자동 #n이든 직접 그렇게 지었든)면 'Billy's Diary' 옆에 #숫자만 (스크립트에 맞춰 기울임)
+  //  - 그 외 직접 지은 이름이면 스케치북 흰 도화지 오른쪽 아래에 전체 이름
   function coverNameOverlay(b, idx){
-    var base = (CFG.title||"").trim();
+    var cv = CFG.cover || {};
+    var base = ((cv.baseTitle!=null ? cv.baseTitle : CFG.title) || "").trim();
     var name = boardTitle(b, idx).trim();     // 표시용 실제 제목(이름 없으면 기본/기본+#n)
     if(base && name === base) return "";
     var m = base ? new RegExp("^"+escapeRe(base)+"\\s*#\\s*(\\d+)$").exec(name) : null;
-    if(m) return '<div class="stamp-cover-num">#'+ esc(m[1]) +'</div>';
-    return '<div class="stamp-cover-name">'+ esc(name) +'</div>';
+    if(m){
+      var n = cv.num || {};
+      var s = "left:"+numOr(n.x,70)+"%;top:"+numOr(n.y,62)+"%;"+
+              "font-size:"+numOr(n.size,8.5)+"cqi;"+
+              "color:"+(n.color||"#a43233")+";"+
+              "font-style:"+(n.italic===false?"normal":"italic")+";"+
+              "transform:translateY(-50%) rotate("+numOr(n.rotate,-6)+"deg);";
+      return '<div class="stamp-cover-num" style="'+s+'">#'+ esc(m[1]) +'</div>';
+    }
+    var nm = cv.name || {};
+    var s2 = "right:"+numOr(nm.right,9)+"%;bottom:"+numOr(nm.bottom,15)+"%;"+
+             "max-width:"+numOr(nm.maxWidth,58)+"%;"+
+             "font-size:"+numOr(nm.size,6)+"cqi;"+
+             "color:"+(nm.color||"#1b1b19")+";"+
+             "font-style:"+(nm.italic===false?"normal":"italic")+";"+
+             "transform:rotate("+numOr(nm.rotate,-6)+"deg);";
+    return '<div class="stamp-cover-name" style="'+s2+'">'+ esc(name) +'</div>';
   }
 
   // 닫힌 도장판(표지) — 제공된 표지 이미지를 그대로 사용
@@ -401,8 +418,8 @@
   }
 
   function renameBoard(b, idx){
-    var cur = boardTitle(b, idx);
-    var name = prompt("도장판 이름", cur);
+    // 기본 이름(#n) 도장판은 빈 칸으로 열어, 그냥 확인만 눌러도 타이틀로 굳지 않게 한다.
+    var name = prompt("도장판 이름 (비우면 기본 이름 유지)", b.name || "");
     if(name==null) return;
     b.name = name.trim();
     saveState(); render();
