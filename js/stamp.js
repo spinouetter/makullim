@@ -199,9 +199,11 @@
     if(!st.boards.length) newBoard();
 
     boardsEl.innerHTML = "";
-    st.boards.forEach(function(b, idx){
+    // 새로 만든 도장판이 위로 오도록 역순 표시(번호/이름은 생성 순서 idx 유지)
+    for(var idx=st.boards.length-1; idx>=0; idx--){
+      var b = st.boards[idx];
       boardsEl.appendChild(b.open ? renderOpenBoard(b, idx) : renderCover(b, idx));
-    });
+    }
     updateAutoInfo();
   }
 
