@@ -1,0 +1,31 @@
+{
+  "title": "Billy's Diary",
+  "slots": 10,
+  "coverImage": "images/diary-cover.jpg",
+  "boardImage": "images/diary-board.jpg",
+  "boardAspect": [904, 1739],
+  "coverAspect": [1569, 1002],
+  "grid": {
+    "rowTop": 0.0805,
+    "rowH": 0.09126,
+    "checkX": 0.598,
+    "dayX": 0.847
+  },
+  "giftRows": [3, 7, 10],
+  "giftPos": {
+    "3": [0.780, 0.332],
+    "7": [0.787, 0.659],
+    "10": [0.780, 0.965]
+  },
+  "stampTypes": [
+    { "id": "excellent", "label": "EXCELLENT" },
+    { "id": "homecoming", "label": "HOME COMING" }
+  ],
+  "defaultStamp": "excellent",
+  "rules": [
+    { "stamp": "homecoming", "from": "2026-06-16", "to": "2026-06-21" }
+  ],
+  "doubleDates": [
+    { "from": "2026-05-12", "to": "2026-05-17" }
+  ]
+}

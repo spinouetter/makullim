@@ -1472,3 +1472,110 @@
 }
 .finale-zoom-viewport:active{ cursor:grabbing; }
 .finale-zoom-viewport svg{ position:absolute; top:0; left:0; transform-origin:0 0; }
+
+/* =========================================================
+   재관카드 (Stamp / Billy's Diary) — 요청 0087
+   제공된 표지·도장판 이미지를 그대로 쓰고 그 위에 도장/날짜/선물체크를 오버레이한다.
+   ========================================================= */
+.stamp-toolbar{
+  display:flex; flex-wrap:wrap; align-items:center; gap:10px;
+  padding:10px 4px 14px; border-bottom:1px solid var(--line); margin-bottom:16px;
+}
+.stamp-toolbar-title{ font-size:20px; font-weight:800; letter-spacing:.5px; color:var(--gold); }
+.stamp-toolbar-info{ font-size:12px; color:var(--ink-dim); }
+.stamp-toolbar-btns{ margin-left:auto; display:flex; flex-wrap:wrap; gap:8px; }
+
+.stamp-btn{
+  font:inherit; font-size:13px; padding:6px 12px; border-radius:8px;
+  border:1px solid var(--line); background:var(--panel2); color:var(--ink);
+  cursor:pointer; transition:background .12s, border-color .12s;
+}
+.stamp-btn:hover{ border-color:var(--gold); }
+.stamp-btn.primary{ border-color:var(--gold); color:var(--gold); font-weight:700; }
+.stamp-btn.ghost{ color:var(--ink-dim); }
+
+.stamp-boards{
+  display:grid; grid-template-columns:repeat(auto-fill, minmax(320px, 1fr));
+  gap:24px; padding:4px 4px 40px; align-items:start;
+}
+
+.stamp-card{ background:transparent; }
+
+/* 이미지 박스: padding-top으로 비율 유지, 이미지 절대배치 */
+.stamp-imgbox{
+  position:relative; width:100%; height:0; border-radius:8px; overflow:hidden;
+  box-shadow:0 6px 18px rgba(20,30,55,.28); background:#f7f2e2;
+}
+.stamp-img{ position:absolute; inset:0; width:100%; height:100%; object-fit:contain; display:block; }
+.stamp-cover .stamp-imgbox{ cursor:pointer; }
+.stamp-cover .stamp-imgbox:hover{ box-shadow:0 9px 24px rgba(20,30,55,.36); }
+
+.stamp-overlay{ position:absolute; inset:0; }
+
+/* 도장/날짜 셀: 좌표는 셀 중심(translate로 가운데 정렬) */
+.stamp-cell{
+  position:absolute; transform:translate(-50%,-50%);
+  min-width:16%; min-height:8%; display:flex; align-items:center; justify-content:center;
+  cursor:pointer; border-radius:6px; text-align:center;
+}
+.stamp-cell:hover{ background:rgba(58,77,134,.10); outline:1px dashed rgba(58,77,134,.5); }
+.stamp-cell.day{ flex-direction:column; }
+
+/* 러버 스탬프 자국 */
+.stamp-mark{
+  display:inline-block; font-weight:800; font-size:11px; letter-spacing:.3px;
+  padding:4px 6px; border:2px solid currentColor; border-radius:6px;
+  transform:rotate(-8deg); line-height:1.05; text-align:center; opacity:.9;
+}
+.stamp-mark.excellent{ color:#c0392b; }
+.stamp-mark.homecoming{ color:#2f6fb0; border-radius:50%; padding:7px 6px; transform:rotate(6deg); }
+.stamp-date{ font-weight:800; font-size:15px; color:#2b3a67; }
+.stamp-memo{ font-size:10px; color:#3a4d86; margin-top:1px; max-width:80px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+
+/* 선물 체크 ✓ — 그려진 □ 위에 얹는 토글 */
+.stamp-gift{
+  position:absolute; transform:translate(-50%,-50%);
+  width:3.1%; aspect-ratio:1/1; min-width:16px; min-height:16px;
+  display:flex; align-items:center; justify-content:center;
+  color:transparent; font-weight:900; font-size:16px; line-height:1;
+  cursor:pointer; border-radius:3px;
+}
+.stamp-gift:hover{ background:rgba(192,57,43,.12); }
+.stamp-gift.on{ color:#c0392b; }
+
+/* 카드 하단 이름·버튼 */
+.stamp-card-foot{ display:flex; flex-wrap:wrap; gap:6px; align-items:center; margin-top:10px; }
+.stamp-card-name{ font-weight:800; font-style:italic; color:var(--gold); margin-right:auto; }
+.stamp-card-foot .stamp-btn{ font-size:12px; padding:4px 9px; }
+
+.stamp-open-head{ display:flex; align-items:center; gap:10px; margin-bottom:8px; }
+.stamp-open-title{ font-size:17px; font-weight:800; font-style:italic; color:var(--gold); flex:1 1 auto; }
+.stamp-open-actions{ display:flex; flex-wrap:wrap; gap:6px; justify-content:flex-end; }
+.stamp-open-actions .stamp-btn{ font-size:12px; padding:4px 9px; }
+
+/* 편집 팝오버 */
+.stamp-pop{
+  z-index:1000; width:240px; background:var(--panel); border:1px solid var(--line);
+  border-radius:10px; box-shadow:0 10px 30px rgba(0,0,0,.4); padding:12px;
+}
+.stamp-pop-h{ font-size:13px; font-weight:700; color:var(--gold); margin-bottom:10px; }
+.stamp-type-row{ display:flex; gap:6px; margin-bottom:10px; }
+.stamp-type-btn{
+  flex:1; font:inherit; font-size:11px; font-weight:700; padding:8px 4px; cursor:pointer;
+  border:2px solid var(--line); border-radius:6px; background:var(--panel2); color:var(--ink-dim);
+}
+.stamp-type-btn.active.excellent{ border-color:#c0392b; color:#c0392b; }
+.stamp-type-btn.active.homecoming{ border-color:#2f6fb0; color:#2f6fb0; }
+.stamp-pop-field{ display:flex; flex-direction:column; gap:3px; font-size:11px; color:var(--ink-dim); margin-bottom:8px; }
+.stamp-pop-field input{ font:inherit; padding:6px 8px; border:1px solid var(--line); border-radius:6px; background:var(--panel2); color:var(--ink); }
+.stamp-pop-actions{ display:flex; gap:6px; margin-top:4px; }
+.stamp-pop-actions .stamp-btn{ flex:1; }
+
+/* 토스트 */
+.stamp-toast{
+  position:fixed; left:50%; bottom:30px; transform:translateX(-50%) translateY(10px);
+  background:var(--panel); color:var(--ink); border:1px solid var(--line);
+  padding:10px 18px; border-radius:20px; font-size:13px; box-shadow:0 6px 20px rgba(0,0,0,.4);
+  opacity:0; pointer-events:none; transition:opacity .2s, transform .2s; z-index:2000;
+}
+.stamp-toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }

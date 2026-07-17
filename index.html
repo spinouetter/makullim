@@ -10,7 +10,7 @@
 <!-- __SHOW__ --><!-- 배포 시 GitHub Action이 slug 스텁(<slug>/index.html)을 만들며 위 마커를
      <script>window.MAKULLIM_SHOW_ID="<id>";window.MAKULLIM_BUILD="<커밋SHA>";</script> 로 치환한다.
      루트는 빌드 버전만 주입. BUILD는 데이터(JSON) 요청의 캐시 버스터(?v=) — 로컬 개발(미주입)은 no-store로 항상 최신. -->
-<link rel="stylesheet" href="/css/styles.css?v=148">
+<link rel="stylesheet" href="/css/styles.css?v=149">
 </head>
 <body>
 
@@ -316,6 +316,21 @@
     </div>
   </section>
 
+  <!-- 재관카드(Stamp) — 개발 중 기능. 상시 탭 없이 #stamp 또는 ?stamp 로만 접근(stamp.js가 게이트) -->
+  <section class="page" id="page-stamp">
+    <div class="stamp-toolbar">
+      <div class="stamp-toolbar-title">재관카드</div>
+      <div class="stamp-toolbar-info" id="stampAutoInfo"></div>
+      <div class="stamp-toolbar-btns">
+        <button class="stamp-btn primary" id="stampAutoBtn">자동</button>
+        <button class="stamp-btn" id="stampOtherBtn">다른 도장 찍기</button>
+        <button class="stamp-btn" id="stampNewBtn">새 도장판</button>
+        <button class="stamp-btn ghost" id="stampClearAllBtn">전체 지우기</button>
+      </div>
+    </div>
+    <div class="stamp-boards" id="stampBoards"></div>
+  </section>
+
   <section class="page" id="page-finale">
     <div class="finale-bar">
       <label for="finaleModeSelect" style="font-size:12px; color:var(--ink-dim);">통계 기준</label>
@@ -475,5 +490,6 @@
 <script src="/js/app.js?v=207"></script>
 <script src="/js/dropbox.js?v=6"></script>
 <script src="/js/finale.js?v=54"></script>
+<script src="/js/stamp.js?v=1"></script>
 </body>
 </html>
