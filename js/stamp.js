@@ -96,7 +96,7 @@
   function boardTitle(b, idx){
     if(b.name && b.name.trim()) return b.name.trim();
     var base = CFG.title || "Diary";
-    return idx===0 ? base : (base + " #" + (idx+1));
+    return base + " #" + (idx+1);   // 첫 판도 #1부터
   }
   function slotCount(){ return CFG ? CFG.slots : 10; }
   function isFull(b){ return b.slots.filter(Boolean).length >= slotCount(); }

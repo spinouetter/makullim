@@ -1601,9 +1601,9 @@
 
 /* 표지 위 이름/번호 오버레이 (컨테이너 쿼리 단위로 카드 폭에 비례) */
 .stamp-imgbox{ container-type:inline-size; }
-.stamp-cover-num{ position:absolute; font-weight:800; line-height:1; white-space:nowrap;
-  font-family:"Brush Script MT","Segoe Script",cursive; transform-origin:left center;
+.stamp-cover-num{ position:absolute; font-weight:800; line-height:1; white-space:nowrap; font-family:inherit;
+  transform-origin:left center;
   text-shadow:0 1px 0 rgba(247,242,226,.6); }
-.stamp-cover-name{ position:absolute; text-align:right; font-weight:800; line-height:1.08;
-  font-family:"Brush Script MT","Segoe Script",cursive; word-break:break-word;
+.stamp-cover-name{ position:absolute; text-align:right; font-weight:800; line-height:1.08; font-family:inherit;
+  word-break:break-word;
   transform-origin:right bottom; text-shadow:0 1px 0 rgba(247,242,226,.6); }
