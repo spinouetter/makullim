@@ -1598,3 +1598,13 @@
 .stamp-pick-btn.hc{ color:#2f6fb0; border-color:#2f6fb0; }
 .stamp-cover-count{ position:absolute; top:6.5%; right:5%; background:rgba(43,58,103,.88); color:#fff;
   font-size:12px; font-weight:800; padding:3px 9px; border-radius:12px; letter-spacing:.3px; }
+
+/* 표지 위 이름/번호 오버레이 (컨테이너 쿼리 단위로 카드 폭에 비례) */
+.stamp-imgbox{ container-type:inline-size; }
+.stamp-cover-num{ position:absolute; left:70%; top:63%; transform:translateY(-50%);
+  color:#c0392b; font-style:italic; font-weight:800; font-size:8.5cqi; line-height:1;
+  font-family:"Brush Script MT","Segoe Script",cursive; text-shadow:0 1px 0 rgba(247,242,226,.7); }
+.stamp-cover-name{ position:absolute; right:5%; bottom:6.5%; max-width:64%; text-align:right;
+  color:#c0392b; font-style:italic; font-weight:800; font-size:7cqi; line-height:1.06;
+  font-family:"Brush Script MT","Segoe Script",cursive; word-break:break-word;
+  text-shadow:0 1px 0 rgba(247,242,226,.7); }

@@ -272,6 +272,16 @@
            '<button class="stamp-btn'+(autoOff?' off':'')+'" data-act="autofill" title="끄면 이 도장판은 자동에서 제외됩니다">'+(autoOff?'자동 채움: 끔':'자동 채움: 켬')+'</button>';
   }
 
+  // 표지 위 이름 표시: 기본 이름(#n)이면 'Billy's Diary' 옆에 #숫자만, 직접 지은 이름이면 오른쪽 아래에 전체 이름
+  function coverNameOverlay(b, idx){
+    var isDefault = !(b.name && b.name.trim());
+    if(isDefault){
+      if(idx===0) return "";                 // 첫 판은 이미지에 이미 'Billy's Diary'
+      return '<div class="stamp-cover-num">#'+(idx+1)+'</div>';
+    }
+    return '<div class="stamp-cover-name">'+ esc(b.name.trim()) +'</div>';
+  }
+
   // 닫힌 도장판(표지) — 제공된 표지 이미지를 그대로 사용
   function renderCover(b, idx){
     var card = document.createElement("div");
@@ -283,9 +293,10 @@
       '<div class="stamp-imgbox" style="padding-top:'+pad+'%">' +
         (img? '<img class="stamp-img" src="'+esc(img)+'" alt="'+esc(boardTitle(b,idx))+'">':'') +
         '<div class="stamp-cover-count">'+ filled +'/'+ slotCount() +'</div>' +
+        coverNameOverlay(b, idx) +
       '</div>' +
       '<div class="stamp-card-foot">' +
-        '<div class="stamp-card-name">'+ esc(boardTitle(b, idx)) + boardBadge(b) +'</div>' +
+        '<div class="stamp-card-name">'+ boardBadge(b) +'</div>' +
         '<button class="stamp-btn" data-act="open">열기</button>' +
         boardCtlHtml(b) +
         '<button class="stamp-btn" data-act="rename">이름 변경</button>' +
