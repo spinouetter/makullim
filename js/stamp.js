@@ -38,7 +38,7 @@
   function loadConfig(){
     if(CFG) return Promise.resolve(CFG);
     if(cfgPromise) return cfgPromise;
-    var url = (typeof showUrl==="function") ? showUrl("stamp.json?v=3") : "stamp.json";
+    var url = (typeof showUrl==="function") ? showUrl("stamp.json?v=4") : "stamp.json";
     cfgPromise = fetch(url).then(function(r){ if(!r.ok) throw new Error("no stamp.json"); return r.json(); })
       .then(function(j){ CFG = normalizeCfg(j); return CFG; })
       .catch(function(){ CFG = normalizeCfg(null); return CFG; });
@@ -310,6 +310,7 @@
       var s = "left:"+numOr(n.x,70)+"%;top:"+numOr(n.y,62)+"%;"+
               "font-size:"+numOr(n.size,8.5)+"cqi;"+
               "color:"+(n.color||"#a43233")+";"+
+              (n.font ? "font-family:'"+String(n.font).replace(/['"\\;]/g,"")+"';" : "")+
               "font-style:"+(n.italic===false?"normal":"italic")+";"+
               "transform:translateY(-50%) rotate("+numOr(n.rotate,-6)+"deg);";
       return '<div class="stamp-cover-num" style="'+s+'">#'+ esc(m[1]) +'</div>';

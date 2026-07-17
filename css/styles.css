@@ -29,6 +29,12 @@
     font-weight:700; font-style:normal; font-display:swap;
     src:url('../fonts/IBMPlexSansKR-Bold.woff2') format('woff2');
   }
+  /* Caveat — 무료 손글씨 글꼴(SIL OFL). 재관카드 표지 #숫자용. 라이선스: fonts/Caveat-OFL.txt */
+  @font-face{
+    font-family:'Caveat';
+    font-weight:700; font-style:normal; font-display:swap;
+    src:url('../fonts/Caveat-700.woff2') format('woff2');
+  }
 
   :root{
     /* === 기본 테마: 석탄 앰버 (Coal Amber). 설정에서 data-theme로 교체 === */
