@@ -237,14 +237,16 @@
     el.textContent = "관극 " + list.length + "회 · 안 찍은 회차 " + remain + (extra? " (+더블 "+extra+")" : "") + " · 자동 대상: " + tgtName;
   }
 
-  // 자동 대상/자동 제외 배지
+  // 자동 대상/자동 제외 배지 — 꽉 찬 도장판은 자동 대상이 될 수 없어 숨김
   function boardBadge(b){
+    if(isFull(b)) return '';
     if(st.autoTargetId===b.id) return '<span class="stamp-badge tgt">자동 대상</span>';
     if(b.autoFill===false) return '<span class="stamp-badge off">자동 제외</span>';
     return '';
   }
-  // 자동 대상 지정 · 자동 채움 on/off 버튼
+  // 자동 대상 지정 · 자동 채움 on/off 버튼 — 꽉 찬 도장판에는 자동 메뉴를 숨긴다
   function boardCtlHtml(b){
+    if(isFull(b)) return '';
     var isTarget = st.autoTargetId===b.id;
     var autoOff = b.autoFill===false;
     return '<button class="stamp-btn tgt'+(isTarget?' active':'')+'" data-act="autotarget" title="자동이 이 도장판부터 채웁니다">자동 대상</button>' +
@@ -257,9 +259,11 @@
     card.className = "stamp-card stamp-cover";
     var pad = (CFG.coverAspect[1]/CFG.coverAspect[0]*100).toFixed(3);
     var img = CFG.coverImage ? (typeof showUrl==="function"?showUrl(CFG.coverImage):CFG.coverImage) : "";
+    var filled = b.slots.filter(Boolean).length;
     card.innerHTML =
       '<div class="stamp-imgbox" style="padding-top:'+pad+'%">' +
         (img? '<img class="stamp-img" src="'+esc(img)+'" alt="'+esc(boardTitle(b,idx))+'">':'') +
+        '<div class="stamp-cover-count">'+ filled +'/'+ slotCount() +'</div>' +
       '</div>' +
       '<div class="stamp-card-foot">' +
         '<div class="stamp-card-name">'+ esc(boardTitle(b, idx)) + boardBadge(b) +'</div>' +
@@ -357,7 +361,7 @@
       cell.addEventListener("click", function(e){
         e.stopPropagation();
         var row = parseInt(cell.dataset.row,10);
-        openSlotEditor(b, row, cell);
+        onSlotClick(b, row, cell);
       });
     });
   }
@@ -404,39 +408,83 @@
     saveState(); render();
   }
 
-  /* ---------- 슬롯 편집 (도장 지우기/바꾸기) ---------- */
-  function openSlotEditor(b, row, anchorEl){
+  /* ---------- 슬롯 클릭 ---------- */
+  // 빈칸 → 공연 선택 팝오버, SID 연결 칸 → 지우기/바꾸기, 임의 칸 → 임의 입력창
+  function onSlotClick(b, row, anchorEl){
+    var slot = b.slots[row];
+    if(!slot){ openPicker(b, row, anchorEl); return; }
+    if(slot.sid){ openSidMenu(b, row, anchorEl); return; }
+    openFreeEditor(b, row, anchorEl); // 임의(SID 없음) 칸 편집
+  }
+
+  // SID 연결 칸: 지우기 / 바꾸기(=다시 선택)
+  function openSidMenu(b, row, anchorEl){
     closePop();
     var slot = b.slots[row];
-    var pop = document.createElement("div");
-    pop.className = "stamp-pop";
-    if(slot){
-      // 이미 찍힘 → 바꾸기 / 지우기
-      pop.innerHTML =
-        '<div class="stamp-pop-h">도장 편집</div>' +
-        stampTypeButtons(slot.stamp) +
-        '<label class="stamp-pop-field">날짜 <input type="text" class="sp-date" value="'+esc(slot.date||"")+'" placeholder="7/14"></label>' +
-        '<label class="stamp-pop-field">메모 <input type="text" class="sp-memo" value="'+esc(slot.memo||"")+'" placeholder="(선택)"></label>' +
-        '<div class="stamp-pop-actions">' +
-          '<button class="stamp-btn primary" data-sp="save">바꾸기</button>' +
-          '<button class="stamp-btn ghost" data-sp="del">지우기</button>' +
-          '<button class="stamp-btn" data-sp="cancel">취소</button>' +
-        '</div>';
-    } else {
-      // 빈칸 → 도장 찍기
-      pop.innerHTML =
-        '<div class="stamp-pop-h">도장 찍기</div>' +
-        stampTypeButtons(CFG.defaultStamp) +
-        '<label class="stamp-pop-field">날짜 <input type="text" class="sp-date" value="" placeholder="7/14"></label>' +
-        '<label class="stamp-pop-field">메모 <input type="text" class="sp-memo" value="" placeholder="(선택)"></label>' +
-        '<div class="stamp-pop-actions">' +
-          '<button class="stamp-btn primary" data-sp="save">찍기</button>' +
-          '<button class="stamp-btn" data-sp="cancel">취소</button>' +
-        '</div>';
-    }
-    document.body.appendChild(pop);
-    positionPop(pop, anchorEl);
-    var chosen = { stamp: slot ? slot.stamp : (CFG.defaultStamp||"excellent") };
+    var pop = document.createElement("div"); pop.className = "stamp-pop";
+    pop.innerHTML =
+      '<div class="stamp-pop-h">'+ esc(slot.date||"") +' · '+ esc(stampLabel(slot.stamp)) +'</div>' +
+      '<div class="stamp-pop-actions">' +
+        '<button class="stamp-btn primary" data-m="change">바꾸기</button>' +
+        '<button class="stamp-btn ghost" data-m="del">지우기</button>' +
+        '<button class="stamp-btn" data-m="cancel">취소</button>' +
+      '</div>';
+    document.body.appendChild(pop); positionPop(pop, anchorEl);
+    pop.querySelectorAll("[data-m]").forEach(function(btn){
+      btn.addEventListener("click", function(){
+        var m = btn.dataset.m;
+        if(m==="cancel"){ closePop(); return; }
+        if(m==="del"){ b.slots[row]=null; saveState(); render(); closePop(); return; }
+        if(m==="change"){ openPicker(b, row, anchorEl); return; } // 입력창(선택) 다시
+      });
+    });
+  }
+
+  // 공연 선택: 맨 왼쪽 '임의로 넣기'(SID 없음) + 안 찍은 회차 단추(오래된 순, 가로 스크롤)
+  function openPicker(b, row, anchorEl){
+    closePop();
+    var done = stampedSids();
+    var list = watchedList().filter(function(w){ return !done.has(w.sid); }); // 이미 시간순(오래된 순)
+    var pop = document.createElement("div"); pop.className = "stamp-pop stamp-pop-pick";
+    var btns = '<button class="stamp-pick-btn arb" data-pick="arb">임의로 넣기</button>';
+    list.forEach(function(w){
+      var hc = (stampTypeForDate(w.date)==="homecoming");
+      btns += '<button class="stamp-pick-btn'+(hc?' hc':'')+'" data-sid="'+esc(w.sid)+'" data-date="'+esc(w.dateLabel)+'">'+esc(w.dateLabel)+'</button>';
+    });
+    pop.innerHTML =
+      '<div class="stamp-pop-h">공연 선택'+ (list.length? '' : ' (안 찍은 회차 없음)') +'</div>' +
+      '<div class="stamp-pick-row">'+ btns +'</div>';
+    document.body.appendChild(pop); positionPop(pop, anchorEl);
+    pop.querySelector('[data-pick="arb"]').addEventListener("click", function(){ openFreeEditor(b, row, anchorEl); });
+    pop.querySelectorAll("[data-sid]").forEach(function(btn){
+      btn.addEventListener("click", function(){
+        var sid = btn.dataset.sid, date = btn.dataset.date;
+        var w = watchedList().filter(function(x){ return x.sid===sid; })[0];
+        var type = w ? stampTypeForDate(w.date) : (CFG.defaultStamp||"excellent");
+        b.slots[row] = { stamp:type, date:date, sid:sid };
+        saveState(); render(); closePop();
+      });
+    });
+  }
+
+  // 임의로 넣기(SID 관리 안 함): 도장 종류 + 날짜 + 메모
+  function openFreeEditor(b, row, anchorEl){
+    closePop();
+    var slot = b.slots[row];
+    var arb = slot && !slot.sid;   // 기존 임의 칸 편집이면 값 채움
+    var pop = document.createElement("div"); pop.className = "stamp-pop";
+    pop.innerHTML =
+      '<div class="stamp-pop-h">임의로 넣기</div>' +
+      stampTypeButtons(arb ? slot.stamp : CFG.defaultStamp) +
+      '<label class="stamp-pop-field">날짜 <input type="text" class="sp-date" value="'+esc(arb?(slot.date||""):"")+'" placeholder="7/14"></label>' +
+      '<label class="stamp-pop-field">메모 <input type="text" class="sp-memo" value="'+esc(arb?(slot.memo||""):"")+'" placeholder="(선택)"></label>' +
+      '<div class="stamp-pop-actions">' +
+        '<button class="stamp-btn primary" data-sp="save">'+(arb?"바꾸기":"넣기")+'</button>' +
+        (slot?'<button class="stamp-btn ghost" data-sp="del">지우기</button>':'') +
+        '<button class="stamp-btn" data-sp="cancel">취소</button>' +
+      '</div>';
+    document.body.appendChild(pop); positionPop(pop, anchorEl);
+    var chosen = { stamp: arb ? slot.stamp : (CFG.defaultStamp||"excellent") };
     pop.querySelectorAll("[data-st]").forEach(function(btn){
       btn.addEventListener("click", function(){
         chosen.stamp = btn.dataset.st;
@@ -451,8 +499,7 @@
         if(act==="save"){
           var date = pop.querySelector(".sp-date").value.trim();
           var memo = pop.querySelector(".sp-memo").value.trim();
-          if(slot){ slot.stamp=chosen.stamp; slot.date=date; slot.memo=memo; }
-          else { b.slots[row] = { stamp:chosen.stamp, date:date, memo:memo }; if(isFull(b)) b.open=false; }
+          b.slots[row] = { stamp:chosen.stamp, date:date, memo:memo }; // SID 없음
           saveState(); render(); closePop();
         }
       });
@@ -500,20 +547,21 @@
     });
   }
 
-  var curPop = null;
-  function closePop(){ if(curPop && curPop.parentNode) curPop.parentNode.removeChild(curPop); curPop=null; }
+  var curPop = null, curDocDown = null;
+  function closePop(){
+    if(curDocDown){ document.removeEventListener("mousedown", curDocDown, true); curDocDown=null; }
+    if(curPop && curPop.parentNode) curPop.parentNode.removeChild(curPop);
+    curPop=null;
+  }
   function positionPop(pop, anchorEl){
     curPop = pop;
     var r = anchorEl.getBoundingClientRect();
+    var w = pop.offsetWidth || 260;
     pop.style.position = "fixed";
-    pop.style.left = Math.min(r.left, window.innerWidth-260) + "px";
+    pop.style.left = Math.max(8, Math.min(r.left, window.innerWidth-w-8)) + "px";
     pop.style.top = Math.min(r.bottom+6, window.innerHeight-10) + "px";
-    setTimeout(function(){
-      document.addEventListener("mousedown", onDocDown, true);
-    },0);
-    function onDocDown(e){
-      if(!pop.contains(e.target)){ document.removeEventListener("mousedown", onDocDown, true); closePop(); }
-    }
+    curDocDown = function(e){ if(!pop.contains(e.target)) closePop(); };
+    setTimeout(function(){ document.addEventListener("mousedown", curDocDown, true); },0);
   }
 
   /* ---------- 간단 토스트 ---------- */
