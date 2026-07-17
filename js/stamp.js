@@ -35,13 +35,28 @@
     defaultStamp:"excellent", rules:[], doubleDates:[]
   };
 
+  // SHOW_BASE가 준비돼 showUrl이 절대경로(/shows/<id>/…)를 주는지. 준비 전엔 슬러그 상대경로(/billy/…)로 나가 404가 난다.
+  function baseReady(){ return typeof showUrl==="function" && showUrl("_").charAt(0)==="/"; }
+  // app.js와 동일한 데이터 경로 규칙: dataUrl(showUrl(p)) = 절대경로 + 배포 커밋 SHA(?v=BUILD).
+  function dUrl(p){
+    var u = (typeof showUrl==="function") ? showUrl(p) : p;
+    return (typeof dataUrl==="function") ? dataUrl(u) : u;
+  }
+  function noStore(){ return (typeof window!=="undefined" && window.MAKULLIM_BUILD) ? undefined : { cache:"no-store" }; }
   function loadConfig(){
     if(CFG) return Promise.resolve(CFG);
     if(cfgPromise) return cfgPromise;
-    var url = (typeof showUrl==="function") ? showUrl("stamp.json?v=9") : "stamp.json";
-    cfgPromise = fetch(url).then(function(r){ if(!r.ok) throw new Error("no stamp.json"); return r.json(); })
-      .then(function(j){ CFG = normalizeCfg(j); return CFG; })
-      .catch(function(){ CFG = normalizeCfg(null); return CFG; });
+    cfgPromise = new Promise(function(resolve){
+      var tries = 0;
+      (function attempt(){
+        // SHOW_BASE 준비 전 fetch 금지(슬러그 경로 404 → 설정 실패가 캐시되는 버그 방지)
+        if(!baseReady() && tries++ < 120){ setTimeout(attempt, 80); return; }
+        // app.js 데이터 로딩과 동일: dataUrl(showUrl()) + 로컬 no-store
+        fetch(dUrl("stamp.json"), noStore()).then(function(r){ if(!r.ok) throw new Error("no stamp.json"); return r.json(); })
+          .then(function(j){ CFG = normalizeCfg(j); resolve(CFG); })
+          .catch(function(){ CFG = normalizeCfg(null); resolve(CFG); });
+      })();
+    });
     return cfgPromise;
   }
   function normalizeCfg(j){
@@ -58,13 +73,15 @@
     return c;
   }
   function isGiftRow(n){ return CFG.giftRows.indexOf(n) >= 0; }
-  // 이미지 캐시 버스터: 배포 시 커밋 SHA(MAKULLIM_BUILD), 없으면 CFG.imgVer.
-  // 파일명이 같아도(diary-board.jpg) 그림을 교체하면 ?v가 바뀌어 캐시가 갱신된다.
+  // 이미지도 config·app.js와 같은 경로 규칙(dUrl=dataUrl(showUrl)). 배포는 ?v=BUILD 자동.
+  // 이미지는 fetch가 아니라 <img>라 no-store를 못 쓰므로, 로컬(BUILD 없음)에선 imgVer로 캐시 버스트.
   function imgUrl(p){
     if(!p) return "";
-    var u = (typeof showUrl==="function") ? showUrl(p) : p;
-    var v = (typeof window!=="undefined" && window.MAKULLIM_BUILD) ? window.MAKULLIM_BUILD : ((CFG && CFG.imgVer) || "1");
-    return u + (u.indexOf("?")>=0 ? "&" : "?") + "v=" + encodeURIComponent(v);
+    var u = dUrl(p);
+    if(!(typeof window!=="undefined" && window.MAKULLIM_BUILD)){
+      u += (u.indexOf("?")>=0 ? "&" : "?") + "v=" + encodeURIComponent((CFG && CFG.imgVer) || "1");
+    }
+    return u;
   }
   function stampLabel(id){
     var t = (CFG.stampTypes||[]).find(function(s){ return s.id===id; });
