@@ -1632,3 +1632,14 @@
   transform-origin:right bottom; text-shadow:0 1px 0 rgba(247,242,226,.6);
   /* 도장판 아래 둥근 테두리 투명 흰색 배경 — 도안 위에서도 글씨가 구분되게 */
   background:rgba(255,255,255,.62); border:1px solid rgba(120,120,120,.28); border-radius:9px; padding:2px 8px; }
+
+/* 자동 채우기 이어가기 팝오버 */
+.stamp-pop-cont{ width:260px; }
+.stamp-cont-list{ display:flex; flex-direction:column; gap:6px; margin-bottom:10px; max-height:220px; overflow-y:auto; }
+.stamp-cont-btn{ display:flex; justify-content:space-between; align-items:center; gap:8px; width:100%;
+  font:inherit; font-size:13px; text-align:left; padding:9px 11px; cursor:pointer;
+  border:1px solid var(--line); border-radius:8px; background:var(--panel2); color:var(--ink); }
+.stamp-cont-btn:hover{ border-color:var(--gold); }
+.stamp-cont-btn.new{ border-color:var(--gold); color:var(--gold); font-weight:700; }
+.stamp-cont-btn .cont-left{ font-size:12px; color:var(--ink-dim); flex:0 0 auto; }
+.stamp-pop-cont .cont-rem{ font-size:11px; color:var(--ink-dim); font-weight:400; }

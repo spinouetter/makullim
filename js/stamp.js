@@ -197,44 +197,71 @@
   }
 
   /* ---------- 자동 도장 ---------- */
+  var _autoAdded = 0;
   function autoStamp(){
     var target = validTarget();
     if(!target){ toast("자동으로 채울 재관카드를 오토(A) 아이콘으로 먼저 선택하세요."); return; }
     var done = stampedSids();
     var list = watchedList().filter(function(w){ return !done.has(w.sid); }); // 오래된 순
     if(!list.length){ toast("새로 찍을 관극 기록이 없습니다. (이미 모두 도장 완료)"); return; }
-
-    var fill = target;
-    var decision;   // undefined=미결정, true=남은 재관카드에 채우기, false=새 재관카드
-    var added = 0;
-    for(var li=0; li<list.length; li++){
-      var w = list[li];
+    // 도장 하나 단위로 펼침(더블데이는 2개)
+    var pending = [];
+    list.forEach(function(w){
       var type = stampTypeForDate(w.date), cnt = stampCountForDate(w.date);
-      for(var k=0;k<cnt;k++){
-        if(isFull(fill)){
-          var others = st.boards.filter(function(x){ return !isFull(x); });
-          if(others.length){
-            if(decision===undefined){
-              decision = confirm("자동 대상이 다 찼습니다.\n남아 있는 재관카드에 마저 채울까요?\n\n[확인] 남은 재관카드에 채우기\n[취소] 새 재관카드 만들기");
-            }
-            if(decision){
-              others.sort(function(a,c){ return st.boards.indexOf(a) - st.boards.indexOf(c); });
-              fill = others[0];
-            } else {
-              fill = newBoard(); st.autoTargetId = fill.id;
-            }
-          } else {
-            fill = newBoard(); st.autoTargetId = fill.id;
-          }
-        }
-        var i = fill.slots.findIndex(function(s){ return !s; });
-        fill.slots[i] = { stamp:type, date:w.dateLabel, sid:w.sid };
-        if(isFull(fill)) fill.open = false;
-        added++;
-      }
+      for(var k=0;k<cnt;k++) pending.push({ stamp:type, date:w.dateLabel, sid:w.sid });
+    });
+    _autoAdded = 0;
+    continueAutoFill(target, pending);
+  }
+  // fillBoard를 채우고, 남으면 팝오버로 이어갈 재관카드(새로 만들기/남은 카드)를 고르게 한다.
+  function continueAutoFill(fillBoard, pending){
+    while(pending.length && !isFull(fillBoard)){
+      var e = pending.shift();
+      var i = fillBoard.slots.findIndex(function(s){ return !s; });
+      fillBoard.slots[i] = e;
+      _autoAdded++;
     }
+    if(isFull(fillBoard)) fillBoard.open = false;
     saveState(); render();
-    toast(added + "개의 도장을 찍었습니다.");
+    if(!pending.length){ toast(_autoAdded + "개의 도장을 찍었습니다."); return; }
+    // 아직 남음 → 이어갈 곳 선택
+    var others = st.boards.filter(function(x){ return !isFull(x); });
+    if(!others.length){
+      var nb = newBoard(); st.autoTargetId = nb.id;
+      continueAutoFill(nb, pending);
+      return;
+    }
+    showContinuePopover(pending, others);
+  }
+  // 자동 채우기 이어가기 팝오버: 새로 만들기 + 공간 남은 재관카드 목록
+  function showContinuePopover(pending, others){
+    closePop();
+    var anchor = document.getElementById("stampAutoBtn") || document.getElementById("stampBoards");
+    others.sort(function(a,c){ return st.boards.indexOf(a) - st.boards.indexOf(c); });
+    var rows = '<button class="stamp-cont-btn new" data-cont="__new__">새 재관카드</button>';
+    others.forEach(function(b){
+      var filled = b.slots.filter(Boolean).length;
+      rows += '<button class="stamp-cont-btn" data-cont="'+esc(b.id)+'">'+ esc(boardTitle(b, st.boards.indexOf(b))) +' <span class="cont-left">('+filled+'/'+slotCount()+')</span></button>';
+    });
+    var pop = document.createElement("div"); pop.className = "stamp-pop stamp-pop-cont";
+    pop.innerHTML =
+      '<div class="stamp-pop-h">도장을 다 찍었어요 · 이어 찍을 재관카드 <span class="cont-rem">남은 도장 '+pending.length+'개</span></div>' +
+      '<div class="stamp-cont-list">'+ rows +'</div>' +
+      '<div class="stamp-pop-actions"><button class="stamp-btn" data-cont="__stop__">그만두기</button></div>';
+    document.body.appendChild(pop); positionPop(pop, anchor);
+    pop.querySelectorAll("[data-cont]").forEach(function(btn){
+      btn.addEventListener("click", function(){
+        var v = btn.dataset.cont;
+        closePop();
+        if(v==="__stop__"){ toast(_autoAdded + "개의 도장을 찍었습니다."); return; }
+        var board;
+        if(v==="__new__"){ board = newBoard(); }
+        else { board = st.boards.filter(function(x){ return x.id===v; })[0]; }
+        if(!board) return;
+        st.autoTargetId = board.id;
+        continueAutoFill(board, pending);
+      });
+    });
   }
 
   /* ---------- 렌더 ---------- */
