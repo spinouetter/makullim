@@ -272,14 +272,18 @@
            '<button class="stamp-btn'+(autoOff?' off':'')+'" data-act="autofill" title="끄면 이 도장판은 자동에서 제외됩니다">'+(autoOff?'자동 채움: 끔':'자동 채움: 켬')+'</button>';
   }
 
-  // 표지 위 이름 표시: 기본 이름(#n)이면 'Billy's Diary' 옆에 #숫자만, 직접 지은 이름이면 오른쪽 아래에 전체 이름
+  function escapeRe(s){ return String(s).replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); }
+  // 표지 위 이름 표시:
+  //  - 기본 제목 그대로('Billy's Diary')면 이미지에 이미 있으므로 아무것도 안 붙임
+  //  - '기본제목 #숫자' 형태(기본 자동 이름이든 직접 그렇게 지었든)면 'Billy's Diary' 옆에 #숫자만
+  //  - 그 외 직접 지은 이름이면 스케치북 오른쪽 아래에 전체 이름
   function coverNameOverlay(b, idx){
-    var isDefault = !(b.name && b.name.trim());
-    if(isDefault){
-      if(idx===0) return "";                 // 첫 판은 이미지에 이미 'Billy's Diary'
-      return '<div class="stamp-cover-num">#'+(idx+1)+'</div>';
-    }
-    return '<div class="stamp-cover-name">'+ esc(b.name.trim()) +'</div>';
+    var base = (CFG.title||"").trim();
+    var name = boardTitle(b, idx).trim();     // 표시용 실제 제목(이름 없으면 기본/기본+#n)
+    if(base && name === base) return "";
+    var m = base ? new RegExp("^"+escapeRe(base)+"\\s*#\\s*(\\d+)$").exec(name) : null;
+    if(m) return '<div class="stamp-cover-num">#'+ esc(m[1]) +'</div>';
+    return '<div class="stamp-cover-name">'+ esc(name) +'</div>';
   }
 
   // 닫힌 도장판(표지) — 제공된 표지 이미지를 그대로 사용

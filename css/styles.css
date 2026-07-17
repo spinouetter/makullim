@@ -1527,8 +1527,8 @@
   padding:4px 6px; border:2px solid currentColor; border-radius:6px;
   transform:rotate(-8deg); line-height:1.05; text-align:center; opacity:.9;
 }
-.stamp-mark.excellent{ color:#c0392b; }
-.stamp-mark.homecoming{ color:#c0392b; border-radius:50%; padding:7px 6px; transform:rotate(6deg); }
+.stamp-mark.excellent{ color:#a43233; }
+.stamp-mark.homecoming{ color:#a43233; border-radius:50%; padding:7px 6px; transform:rotate(6deg); }
 .stamp-date{ font-weight:800; font-size:15px; color:#1a1c22; }
 .stamp-memo{ font-size:10px; color:#3a4d86; margin-top:1px; max-width:80px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 
@@ -1541,7 +1541,7 @@
   cursor:pointer; border-radius:3px;
 }
 .stamp-gift:hover{ background:rgba(192,57,43,.12); }
-.stamp-gift.on{ color:#c0392b; }
+.stamp-gift.on{ color:#a43233; }
 
 /* 카드 하단 이름·버튼 */
 .stamp-card-foot{ display:flex; flex-wrap:wrap; gap:6px; align-items:center; margin-top:10px; }
@@ -1564,7 +1564,7 @@
   flex:1; font:inherit; font-size:11px; font-weight:700; padding:8px 4px; cursor:pointer;
   border:2px solid var(--line); border-radius:6px; background:var(--panel2); color:var(--ink-dim);
 }
-.stamp-type-btn.active.excellent{ border-color:#c0392b; color:#c0392b; }
+.stamp-type-btn.active.excellent{ border-color:#a43233; color:#a43233; }
 .stamp-type-btn.active.homecoming{ border-color:#2f6fb0; color:#2f6fb0; }
 .stamp-pop-field{ display:flex; flex-direction:column; gap:3px; font-size:11px; color:var(--ink-dim); margin-bottom:8px; }
 .stamp-pop-field input{ font:inherit; padding:6px 8px; border:1px solid var(--line); border-radius:6px; background:var(--panel2); color:var(--ink); }
@@ -1602,9 +1602,9 @@
 /* 표지 위 이름/번호 오버레이 (컨테이너 쿼리 단위로 카드 폭에 비례) */
 .stamp-imgbox{ container-type:inline-size; }
 .stamp-cover-num{ position:absolute; left:70%; top:63%; transform:translateY(-50%);
-  color:#c0392b; font-style:italic; font-weight:800; font-size:8.5cqi; line-height:1;
+  color:#a43233; font-style:italic; font-weight:800; font-size:8.5cqi; line-height:1;
   font-family:"Brush Script MT","Segoe Script",cursive; text-shadow:0 1px 0 rgba(247,242,226,.7); }
 .stamp-cover-name{ position:absolute; right:5%; bottom:6.5%; max-width:64%; text-align:right;
-  color:#c0392b; font-style:italic; font-weight:800; font-size:7cqi; line-height:1.06;
+  color:#a43233; font-style:italic; font-weight:800; font-size:7cqi; line-height:1.06;
   font-family:"Brush Script MT","Segoe Script",cursive; word-break:break-word;
   text-shadow:0 1px 0 rgba(247,242,226,.7); }
