@@ -176,16 +176,17 @@
 
   var PICK_LEAD_MS = 2*60*60*1000; // 공연 시작 2시간 전부터 도장 가능
   function perfStart(p){ var d = new Date(p.date+"T"+(p.time||"00:00")+":00"); return isNaN(d.getTime()) ? null : d; }
-  // 좌석이 있는 회차를 날짜별로 시간순 그룹핑(회차 접미사 -1/-2 계산용, 종료 여부와 무관해 라벨이 안정적).
+  // 회차 접미사(-1/-2)용: 그 날 스케줄에 있는 회차 전부(취소 제외)를 시간순 그룹핑.
+  // 관극 여부와 무관하게 '공연이 두 번 있는 날'이면 접미사를 붙인다(예: 7/17 마티네/이브닝 → 7/17-1/7/17-2).
   function seatedDayMap(){
     var m = {};
     performanceData.performances.forEach(function(p){
-      if(typeof hasSeat==="function" && !hasSeat(p)) return;
+      if(typeof isCancelled==="function" && isCancelled(p)) return;
       (m[p.date] = m[p.date]||[]).push(p);
     });
     return m;
   }
-  // "7/14" (같은 날 좌석 회차가 둘 이상이면 -1/-2)
+  // "7/14" (같은 날 회차가 둘 이상이면 시간순 -1/-2)
   function labelOf(p, dm){
     dm = dm || seatedDayMap();
     var list = dm[p.date] || [];
