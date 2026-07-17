@@ -151,26 +151,45 @@
     return (parseInt(m[2],10)) + "/" + (parseInt(m[3],10));
   }
 
-  // 관극(종료+좌석) 회차를 시간순으로. 같은 날 2회 이상이면 -1,-2 회차 접미사.
+  var PICK_LEAD_MS = 2*60*60*1000; // 공연 시작 2시간 전부터 도장 가능
+  function perfStart(p){ var d = new Date(p.date+"T"+(p.time||"00:00")+":00"); return isNaN(d.getTime()) ? null : d; }
+  // 좌석이 있는 회차를 날짜별로 시간순 그룹핑(회차 접미사 -1/-2 계산용, 종료 여부와 무관해 라벨이 안정적).
+  function seatedDayMap(){
+    var m = {};
+    performanceData.performances.forEach(function(p){
+      if(typeof hasSeat==="function" && !hasSeat(p)) return;
+      (m[p.date] = m[p.date]||[]).push(p);
+    });
+    return m;
+  }
+  // "7/14" (같은 날 좌석 회차가 둘 이상이면 -1/-2)
+  function labelOf(p, dm){
+    dm = dm || seatedDayMap();
+    var list = dm[p.date] || [];
+    var label = mdOf(p.date);
+    if(list.length > 1){ var i = list.indexOf(p); label += "-" + (i>=0?i+1:1); }
+    return label;
+  }
+  function mapEntry(p, dm){ return { sid:p.sid, date:p.date, time:p.time, dateLabel:labelOf(p, dm) }; }
+
+  // 관극(종료+좌석) 회차 — 자동·집계용.
   function watchedList(){
     if(!dataReady()) return [];
-    var perfs = performanceData.performances;
-    var ok = perfs.filter(function(p){
+    var dm = seatedDayMap();
+    return performanceData.performances.filter(function(p){
       return (typeof isEnded!=="function"||isEnded(p)) && (typeof hasSeat!=="function"||hasSeat(p));
-    });
-    // 같은 날 회차 수 계산
-    var byDay = {};
-    ok.forEach(function(p){ (byDay[p.date] = byDay[p.date]||[]).push(p); });
-    var seq = {};
-    return ok.map(function(p){
-      var list = byDay[p.date];
-      var label = mdOf(p.date);
-      if(list.length > 1){
-        seq[p.date] = (seq[p.date]||0) + 1;
-        label += "-" + seq[p.date];
-      }
-      return { sid:p.sid, date:p.date, time:p.time, dateLabel:label };
-    });
+    }).map(function(p){ return mapEntry(p, dm); });
+  }
+  // 공연 선택 팝오버용 — 좌석이 있고 공연 시작 2시간 전부터.
+  function isPickable(p){
+    if(typeof hasSeat==="function" && !hasSeat(p)) return false;
+    var s = perfStart(p);
+    return !!s && (Date.now() >= s.getTime() - PICK_LEAD_MS);
+  }
+  function pickableList(){
+    if(!dataReady()) return [];
+    var dm = seatedDayMap();
+    return performanceData.performances.filter(isPickable).map(function(p){ return mapEntry(p, dm); });
   }
 
   function stampedSids(){
@@ -444,7 +463,8 @@
   function openPicker(b, row, anchorEl){
     closePop();
     var done = stampedSids();
-    var list = watchedList().filter(function(w){ return !done.has(w.sid); }); // 이미 시간순(오래된 순)
+    // 공연 시작 2시간 전부터 표시. 이미 시간순(오래된 순).
+    var list = pickableList().filter(function(w){ return !done.has(w.sid); });
     var pop = document.createElement("div"); pop.className = "stamp-pop stamp-pop-pick";
     var btns = '<button class="stamp-pick-btn arb" data-pick="arb">임의로 넣기</button>';
     list.forEach(function(w){
@@ -459,7 +479,7 @@
     pop.querySelectorAll("[data-sid]").forEach(function(btn){
       btn.addEventListener("click", function(){
         var sid = btn.dataset.sid, date = btn.dataset.date;
-        var w = watchedList().filter(function(x){ return x.sid===sid; })[0];
+        var w = pickableList().filter(function(x){ return x.sid===sid; })[0];
         var type = w ? stampTypeForDate(w.date) : (CFG.defaultStamp||"excellent");
         b.slots[row] = { stamp:type, date:date, sid:sid };
         saveState(); render(); closePop();
