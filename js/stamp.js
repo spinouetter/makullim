@@ -489,24 +489,44 @@
   }
 
   // ---- 드래그 ----
-  // DOM은 다시 그리지 않고 클래스만 토글: 집은 카드(.dragging)는 그대로, 컨테이너에 .stamp-dragging을
-  // 붙여 나머지 카드를 회색+50%로 축소(제자리 transform → 그리드/타일 배치·순서 유지). 놓으면 원상 복귀.
+  // 핵심: 집은 카드(.dragging)를 position:fixed로 문서 흐름에서 빼 포인터를 따라 떠다니게 한다.
+  //  → 흐름에 남은 나머지 카드(그리드)는 흔들리지 않아 삽입 위치 판정이 안정적(진동 없음).
+  //  나머지는 .stamp-dragging에서 실제 폭 50%로 줄여(높이·여백까지 축소) 위·아래가 한눈에 보이게 한다.
   function startDrag(cardEl, id, clientX, clientY){
     if(!cardEl) return;
     endDrag();
     closePop();
-    drag = { el:cardEl, id:id, lastClientX:(typeof clientX==="number"?clientX:0), lastClientY:(typeof clientY==="number"?clientY:0), raf:0 };
+    var r = cardEl.getBoundingClientRect();   // 클래스 적용 전 원래 크기(집은 카드는 이 크기 유지)
+    drag = {
+      el:cardEl, id:id, w:r.width, h:r.height,
+      grabDX:(typeof clientX==="number"? clientX - r.left : r.width/2),
+      grabDY:(typeof clientY==="number"? clientY - r.top  : r.height/2),
+      lastClientX:(typeof clientX==="number"?clientX:r.left+r.width/2),
+      lastClientY:(typeof clientY==="number"?clientY:r.top+r.height/2),
+      raf:0
+    };
     if(boardsEl) boardsEl.classList.add("stamp-dragging");
     cardEl.classList.add("dragging");
+    // 흐름에서 빼서 원래 크기 그대로 포인터를 따라 떠다니게
+    var s = cardEl.style;
+    s.position="fixed"; s.margin="0"; s.left="0"; s.top="0";
+    s.width=r.width+"px"; s.height=r.height+"px";
+    s.zIndex="1000"; s.pointerEvents="none";
+    positionDragEl(drag.lastClientX, drag.lastClientY);
     document.addEventListener("pointermove", onDragMove, true);
     document.addEventListener("pointerup", onDragEnd, true);
     document.addEventListener("pointercancel", onDragEnd, true);
     drag.raf = requestAnimationFrame(autoScrollTick);
   }
+  function positionDragEl(x, y){
+    if(!drag || !drag.el) return;
+    drag.el.style.transform = "translate(" + (x - drag.grabDX) + "px," + (y - drag.grabDY) + "px)";
+  }
   function onDragMove(ev){
     if(!drag) return;
     ev.preventDefault();
     drag.lastClientX = ev.clientX; drag.lastClientY = ev.clientY;
+    positionDragEl(ev.clientX, ev.clientY);
     reorderByPointer(ev.clientX, ev.clientY);
   }
   function onDragEnd(){ endDrag(); }
@@ -516,7 +536,12 @@
     document.removeEventListener("pointerup", onDragEnd, true);
     document.removeEventListener("pointercancel", onDragEnd, true);
     if(drag.raf) cancelAnimationFrame(drag.raf);
-    if(drag.el) drag.el.classList.remove("dragging");
+    var el = drag.el;
+    if(el){
+      el.classList.remove("dragging");
+      var s = el.style;
+      s.position=s.margin=s.left=s.top=s.width=s.height=s.zIndex=s.pointerEvents=s.transform="";
+    }
     if(boardsEl) boardsEl.classList.remove("stamp-dragging");
     commitOrderFromDom();    // 놓은 위치대로 순서 저장(즉시 정렬 완료)
     drag = null;
