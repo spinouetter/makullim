@@ -454,14 +454,22 @@
   // 별도 '정렬 모드' 없음. 표지를 길게 누르면 그 카드를 집어 바로 드래그 → 나머지는 회색으로
   // de-highlight + 50% 축소(커버만), 위/아래로 옮겨 놓으면 그 순간 정렬 완료(놓으면 원상 복귀).
   var LONGPRESS_MS = 480, MOVE_TOL = 10;
+  var suppressClick = false, suppressTmr = null;   // 드래그 직후의 click(열기/닫기 토글) 억제
   function wireCover(cover, card, b){
-    cover.addEventListener("click", function(){ if(drag) return; b.open = !b.open; saveState(); render(); });
+    // 드래그 후 발생하는 click은 무시(안 하면 놓을 때 open이 토글돼 닫힘/열림이 뒤집힘)
+    cover.addEventListener("click", function(){
+      if(suppressClick){ suppressClick = false; return; }
+      if(drag) return;
+      b.open = !b.open; saveState(); render();
+    });
+    // 모바일: 커버(이미지) 길게 누를 때 뜨는 브라우저 컨텍스트/콜아웃 메뉴 차단(이동 방해 제거)
+    cover.addEventListener("contextmenu", function(e){ e.preventDefault(); });
     cover.addEventListener("pointerdown", function(ev){
       if(ev.button && ev.button!==0) return; // 마우스는 좌클릭만(터치·펜은 button 0)
       var sx = ev.clientX, sy = ev.clientY, last = { x:sx, y:sy };
       var tmr = setTimeout(function(){
         tmr = null; cleanup();
-        startDrag(card, b.id, last.y);   // 같은 요소 → 포인터 스트림 유지(끊김 없음)
+        startDrag(card, b.id, last.x, last.y);   // 같은 요소 → 포인터 스트림 유지(끊김 없음)
       }, LONGPRESS_MS);
       function mv(e){
         last.x = e.clientX; last.y = e.clientY;
@@ -482,12 +490,12 @@
 
   // ---- 드래그 ----
   // DOM은 다시 그리지 않고 클래스만 토글: 집은 카드(.dragging)는 그대로, 컨테이너에 .stamp-dragging을
-  // 붙여 나머지 카드를 회색+50%로 축소(커버만). 놓으면 클래스 제거 → 즉시 원상 복귀(본문 다시 펼침).
-  function startDrag(cardEl, id, clientY){
+  // 붙여 나머지 카드를 회색+50%로 축소(제자리 transform → 그리드/타일 배치·순서 유지). 놓으면 원상 복귀.
+  function startDrag(cardEl, id, clientX, clientY){
     if(!cardEl) return;
     endDrag();
     closePop();
-    drag = { el:cardEl, id:id, lastClientY:(typeof clientY==="number"?clientY:0), raf:0 };
+    drag = { el:cardEl, id:id, lastClientX:(typeof clientX==="number"?clientX:0), lastClientY:(typeof clientY==="number"?clientY:0), raf:0 };
     if(boardsEl) boardsEl.classList.add("stamp-dragging");
     cardEl.classList.add("dragging");
     document.addEventListener("pointermove", onDragMove, true);
@@ -498,8 +506,8 @@
   function onDragMove(ev){
     if(!drag) return;
     ev.preventDefault();
-    drag.lastClientY = ev.clientY;
-    reorderByPointer(ev.clientY);
+    drag.lastClientX = ev.clientX; drag.lastClientY = ev.clientY;
+    reorderByPointer(ev.clientX, ev.clientY);
   }
   function onDragEnd(){ endDrag(); }
   function endDrag(){
@@ -512,18 +520,42 @@
     if(boardsEl) boardsEl.classList.remove("stamp-dragging");
     commitOrderFromDom();    // 놓은 위치대로 순서 저장(즉시 정렬 완료)
     drag = null;
+    // 곧이어 오는 click(토글) 억제. click이 안 오는 경우 대비해 잠시 후 자동 해제.
+    suppressClick = true;
+    if(suppressTmr) clearTimeout(suppressTmr);
+    suppressTmr = setTimeout(function(){ suppressClick = false; }, 500);
   }
-  // 포인터 Y 위치로 드래그 카드를 형제들 사이에 재배치(라이브 정렬)
-  function reorderByPointer(clientY){
-    if(!drag || !drag.el) return;
+  // 포인터 위치에 가장 가까운 카드를 찾아 그 앞/뒤에 드래그 카드를 삽입(그리드 다열·단일 열 모두 대응)
+  function reorderByPointer(px, py){
+    if(!drag || !drag.el || !boardsEl) return;
     var sibs = Array.prototype.slice.call(boardsEl.children).filter(function(c){ return c!==drag.el; });
-    var before = null;
-    for(var i=0;i<sibs.length;i++){
-      var r = sibs[i].getBoundingClientRect();
-      if(clientY < r.top + r.height/2){ before = sibs[i]; break; }
+    if(!sibs.length) return;
+    var near = null, best = Infinity, i, r, cx, cy, dx, dy, d;
+    for(i=0;i<sibs.length;i++){
+      r = sibs[i].getBoundingClientRect();
+      cx = r.left + r.width/2; cy = r.top + r.height/2;
+      dx = px-cx; dy = py-cy; d = dx*dx + dy*dy;
+      if(d < best){ best = d; near = { el:sibs[i], r:r, cx:cx, cy:cy }; }
     }
-    if(before){ if(drag.el.nextSibling !== before) boardsEl.insertBefore(drag.el, before); }
-    else { if(boardsEl.lastElementChild !== drag.el) boardsEl.appendChild(drag.el); }
+    if(!near) return;
+    // near와 세로 범위가 겹치는 다른 카드가 있으면 다열(그리드) → 같은 행에선 좌우로, 위·아래 행이면 상하로 판정.
+    // 없으면 단일 열 → 순수 상하로 판정.
+    var multiCol = sibs.some(function(c){
+      if(c===near.el) return false;
+      var rr = c.getBoundingClientRect();
+      return rr.bottom > near.r.top && rr.top < near.r.bottom;
+    });
+    var before;
+    if(multiCol){
+      if(py < near.r.top) before = true;
+      else if(py > near.r.bottom) before = false;
+      else before = px < near.cx;
+    } else {
+      before = py < near.cy;
+    }
+    var ref = before ? near.el : near.el.nextSibling;
+    if(ref === drag.el) ref = drag.el.nextSibling; // 자기 자신 기준이면 무의미 → 다음 노드로
+    if(drag.el.nextSibling !== ref) boardsEl.insertBefore(drag.el, ref);
   }
   // 화면(스크롤 컨테이너=.page) 가장자리 근처면 페이지도 함께 스크롤(드래그 유지한 채)
   function autoScrollTick(){
@@ -536,7 +568,7 @@
     else if(y > rect.bottom - edge) step = Math.ceil((y - (rect.bottom - edge))/4);
     if(step){
       if(sc===root) root.scrollTop += step; else window.scrollBy(0, step);
-      reorderByPointer(y);
+      reorderByPointer(drag.lastClientX, y);
     }
     drag.raf = requestAnimationFrame(autoScrollTick);
   }
