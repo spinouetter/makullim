@@ -194,13 +194,13 @@
   }
   function mapEntry(p, dm){ return { sid:p.sid, date:p.date, time:p.time, dateLabel:labelOf(p, dm) }; }
 
-  // 관극(종료+좌석) 회차 — 자동·집계용.
+  // 관극(좌석 + 공연 시작 2시간 전부터) 회차 — 자동·집계용.
+  // 종료(isEnded)가 아니라 isPickable(수동 픽과 동일 기준)을 써서, 공연 시작 2시간 전부터
+  // 자동 도장 대상이 되게 한다.
   function watchedList(){
     if(!dataReady()) return [];
     var dm = seatedDayMap();
-    return performanceData.performances.filter(function(p){
-      return (typeof isEnded!=="function"||isEnded(p)) && (typeof hasSeat!=="function"||hasSeat(p));
-    }).map(function(p){ return mapEntry(p, dm); });
+    return performanceData.performances.filter(isPickable).map(function(p){ return mapEntry(p, dm); });
   }
   // 공연 선택 팝오버용 — 좌석이 있고 공연 시작 2시간 전부터.
   function isPickable(p){
