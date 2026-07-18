@@ -18,6 +18,8 @@
   var st = null;             // 사용자 상태 { boards:[...], seq:n }
   var booted = false;
   var pendingActivate = false; // 데이터 준비 전 활성화 요청이 들어온 경우
+  var reordering = false;      // 순서 바꾸기 모드(커버 길게 누르면 진입 — 커버만 50%로 축소해 드래그 정렬)
+  var drag = null;             // 드래그 중 상태 { el, id, lastClientY, raf }
 
   /* ---------- 유틸 ---------- */
   function esc(s){ return (typeof escHtml==="function") ? escHtml(s) : String(s==null?"":s); }
@@ -305,6 +307,8 @@
     migrateNames();  // 이름 없던 옛 도장판에 명시적 이름 부여(기본 이름 유지 폐지)
 
     boardsEl.innerHTML = "";
+    boardsEl.classList.toggle("reordering", reordering);
+    if(root) root.classList.toggle("reordering-active", reordering);
     // 새로 만든 도장판이 위로 오도록 역순 표시(번호/이름은 생성 순서 idx 유지)
     for(var idx=st.boards.length-1; idx>=0; idx--){
       boardsEl.appendChild(renderCard(st.boards[idx], idx));
@@ -322,9 +326,9 @@
     var tgt = validTarget();
     var tgtName = tgt ? boardTitle(tgt, st.boards.indexOf(tgt)) : "없음";
     el.textContent = "관극 " + list.length + "회 · 안 찍은 회차 " + remain + (extra? " (+더블 "+extra+")" : "") + " · 자동 대상: " + tgtName;
-    // 유효한 대상이 없으면 '자동 채우기' 버튼 비활성
+    // 유효한 대상이 없으면 '자동 채우기' 버튼 비활성(순서 바꾸기 중엔 항상 비활성)
     var ab = document.getElementById("stampAutoBtn");
-    if(ab) ab.disabled = !tgt;
+    if(ab) ab.disabled = reordering || !tgt;
   }
 
   // 커버(스프링)에 오버레이하는 동그란 아이콘들
@@ -383,13 +387,14 @@
   // 카드: 표지(항상) + 하단 버튼 + (펼침 시) 도장판 표. 표지를 누르면 아래 도장판을 펼치고/접는다.
   function renderCard(b, idx){
     var card = document.createElement("div");
-    card.className = "stamp-card" + (b.open ? " open" : "");
+    card.setAttribute("data-id", b.id);
     var pad = (CFG.coverAspect[1]/CFG.coverAspect[0]*100).toFixed(3);
     var img = imgUrl(CFG.coverImage);
     var filled = b.slots.filter(Boolean).length;
+    card.className = "stamp-card" + (b.open ? " open" : "");
     card.innerHTML =
       '<div class="stamp-imgbox stamp-cover-box" style="padding-top:'+pad+'%" title="'+(b.open?'접기':'펼치기')+'">' +
-        (img? '<img class="stamp-img" src="'+esc(img)+'" alt="'+esc(boardTitle(b,idx))+'">':'') +
+        (img? '<img class="stamp-img" draggable="false" src="'+esc(img)+'" alt="'+esc(boardTitle(b,idx))+'">':'') +
         coverIcons(b, idx) +
         '<div class="stamp-cover-count">'+ filled +'/'+ slotCount() +'</div>' +
         coverNameOverlay(b, idx) +
@@ -435,9 +440,9 @@
         else if(act==="autotarget"){ setAutoTarget(b); }
       });
     });
-    // 표지 클릭 = 아래 도장판 펼치기/접기(표지는 유지)
+    // 표지 클릭 = 아래 도장판 펼치기/접기. 길게 누르면 순서 바꾸기 모드 진입. 순서 모드에선 누르면 바로 드래그.
     var cover = card.querySelector(".stamp-cover-box");
-    if(cover){ cover.addEventListener("click", function(){ b.open = !b.open; saveState(); render(); }); }
+    if(cover) wireCover(cover, card, b);
     // 도장/날짜 칸 클릭 → 편집(추가/바꾸기/지우기)
     card.querySelectorAll(".stamp-cell[data-cell]").forEach(function(cell){
       cell.addEventListener("click", function(e){
@@ -446,6 +451,140 @@
         onSlotClick(b, row, cell);
       });
     });
+  }
+
+  /* ---------- 순서 바꾸기(드래그 정렬) ---------- */
+  var LONGPRESS_MS = 480, MOVE_TOL = 10;
+  // 표지 포인터다운:
+  //  - 일반 모드: 길게 누르면 순서 바꾸기 모드로 진입하고 '그 카드를 잡은 채' 바로 드래그로 이어간다.
+  //    (진입 시 DOM을 다시 그리지 않고 CSS 클래스만 토글 → 누르고 있던 요소가 그대로 남아 드래그가 끊기지 않음.)
+  //  - 순서 모드: 누르는 즉시 드래그 시작.
+  function wireCover(cover, card, b){
+    cover.addEventListener("click", function(){ if(reordering) return; b.open = !b.open; saveState(); render(); });
+    cover.addEventListener("pointerdown", function(ev){
+      if(ev.button && ev.button!==0) return; // 마우스는 좌클릭만(터치·펜은 button 0)
+      if(reordering){ ev.preventDefault(); startDrag(card, b.id, ev.clientY); return; }
+      var sx = ev.clientX, sy = ev.clientY, last = { x:sx, y:sy };
+      var tmr = setTimeout(function(){
+        tmr = null; cleanup();
+        enterReorder();
+        startDrag(card, b.id, last.y);   // 같은 요소 → 포인터 스트림 유지
+      }, LONGPRESS_MS);
+      function mv(e){
+        last.x = e.clientX; last.y = e.clientY;
+        if(Math.abs(e.clientX-sx)>MOVE_TOL || Math.abs(e.clientY-sy)>MOVE_TOL){ cancel(); } // 스크롤/이동으로 판단 → 길게 누르기 취소
+      }
+      function up(){ cancel(); }
+      function cancel(){ if(tmr){ clearTimeout(tmr); tmr=null; } cleanup(); }
+      function cleanup(){
+        document.removeEventListener("pointermove", mv, true);
+        document.removeEventListener("pointerup", up, true);
+        document.removeEventListener("pointercancel", up, true);
+      }
+      document.addEventListener("pointermove", mv, true);
+      document.addEventListener("pointerup", up, true);
+      document.addEventListener("pointercancel", up, true);
+    });
+  }
+
+  // 진입: DOM은 그대로 두고 클래스만 토글(커버만 50%로 축소, 본문·아이콘은 CSS로 숨김)
+  function enterReorder(){
+    if(reordering) return;
+    reordering = true;
+    closePop();
+    if(boardsEl) boardsEl.classList.add("reordering");
+    if(root) root.classList.add("reordering-active");
+    var ab = document.getElementById("stampAutoBtn"); if(ab) ab.disabled = true;
+    showReorderBar();
+  }
+  function exitReorder(){
+    if(!reordering) return;
+    endDrag();               // 혹시 드래그 중이면 마무리(순서 커밋)
+    reordering = false;
+    hideReorderBar();
+    saveState();             // 순서는 드래그 중 커밋되지만 확실히 저장
+    render();                // 일반 뷰로 — 원래 펼쳐져 있던 도장판은 다시 펼쳐짐(b.open 유지)
+  }
+
+  // 하단 고정 "정렬 완료" 바
+  var reorderBar = null;
+  function showReorderBar(){
+    if(reorderBar) return;
+    reorderBar = document.createElement("div");
+    reorderBar.className = "stamp-reorder-bar";
+    reorderBar.innerHTML =
+      '<span class="stamp-reorder-hint">드래그해서 순서를 바꾸세요</span>' +
+      '<button class="stamp-btn primary" id="stampReorderDone">정렬 완료</button>';
+    document.body.appendChild(reorderBar);
+    reorderBar.querySelector("#stampReorderDone").addEventListener("click", exitReorder);
+  }
+  function hideReorderBar(){
+    if(reorderBar && reorderBar.parentNode) reorderBar.parentNode.removeChild(reorderBar);
+    reorderBar = null;
+  }
+
+  // ---- 드래그 ----
+  function startDrag(cardEl, id, clientY){
+    if(!cardEl) return;
+    endDrag();
+    drag = { el:cardEl, id:id, lastClientY:(typeof clientY==="number"?clientY:0), raf:0 };
+    cardEl.classList.add("dragging");
+    document.addEventListener("pointermove", onDragMove, true);
+    document.addEventListener("pointerup", onDragEnd, true);
+    document.addEventListener("pointercancel", onDragEnd, true);
+    drag.raf = requestAnimationFrame(autoScrollTick);
+  }
+  function onDragMove(ev){
+    if(!drag) return;
+    ev.preventDefault();
+    drag.lastClientY = ev.clientY;
+    reorderByPointer(ev.clientY);
+  }
+  function onDragEnd(){ endDrag(); }
+  function endDrag(){
+    if(!drag) return;
+    document.removeEventListener("pointermove", onDragMove, true);
+    document.removeEventListener("pointerup", onDragEnd, true);
+    document.removeEventListener("pointercancel", onDragEnd, true);
+    if(drag.raf) cancelAnimationFrame(drag.raf);
+    if(drag.el) drag.el.classList.remove("dragging");
+    commitOrderFromDom();
+    drag = null;
+  }
+  // 포인터 Y 위치로 드래그 카드를 형제들 사이에 재배치(라이브 정렬)
+  function reorderByPointer(clientY){
+    if(!drag || !drag.el) return;
+    var sibs = Array.prototype.slice.call(boardsEl.children).filter(function(c){ return c!==drag.el; });
+    var before = null;
+    for(var i=0;i<sibs.length;i++){
+      var r = sibs[i].getBoundingClientRect();
+      if(clientY < r.top + r.height/2){ before = sibs[i]; break; }
+    }
+    if(before){ if(drag.el.nextSibling !== before) boardsEl.insertBefore(drag.el, before); }
+    else { if(boardsEl.lastElementChild !== drag.el) boardsEl.appendChild(drag.el); }
+  }
+  // 화면(스크롤 컨테이너=.page) 가장자리 근처면 페이지도 함께 스크롤(드래그 유지한 채)
+  function autoScrollTick(){
+    if(!drag){ return; }
+    // 스탬프 페이지는 #page-stamp(.page)가 스크롤러(window 아님)
+    var sc = (root && root.scrollHeight > root.clientHeight) ? root : document.scrollingElement;
+    var rect = (sc===root) ? root.getBoundingClientRect() : { top:0, bottom:window.innerHeight };
+    var y = drag.lastClientY, edge = 80, step = 0;
+    if(y > 0 && y < rect.top + edge) step = -Math.ceil((rect.top + edge - y)/4);
+    else if(y > rect.bottom - edge) step = Math.ceil((y - (rect.bottom - edge))/4);
+    if(step){
+      if(sc===root) root.scrollTop += step; else window.scrollBy(0, step);
+      reorderByPointer(y);
+    }
+    drag.raf = requestAnimationFrame(autoScrollTick);
+  }
+  // 현재 DOM 순서(위→아래=최신순)를 st.boards(index 0=오래된 순, render가 역순 표시)로 반영
+  function commitOrderFromDom(){
+    if(!boardsEl) return;
+    var ids = Array.prototype.slice.call(boardsEl.children).map(function(c){ return c.getAttribute("data-id"); });
+    var byId = {}; st.boards.forEach(function(b){ byId[b.id] = b; });
+    var next = ids.map(function(id){ return byId[id]; }).filter(Boolean).reverse();
+    if(next.length === st.boards.length){ st.boards = next; saveState(); }
   }
 
   function renameBoard(b, idx){
