@@ -1672,3 +1672,9 @@
 .stamp-boards.stamp-dragging .stamp-card:not(.dragging){ width:50%; justify-self:center; filter:grayscale(1); opacity:.5; }
 /* 집은 카드: JS가 position:fixed로 원래 크기·원색을 유지한 채 포인터를 따라다닌다(그림자만 CSS) */
 .stamp-boards.stamp-dragging .stamp-card.dragging .stamp-cover-box{ box-shadow:0 16px 36px rgba(20,30,55,.55); }
+/* 놓일 자리를 나타내는 테두리 placeholder 상자(커버를 따라다니며 삽입 위치로 이동) — 회색 처리는 되돌려 또렷하게 */
+.stamp-boards.stamp-dragging .stamp-card.stamp-ph{ opacity:1; filter:none; pointer-events:none; }
+.stamp-boards.stamp-dragging .stamp-ph .stamp-imgbox{
+  background:color-mix(in srgb, var(--gold) 8%, transparent); box-shadow:none;
+  border:2px dashed color-mix(in srgb, var(--gold) 75%, transparent); border-radius:8px;
+}

@@ -506,6 +506,14 @@
       raf:0
     };
     if(boardsEl) boardsEl.classList.add("stamp-dragging");
+    // 원래 자리(그리고 앞으로 놓일 자리)를 나타내는 테두리 placeholder 상자를 흐름에 남긴다.
+    // 나머지 카드와 같은 크기(커버 비율)로, 드래그 중 새 삽입 위치로 이동하며 미리보기 역할.
+    var pad = (CFG.coverAspect[1]/CFG.coverAspect[0]*100).toFixed(3);
+    var ph = document.createElement("div");
+    ph.className = "stamp-card stamp-ph";
+    ph.innerHTML = '<div class="stamp-imgbox" style="padding-top:'+pad+'%"></div>';
+    if(boardsEl) boardsEl.insertBefore(ph, cardEl);
+    drag.ph = ph;
     cardEl.classList.add("dragging");
     // 흐름에서 빼서 원래 크기 그대로 포인터를 따라 떠다니게
     var s = cardEl.style;
@@ -536,7 +544,12 @@
     document.removeEventListener("pointerup", onDragEnd, true);
     document.removeEventListener("pointercancel", onDragEnd, true);
     if(drag.raf) cancelAnimationFrame(drag.raf);
-    var el = drag.el;
+    var el = drag.el, ph = drag.ph;
+    // 커버를 placeholder 자리(=놓을 위치)에 넣고 placeholder 제거
+    if(ph){
+      if(el && ph.parentNode) ph.parentNode.insertBefore(el, ph);
+      if(ph.parentNode) ph.parentNode.removeChild(ph);
+    }
     if(el){
       el.classList.remove("dragging");
       var s = el.style;
@@ -550,10 +563,11 @@
     if(suppressTmr) clearTimeout(suppressTmr);
     suppressTmr = setTimeout(function(){ suppressClick = false; }, 500);
   }
-  // 포인터 위치에 가장 가까운 카드를 찾아 그 앞/뒤에 드래그 카드를 삽입(그리드 다열·단일 열 모두 대응)
+  // 포인터 위치에 가장 가까운 '실제 카드'를 찾아 그 앞/뒤로 placeholder를 옮긴다(그리드 다열·단일 열 모두 대응).
+  // 떠다니는 커버(drag.el)와 placeholder(drag.ph)는 판정에서 제외 → 나머지 카드 기준이라 안정적(진동 없음).
   function reorderByPointer(px, py){
-    if(!drag || !drag.el || !boardsEl) return;
-    var sibs = Array.prototype.slice.call(boardsEl.children).filter(function(c){ return c!==drag.el; });
+    if(!drag || !drag.ph || !boardsEl) return;
+    var sibs = Array.prototype.slice.call(boardsEl.children).filter(function(c){ return c!==drag.el && c!==drag.ph; });
     if(!sibs.length) return;
     var near = null, best = Infinity, i, r, cx, cy, dx, dy, d;
     for(i=0;i<sibs.length;i++){
@@ -579,8 +593,8 @@
       before = py < near.cy;
     }
     var ref = before ? near.el : near.el.nextSibling;
-    if(ref === drag.el) ref = drag.el.nextSibling; // 자기 자신 기준이면 무의미 → 다음 노드로
-    if(drag.el.nextSibling !== ref) boardsEl.insertBefore(drag.el, ref);
+    if(ref === drag.ph) return;            // 이미 그 자리 → 그대로
+    if(drag.ph.nextSibling !== ref) boardsEl.insertBefore(drag.ph, ref);
   }
   // 화면(스크롤 컨테이너=.page) 가장자리 근처면 페이지도 함께 스크롤(드래그 유지한 채)
   function autoScrollTick(){
