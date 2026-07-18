@@ -496,16 +496,19 @@
     if(!cardEl) return;
     endDrag();
     closePop();
-    var r = cardEl.getBoundingClientRect();   // 클래스 적용 전 원래 크기(집은 카드는 이 크기 유지)
+    var r = cardEl.getBoundingClientRect();   // 클래스 적용 전 원래 크기
+    // 컬럼이 1개(단일 열)일 때만 축소한다 — 다열(타일)은 이미 위·아래가 보이므로 원래 크기 유지.
+    var shrink = isSingleColumn();
+    var sc = shrink ? 0.5 : 1;
     drag = {
-      el:cardEl, id:id, w:r.width, h:r.height,
+      el:cardEl, id:id, w:r.width, h:r.height, scale:sc,
       grabDX:(typeof clientX==="number"? clientX - r.left : r.width/2),
       grabDY:(typeof clientY==="number"? clientY - r.top  : r.height/2),
       lastClientX:(typeof clientX==="number"?clientX:r.left+r.width/2),
       lastClientY:(typeof clientY==="number"?clientY:r.top+r.height/2),
       raf:0
     };
-    if(boardsEl) boardsEl.classList.add("stamp-dragging");
+    if(boardsEl){ boardsEl.classList.add("stamp-dragging"); if(shrink) boardsEl.classList.add("stamp-shrink"); }
     // 원래 자리(그리고 앞으로 놓일 자리)를 나타내는 테두리 placeholder 상자를 흐름에 남긴다.
     // 나머지 카드와 같은 크기(커버 비율)로, 드래그 중 새 삽입 위치로 이동하며 미리보기 역할.
     var pad = (CFG.coverAspect[1]/CFG.coverAspect[0]*100).toFixed(3);
@@ -515,10 +518,10 @@
     if(boardsEl) boardsEl.insertBefore(ph, cardEl);
     drag.ph = ph;
     cardEl.classList.add("dragging");
-    // 흐름에서 빼서 원래 크기 그대로 포인터를 따라 떠다니게
+    // 흐름에서 빼서 포인터를 따라 떠다니게. 축소 모드(단일 열)면 커버도 나머지처럼 절반 크기로.
     var s = cardEl.style;
     s.position="fixed"; s.margin="0"; s.left="0"; s.top="0";
-    s.width=r.width+"px"; s.height=r.height+"px";
+    s.width=(r.width*sc)+"px"; s.height=(r.height*sc)+"px";
     s.zIndex="1000"; s.pointerEvents="none";
     positionDragEl(drag.lastClientX, drag.lastClientY);
     document.addEventListener("pointermove", onDragMove, true);
@@ -526,9 +529,17 @@
     document.addEventListener("pointercancel", onDragEnd, true);
     drag.raf = requestAnimationFrame(autoScrollTick);
   }
+  // 컨테이너가 실제로 몇 열인지(단일 열이면 축소 모드). grid-template-columns의 트랙 수로 판정.
+  function isSingleColumn(){
+    if(!boardsEl) return true;
+    var g = getComputedStyle(boardsEl).gridTemplateColumns;
+    if(!g || g==="none") return true;
+    return g.split(" ").filter(Boolean).length <= 1;
+  }
   function positionDragEl(x, y){
     if(!drag || !drag.el) return;
-    drag.el.style.transform = "translate(" + (x - drag.grabDX) + "px," + (y - drag.grabDY) + "px)";
+    var sc = drag.scale || 1;   // 커버가 절반 크기면 잡은 지점(offset)도 절반이라야 포인터 밑에 붙는다
+    drag.el.style.transform = "translate(" + (x - drag.grabDX*sc) + "px," + (y - drag.grabDY*sc) + "px)";
   }
   function onDragMove(ev){
     if(!drag) return;
@@ -555,7 +566,7 @@
       var s = el.style;
       s.position=s.margin=s.left=s.top=s.width=s.height=s.zIndex=s.pointerEvents=s.transform="";
     }
-    if(boardsEl) boardsEl.classList.remove("stamp-dragging");
+    if(boardsEl){ boardsEl.classList.remove("stamp-dragging"); boardsEl.classList.remove("stamp-shrink"); }
     commitOrderFromDom();    // 놓은 위치대로 순서 저장(즉시 정렬 완료)
     drag = null;
     // 곧이어 오는 click(토글) 억제. click이 안 오는 경우 대비해 잠시 후 자동 해제.
