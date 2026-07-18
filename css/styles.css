@@ -1087,9 +1087,9 @@
 
   .role-stat-table{width:100%; border-collapse:collapse; background:var(--panel); border:1px solid var(--line); border-radius:8px; overflow:hidden; font-size:13px;}
   .role-stat-table th, .role-stat-table td{vertical-align:middle;}
-  .role-stat-table thead th{background:var(--panel2); color:var(--gold); text-align:center; padding:8px 10px; font-size:11px; text-transform:uppercase; letter-spacing:0.4px; border-bottom:1px solid var(--line);}
+  .role-stat-table thead th{background:var(--panel2); color:var(--gold); text-align:center; padding:5px 10px; font-size:11px; text-transform:uppercase; letter-spacing:0.4px; border-bottom:1px solid var(--line);}
   .role-stat-table thead th:first-child{text-align:left;}
-  .role-stat-table tbody td{padding:8px 10px; text-align:center; border-bottom:1px solid var(--line);}
+  .role-stat-table tbody td{padding:3px 10px; text-align:center; border-bottom:1px solid var(--line);}
   .role-stat-table tbody td:first-child{text-align:center;}
   .role-stat-table tbody tr:last-child td{border-bottom:none;}
   /* 기타 통계: 요일별 표 뒤에 붙는 마티네·휴일 요약 줄 */
