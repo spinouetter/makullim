@@ -18,8 +18,7 @@
   var st = null;             // 사용자 상태 { boards:[...], seq:n }
   var booted = false;
   var pendingActivate = false; // 데이터 준비 전 활성화 요청이 들어온 경우
-  var reordering = false;      // 순서 바꾸기 모드(커버 길게 누르면 진입 — 커버만 50%로 축소해 드래그 정렬)
-  var drag = null;             // 드래그 중 상태 { el, id, lastClientY, raf }
+  var drag = null;             // 드래그 중 상태 { el, id, lastClientY, raf } — 커버 길게 눌러 바로 드래그
 
   /* ---------- 유틸 ---------- */
   function esc(s){ return (typeof escHtml==="function") ? escHtml(s) : String(s==null?"":s); }
@@ -307,8 +306,6 @@
     migrateNames();  // 이름 없던 옛 도장판에 명시적 이름 부여(기본 이름 유지 폐지)
 
     boardsEl.innerHTML = "";
-    boardsEl.classList.toggle("reordering", reordering);
-    if(root) root.classList.toggle("reordering-active", reordering);
     // 새로 만든 도장판이 위로 오도록 역순 표시(번호/이름은 생성 순서 idx 유지)
     for(var idx=st.boards.length-1; idx>=0; idx--){
       boardsEl.appendChild(renderCard(st.boards[idx], idx));
@@ -326,9 +323,9 @@
     var tgt = validTarget();
     var tgtName = tgt ? boardTitle(tgt, st.boards.indexOf(tgt)) : "없음";
     el.textContent = "관극 " + list.length + "회 · 안 찍은 회차 " + remain + (extra? " (+더블 "+extra+")" : "") + " · 자동 대상: " + tgtName;
-    // 유효한 대상이 없으면 '자동 채우기' 버튼 비활성(순서 바꾸기 중엔 항상 비활성)
+    // 유효한 대상이 없으면 '자동 채우기' 버튼 비활성
     var ab = document.getElementById("stampAutoBtn");
-    if(ab) ab.disabled = reordering || !tgt;
+    if(ab) ab.disabled = !tgt;
   }
 
   // 커버(스프링)에 오버레이하는 동그란 아이콘들
@@ -453,22 +450,18 @@
     });
   }
 
-  /* ---------- 순서 바꾸기(드래그 정렬) ---------- */
+  /* ---------- 순서 바꾸기(길게 눌러 바로 드래그) ---------- */
+  // 별도 '정렬 모드' 없음. 표지를 길게 누르면 그 카드를 집어 바로 드래그 → 나머지는 회색으로
+  // de-highlight + 50% 축소(커버만), 위/아래로 옮겨 놓으면 그 순간 정렬 완료(놓으면 원상 복귀).
   var LONGPRESS_MS = 480, MOVE_TOL = 10;
-  // 표지 포인터다운:
-  //  - 일반 모드: 길게 누르면 순서 바꾸기 모드로 진입하고 '그 카드를 잡은 채' 바로 드래그로 이어간다.
-  //    (진입 시 DOM을 다시 그리지 않고 CSS 클래스만 토글 → 누르고 있던 요소가 그대로 남아 드래그가 끊기지 않음.)
-  //  - 순서 모드: 누르는 즉시 드래그 시작.
   function wireCover(cover, card, b){
-    cover.addEventListener("click", function(){ if(reordering) return; b.open = !b.open; saveState(); render(); });
+    cover.addEventListener("click", function(){ if(drag) return; b.open = !b.open; saveState(); render(); });
     cover.addEventListener("pointerdown", function(ev){
       if(ev.button && ev.button!==0) return; // 마우스는 좌클릭만(터치·펜은 button 0)
-      if(reordering){ ev.preventDefault(); startDrag(card, b.id, ev.clientY); return; }
       var sx = ev.clientX, sy = ev.clientY, last = { x:sx, y:sy };
       var tmr = setTimeout(function(){
         tmr = null; cleanup();
-        enterReorder();
-        startDrag(card, b.id, last.y);   // 같은 요소 → 포인터 스트림 유지
+        startDrag(card, b.id, last.y);   // 같은 요소 → 포인터 스트림 유지(끊김 없음)
       }, LONGPRESS_MS);
       function mv(e){
         last.x = e.clientX; last.y = e.clientY;
@@ -487,47 +480,15 @@
     });
   }
 
-  // 진입: DOM은 그대로 두고 클래스만 토글(커버만 50%로 축소, 본문·아이콘은 CSS로 숨김)
-  function enterReorder(){
-    if(reordering) return;
-    reordering = true;
-    closePop();
-    if(boardsEl) boardsEl.classList.add("reordering");
-    if(root) root.classList.add("reordering-active");
-    var ab = document.getElementById("stampAutoBtn"); if(ab) ab.disabled = true;
-    showReorderBar();
-  }
-  function exitReorder(){
-    if(!reordering) return;
-    endDrag();               // 혹시 드래그 중이면 마무리(순서 커밋)
-    reordering = false;
-    hideReorderBar();
-    saveState();             // 순서는 드래그 중 커밋되지만 확실히 저장
-    render();                // 일반 뷰로 — 원래 펼쳐져 있던 도장판은 다시 펼쳐짐(b.open 유지)
-  }
-
-  // 하단 고정 "정렬 완료" 바
-  var reorderBar = null;
-  function showReorderBar(){
-    if(reorderBar) return;
-    reorderBar = document.createElement("div");
-    reorderBar.className = "stamp-reorder-bar";
-    reorderBar.innerHTML =
-      '<span class="stamp-reorder-hint">드래그해서 순서를 바꾸세요</span>' +
-      '<button class="stamp-btn primary" id="stampReorderDone">정렬 완료</button>';
-    document.body.appendChild(reorderBar);
-    reorderBar.querySelector("#stampReorderDone").addEventListener("click", exitReorder);
-  }
-  function hideReorderBar(){
-    if(reorderBar && reorderBar.parentNode) reorderBar.parentNode.removeChild(reorderBar);
-    reorderBar = null;
-  }
-
   // ---- 드래그 ----
+  // DOM은 다시 그리지 않고 클래스만 토글: 집은 카드(.dragging)는 그대로, 컨테이너에 .stamp-dragging을
+  // 붙여 나머지 카드를 회색+50%로 축소(커버만). 놓으면 클래스 제거 → 즉시 원상 복귀(본문 다시 펼침).
   function startDrag(cardEl, id, clientY){
     if(!cardEl) return;
     endDrag();
+    closePop();
     drag = { el:cardEl, id:id, lastClientY:(typeof clientY==="number"?clientY:0), raf:0 };
+    if(boardsEl) boardsEl.classList.add("stamp-dragging");
     cardEl.classList.add("dragging");
     document.addEventListener("pointermove", onDragMove, true);
     document.addEventListener("pointerup", onDragEnd, true);
@@ -548,7 +509,8 @@
     document.removeEventListener("pointercancel", onDragEnd, true);
     if(drag.raf) cancelAnimationFrame(drag.raf);
     if(drag.el) drag.el.classList.remove("dragging");
-    commitOrderFromDom();
+    if(boardsEl) boardsEl.classList.remove("stamp-dragging");
+    commitOrderFromDom();    // 놓은 위치대로 순서 저장(즉시 정렬 완료)
     drag = null;
   }
   // 포인터 Y 위치로 드래그 카드를 형제들 사이에 재배치(라이브 정렬)
