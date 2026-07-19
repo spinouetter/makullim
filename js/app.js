@@ -80,8 +80,9 @@ async function resolveShowMeta(j){
   }
   if(!meta) meta = await j("/shows/" + (idx.default || ids[0]) + ".json");
   // 배포 도메인 루트 접속 → 공연 고정 주소(/<slug>/)로. 로컬(스텁 없음)은 그대로 렌더.
+  //   쿼리·해시(?board=…·#…)를 함께 넘겨야 비밀 보드 앵커가 루트로 들어와도 유지된다.
   if(!param && !LOCAL_HOSTS.has(location.hostname) && meta.slug){
-    location.replace("/" + meta.slug + "/");
+    location.replace("/" + meta.slug + "/" + location.search + location.hash);
     return new Promise(()=>{});   // 내비게이션 중 — 이후 로드 중단
   }
   return meta;
