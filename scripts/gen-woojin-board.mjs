@@ -73,7 +73,11 @@ function renderRow(roles, yTop, o){
   let x = x0 + (w - total*pitch) / 2;
   roles.forEach((roleId, ri) => {
     const n = counts[ri], blockW = n*pitch;
-    heading(lbl[roleId] || LABEL[roleId] || roleId, x + 2, yTop + 14, blockW - 8, hfs);
+    // 헤딩·실선을 셀(사진)에 맞춤: 왼쪽=첫 사진 왼끝(alignLeft), 오른쪽 끝=마지막 사진 오른끝(alignRight)
+    const firstLeft = x + pitch/2 - d/2, lastRight = x + (n - 0.5)*pitch + d/2;
+    const hx = o.alignLeft ? firstLeft : x + 2;
+    const lineEnd = o.alignRight ? lastRight : (x + 2 + blockW - 8);
+    heading(lbl[roleId] || LABEL[roleId] || roleId, hx, yTop + 14, lineEnd - hx, hfs);
     for(let i=0;i<n;i++) cell(roleId, i, x + pitch*(i+0.5), yTop + 24, d, false);
     x += blockW;
   });
@@ -87,24 +91,25 @@ P(`<image x="0" y="0" width="${VB_W}" height="${VB_H}" preserveAspectRatio="none
 
 // 빌리(김우진)는 배경 포스터가 곧 본인 → 이름·관극수·타이틀 문구 없이 배경으로만.
 
-// ── MICHAEL: 김우진의 짝(빌리×마이클) → 큰 한 줄로 강조 ──
-heading("MICHAEL", CX0, 495, CW, 18);
+// ── MICHAEL: 김우진의 짝(빌리×마이클) → 큰 한 줄로 강조 (헤딩·실선을 셀에 맞춤) ──
 {
-  const mNames = mainNames("michael"), n = Math.max(1, mNames.length), d = 80;
-  for(let i=0;i<n;i++) cell("michael", i, CX0 + CW*(i+0.5)/n, 512, d, true);
+  const mNames = mainNames("michael"), n = Math.max(1, mNames.length), d = 80, mp = CW/n;
+  const firstLeft = CX0 + mp/2 - d/2, lastRight = CX0 + (n - 0.5)*mp + d/2;
+  heading("MICHAEL", firstLeft, 495, lastRight - firstLeft, 18);
+  for(let i=0;i<n;i++) cell("michael", i, CX0 + mp*(i+0.5), 512, d, true);
 }
 
 // ── 상단 두 줄(전체 폭 6칸): 데비·올드빌리 / 토니·아빠·엄마·윌킨슨 ──
 const ROW_TOP0 = 662, ROW_H = 143;
-renderRow(ROWS[0], ROW_TOP0);
-renderRow(ROWS[1], ROW_TOP0 + ROW_H);
+renderRow(ROWS[0], ROW_TOP0, { alignLeft:true, alignRight:true });
+renderRow(ROWS[1], ROW_TOP0 + ROW_H, { alignLeft:true, alignRight:true });
 
 // ── 아래 두 줄(할머니·조지·브레이스웨이트 / 톨보이·스몰보이)은 왼쪽에 몰고, 오른쪽에 좌석맵 ──
 const bandTop = ROW_TOP0 + 2*ROW_H;                    // ≈948
 const SHORT = { mr_braithwaite:"BRAITH." };            // 좁은 칸용 짧은 라벨
 // 왼쪽으로 몰되(빌리 다리 옆까지) 위쪽 줄과 같은 큰 사이즈로. 오른쪽엔 좌석맵.
 const leftBig = { x0:200, w:352, pitch:70, d:58, hfs:12, label:SHORT };
-renderRow(ROWS[2], bandTop, leftBig);
+renderRow(ROWS[2], bandTop, { ...leftBig, alignRight:true });   // 4열: 실선 오른쪽 끝만 셀에 맞춤(왼쪽은 다리 옆 유지)
 renderRow(ROWS[3], bandTop + 128, leftBig);
 // 좌석맵 자리(오른쪽): injectSeatmap이 이 rect 위치·크기에 좌석 히트맵을 그림.
 //  크기 = 원본 4/5 × 1.1, 오른쪽 끝을 전수미(상단 그리드 맨 오른쪽 셀) 사진 오른쪽 끝에 맞춤.
