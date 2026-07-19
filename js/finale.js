@@ -20,7 +20,7 @@
   const BOARDS_URL = "finale-boards.json";
   // finale 자원 콘텐츠 버전 — SVG 보드·정의(JSON)·배우 사진을 실제로 바꿀 때만 올린다.
   //   (커밋 SHA로 매 배포 버스트하지 않고, 내용이 그대로면 브라우저 캐시를 재사용한다.)
-  const FIN_VER = 3;
+  const FIN_VER = 4;
   //   경로에 이미 ?v= 등 자체 버전 쿼리가 있으면(예: background.src="finale-board.svg?v=28") 그걸 존중하고, 없을 때만 FIN_VER를 붙인다.
   function verUrl(p){ const u = window.showUrl(p); return u.indexOf("?")>=0 ? u : (u + "?v=" + FIN_VER); }
   const JSPDF_URL   = "https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js";
@@ -288,7 +288,7 @@
           const members = actors.map(a => {
             const k = c.role + "|" + a.name, cw = co.watched[k] || 0;
             return { name:a.name, role:a.role, stat: { w:cw, t:(co.total[k]||0), co:cw } };
-          }).filter(m => m.stat.co > 0);   // 함께 관극수 0(안 본 배우)는 정산판에서 제외
+          }).filter(m => m.stat.t > 0);   // '전체'(김우진과 함께 오른 회차)가 0인 배우만 제외(내 관극수 0이어도 표시)
           out.push({ slot: c.id, roleId: c.id, members });
         } else {
           const rs = (typeof computeRoleActorStats === "function") ? computeRoleActorStats(c.role, finaleMode) : {};
