@@ -3,6 +3,7 @@
   "default": "billy-casting-board",
   "boards": [
     { "id": "billy-casting-board", "name": "빌리 캐스팅 보드", "def": "finale-boards/billy-casting-board.json" },
-    { "id": "billy-casting-board-2026", "name": "빌리 캐스팅 보드 (2026 new)", "def": "finale-boards/billy-casting-board-2026.json" }
+    { "id": "billy-casting-board-2026", "name": "빌리 캐스팅 보드 (2026 new)", "def": "finale-boards/billy-casting-board-2026.json" },
+    { "id": "billy-woojin-secret", "name": "김우진 빌리 정산판 (비밀)", "hidden": true, "def": "finale-boards/billy-woojin-secret.json" }
   ]
 }
