@@ -54,7 +54,7 @@ const ROWS = [
   ["tall_boy","small_boy"]
 ];
 
-const VB_W = 840, POSTER_H = 1262, VB_H = 1390;   // 발레·앙상블을 톨보이 아래로, 우측 정렬
+const VB_W = 840, POSTER_H = 1262, VB_H = 1385;   // 발레·앙상블 위로, 우측 정렬
 const EXT_BG = "#f3f2f0";   // 확장 영역 배경 = 포스터 빈 공간 회색
 const CX0 = 300, CW = 528 - 0.3*58;   // 콘텐츠 폭 — 오른쪽 여백을 0.3*사진(d58)만큼 늘림
 const BLUE = "#2f6bcf", BLUE_D = "#1f4e9e", INK = "#20303f", RING = "#9fbdea";
@@ -137,7 +137,7 @@ const leftBig = { x0:200, w:352, pitch:70, d:58, hfs:12, label:SHORT };
 renderRow(ROWS[2], bandTop, { ...leftBig, alignRight:true });   // 할머니·조지·브웨
 renderRow(ROWS[3], bandTop + 128, leftBig);                     // 톨보이·스몰보이 (원래 자리)
 // 좌석맵(오른쪽) — 크기 0.9배, 오른쪽 끝을 전수미 사진에 정렬
-const smW = 258*0.8*1.1*0.9, smH = 262*0.8*1.1*0.9;
+const smW = 258*0.8*1.1*0.95, smH = 262*0.8*1.1*0.95;   // 바닥을 톨보이 숫자단추 바닥(~1191)에 맞춤
 const gridRight = CX0 + CW - CELL_PITCH/2 + CELL_D/2;   // 맨 오른쪽 셀(전수미) 사진 오른쪽 끝
 const smX = gridRight - smW;
 heading("SEAT MAP", smX, bandTop + 14, smW, 12.5);
@@ -165,9 +165,9 @@ groupRow([
   { slot:"ballet_girls",            label:"BALLET GIRLS", n:ADULT_N, teamId:null },
   { slot:"ballet_girls_ashington",  label:"ASHINGTON",    n:ASH_N,   teamId:"ashington" },
   { slot:"ballet_girls_bedlington", label:"BEDLINGTON",   n:BED_N,   teamId:"bedlington" }
-], 1215, 48);
+], 1198, 48);
 // 앙상블 — 발레 바로 아래(더 붙여서)
-groupRow([{ slot:"ensemble", label:"ENSEMBLE", n:ENS_N, teamId:null }], 1300, 38);
+groupRow([{ slot:"ensemble", label:"ENSEMBLE", n:ENS_N, teamId:null }], 1298, 38);
 
 P(`</svg>`);
 
