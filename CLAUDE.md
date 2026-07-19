@@ -25,7 +25,11 @@
       - 최근 3개 HISTORY 항목 중 이번 수정을 담을 수 있는 게 있으면 **새 줄을 추가하지 않는다**(생략).
 - **push는 요청할 때만.** ("커밋해줘"는 커밋만, "push해줘"는 push까지.)
 - **incremental 수정은 합쳐서(squash) push한다.** 같은 작업을 다듬는 연속 커밋(레이블 변경, 정렬 조정, 곧바로 이어지는 후속 수정 등)은 커밋을 쪼개 쌓지 말고, push 전에 아직 push하지 않은 로컬 커밋끼리 하나로 합쳐(amend / `git reset --soft` 후 재커밋) 최종 한 커밋으로 push한다. 이미 push된 커밋은 히스토리를 다시 쓰지 않는다.
-- git author는 로컬 설정된 `Spinouetter <297621346+spinouetter@users.noreply.github.com>`를 사용한다.
+- **커밋은 로컬 `git commit`으로 만든다(자동 SSH 서명 → GitHub Verified). author/committer를 분리한다.**
+  - **author = `Spinouetter <297621346+spinouetter@users.noreply.github.com>`**: `git commit --author="Spinouetter <297621346+spinouetter@users.noreply.github.com>"`로 **author만** 지정한다.
+  - **committer = 로컬 config 기본값 `Claude <noreply@anthropic.com>`를 그대로 둔다. 절대 오버라이드하지 않는다(`-c user.name/-c user.email` 금지).** ← 이 환경의 서명키가 이 **Claude 신원**에 묶여 있어, **committer가 Claude일 때만 GitHub Verified**로 뜬다. `-c`로 committer를 Spinouetter로 강제하면 **Unverified**가 된다(실측 확인).
+  - **co-author**: 커밋 메시지 끝에 `Co-authored-by: Claude <noreply@anthropic.com>` 트레일러를 넣는다.
+  - 근거·주의: 이 환경은 `commit.gpgsign=true` + env-manager 서명키(=Claude/noreply@anthropic.com, 계정 등록됨)라 로컬 커밋이 자동 서명·Verified. 로컬 `git log --show-signature`는 `allowedSignersFile` 미설정으로 검증 실패해도 GitHub에선 Verified다 — **판단은 항상 GitHub 화면 기준.** GitHub API 커밋은 이 환경에서 Verified가 일관되지 않으니 쓰지 않는다.
 - 커밋 메시지는 한국어 한 줄 요약 + `— NNNN`(요청번호), 본문에 상세를 적는다.
 - **커밋 서명(verified/unverified)은 경고하지 않는다.** 이 저장소는 커밋이 unverified로 남아도 무방하다. unverified라는 이유로 경고·차단·재서명·확인 요청을 하지 않고 그대로 진행한다.
 
