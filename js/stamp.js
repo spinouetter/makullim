@@ -453,7 +453,7 @@
   /* ---------- 순서 바꾸기(길게 눌러 바로 드래그) ---------- */
   // 별도 '정렬 모드' 없음. 표지를 길게 누르면 그 카드를 집어 바로 드래그 → 나머지는 회색으로
   // de-highlight + 50% 축소(커버만), 위/아래로 옮겨 놓으면 그 순간 정렬 완료(놓으면 원상 복귀).
-  var LONGPRESS_MS = 330, MOVE_TOL = 16;   // iOS 네이티브 롱프레스(~500ms)보다 낮춰 드래그가 먼저 이기게 + 엄지 드리프트(특히 화면 왼쪽) 허용치 확대
+  var LONGPRESS_MS = 330, MOVE_TOL = 16;   // iOS 네이티브 롱프레스(~500ms)보다 낮춰 드래그가 먼저 이기게. MOVE_TOL은 마우스 전용(터치는 브라우저 팬=pointercancel로만 취소)
   var suppressClick = false, suppressTmr = null;   // 드래그 직후의 click(열기/닫기 토글) 억제
   function wireCover(cover, card, b){
     // 드래그 후 발생하는 click은 무시(안 하면 놓을 때 open이 토글돼 닫힘/열림이 뒤집힘)
@@ -466,19 +466,25 @@
     cover.addEventListener("contextmenu", function(e){ e.preventDefault(); });
     cover.addEventListener("pointerdown", function(ev){
       if(ev.button && ev.button!==0) return; // 마우스는 좌클릭만(터치·펜은 button 0)
+      if(drag) return;                       // 드래그 중 두 번째 손가락은 무시
       var sx = ev.clientX, sy = ev.clientY, last = { x:sx, y:sy };
+      var pid = ev.pointerId, isTouch = ev.pointerType!=="mouse";
       // 누르는 동안(롱프레스 대기)만 브라우저 텍스트 선택 시작을 막는다 → 선택 제스처가 드래그를
       // 가로채(pointercancel) 이동이 무산되는 것을 방지. 스크롤·포인터 이벤트엔 영향 없음.
       function noSel(e){ e.preventDefault(); }
       var tmr = setTimeout(function(){
         tmr = null; cleanup();
-        startDrag(card, b.id, last.x, last.y);   // 같은 요소 → 포인터 스트림 유지(끊김 없음)
+        startDrag(card, b.id, last.x, last.y, pid);   // 같은 요소 → 포인터 스트림 유지(끊김 없음)
       }, LONGPRESS_MS);
       function mv(e){
+        if(e.pointerId!==pid) return;
         last.x = e.clientX; last.y = e.clientY;
-        if(Math.abs(e.clientX-sx)>MOVE_TOL || Math.abs(e.clientY-sy)>MOVE_TOL){ cancel(); } // 스크롤/이동으로 판단 → 길게 누르기 취소
+        // 터치는 이동으로 취소하지 않는다 — 세로 스크롤 의도는 브라우저 팬(pan-y)이 pointercancel로
+        // 알려주므로 그 경로만으로 충분하고, 수동 거리 취소는 엄지 드리프트(특히 화면 왼쪽)로
+        // 롱프레스가 실패하던 원인이었다(후속4의 MOVE_TOL 완화로도 부족). 마우스만 거리로 취소.
+        if(!isTouch && (Math.abs(e.clientX-sx)>MOVE_TOL || Math.abs(e.clientY-sy)>MOVE_TOL)){ cancel(); }
       }
-      function up(){ cancel(); }
+      function up(e){ if(e.pointerId!==pid) return; cancel(); }
       function cancel(){ if(tmr){ clearTimeout(tmr); tmr=null; } cleanup(); }
       function cleanup(){
         document.removeEventListener("pointermove", mv, true);
@@ -497,7 +503,7 @@
   // 핵심: 집은 카드(.dragging)를 position:fixed로 문서 흐름에서 빼 포인터를 따라 떠다니게 한다.
   //  → 흐름에 남은 나머지 카드(그리드)는 흔들리지 않아 삽입 위치 판정이 안정적(진동 없음).
   //  나머지는 .stamp-dragging에서 실제 폭 50%로 줄여(높이·여백까지 축소) 위·아래가 한눈에 보이게 한다.
-  function startDrag(cardEl, id, clientX, clientY){
+  function startDrag(cardEl, id, clientX, clientY, pointerId){
     if(!cardEl) return;
     endDrag();
     closePop();
@@ -506,7 +512,7 @@
     var shrink = isSingleColumn();
     var sc = shrink ? 0.5 : 1;
     drag = {
-      el:cardEl, id:id, w:r.width, h:r.height, scale:sc,
+      el:cardEl, id:id, pid:(pointerId!=null?pointerId:null), w:r.width, h:r.height, scale:sc,
       grabDX:(typeof clientX==="number"? clientX - r.left : r.width/2),
       grabDY:(typeof clientY==="number"? clientY - r.top  : r.height/2),
       lastClientX:(typeof clientX==="number"?clientX:r.left+r.width/2),
@@ -529,6 +535,15 @@
     s.width=(r.width*sc)+"px"; s.height=(r.height*sc)+"px";
     s.zIndex="1000"; s.pointerEvents="none";
     positionDragEl(drag.lastClientX, drag.lastClientY);
+    // 드래그 모드 진입으로 레이아웃이 확 줄어든다(열린 도장판 collapse·단일 열 50% 축소) —
+    // 그대로 두면 잡은 자리(ph)가 손가락에서 멀리 튀어 어디를 잡았는지 놓친다.
+    // 스크롤을 보정해 ph(원래 자리)가 떠 있는 커버 바로 뒤(손가락 밑)에 오게 유지한다.
+    var pr = ph.getBoundingClientRect();
+    var delta = pr.top - (drag.lastClientY - drag.grabDY*sc);
+    if(Math.abs(delta) > 1){
+      var scr = scroller();
+      if(scr) scr.scrollTop += delta;   // 범위 밖이면 브라우저가 알아서 클램프
+    }
     document.addEventListener("pointermove", onDragMove, true);
     document.addEventListener("pointerup", onDragEnd, true);
     document.addEventListener("pointercancel", onDragEnd, true);
@@ -554,12 +569,20 @@
   }
   function onDragMove(ev){
     if(!drag) return;
+    if(drag.pid!=null && ev.pointerId!==drag.pid) return;   // 다른 손가락(멀티터치)은 무시
     ev.preventDefault();
     drag.lastClientX = ev.clientX; drag.lastClientY = ev.clientY;
     positionDragEl(ev.clientX, ev.clientY);
     reorderByPointer(ev.clientX, ev.clientY);
   }
-  function onDragEnd(){ endDrag(); }
+  function onDragEnd(ev){
+    if(drag && drag.pid!=null && ev && ev.pointerId!==drag.pid) return; // 다른 손가락 떼는 건 무시
+    endDrag();
+  }
+  // 스탬프 페이지의 실제 스크롤 컨테이너(#page-stamp=.page, 넘치지 않으면 문서)
+  function scroller(){
+    return (root && root.scrollHeight > root.clientHeight) ? root : document.scrollingElement;
+  }
   function endDrag(){
     if(!drag) return;
     document.removeEventListener("pointermove", onDragMove, true);
@@ -623,7 +646,7 @@
   function autoScrollTick(){
     if(!drag){ return; }
     // 스탬프 페이지는 #page-stamp(.page)가 스크롤러(window 아님)
-    var sc = (root && root.scrollHeight > root.clientHeight) ? root : document.scrollingElement;
+    var sc = scroller();
     var rect = (sc===root) ? root.getBoundingClientRect() : { top:0, bottom:window.innerHeight };
     var y = drag.lastClientY, edge = 80, step = 0;
     if(y > 0 && y < rect.top + edge) step = -Math.ceil((rect.top + edge - y)/4);
