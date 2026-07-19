@@ -3,8 +3,8 @@
 
   "background": {
     "type": "svg",
-    "src": "images/finale-board-woojin.svg?v=12",
-    "viewBox": [0, 0, 840, 1525]
+    "src": "images/finale-board-woojin.svg?v=13",
+    "viewBox": [0, 0, 840, 1720]
   },
 
   "fonts": [
@@ -18,6 +18,10 @@
     "count": {
       "numerator":   { "fontFamily": "IBM Plex Sans KR Medm", "fill": "#ffffff" },
       "denominator": { "fontFamily": "IBM Plex Sans KR Medm", "fill": "#c3d6f5", "prefix": " / " }
+    },
+    "teamCount": {
+      "numerator":   { "fontFamily": "IBM Plex Sans KR Medm", "fill": "#1f4e9e" },
+      "denominator": { "fontFamily": "IBM Plex Sans KR Medm", "fill": "#8a9bb5", "prefix": " / " }
     }
   },
 
@@ -27,6 +31,7 @@
 
   "slotTemplate": {
     "cell": "fn-cell-{slot}-{i}",
+    "groupCount": { "id": "fn-group-{actor}", "style": "teamCount" },
     "fields": [
       { "type": "text",  "id": "fn-name-{slot}-{i}",  "bind": "$item.name",    "style": "name" },
       { "type": "photo", "id": "fn-photo-{slot}-{i}", "bind": "$item.name" },
