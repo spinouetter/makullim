@@ -1517,7 +1517,9 @@
   gap:24px; padding:4px 4px 40px; align-items:start;
 }
 
-.stamp-card{ background:transparent; color-scheme:only light; }  /* 다이어리는 고정 라이트 일러스트 → OS 다크모드가 색을 반전(도장 핑크·날짜 흰색)하지 않게 강제 라이트 */
+.stamp-card{ background:transparent; color-scheme:only light;
+  /* 롱프레스 드래그 방해 제거: 카드 어디를 눌러도 브라우저 텍스트 선택/콜아웃이 시작되지 않게(평상시부터). */
+  -webkit-user-select:none; user-select:none; -webkit-touch-callout:none; }  /* 다이어리는 고정 라이트 일러스트 → OS 다크모드가 색을 반전(도장 핑크·날짜 흰색)하지 않게 강제 라이트 */
 
 /* 이미지 박스: padding-top으로 비율 유지, 이미지 절대배치 */
 .stamp-imgbox{

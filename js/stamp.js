@@ -453,7 +453,7 @@
   /* ---------- 순서 바꾸기(길게 눌러 바로 드래그) ---------- */
   // 별도 '정렬 모드' 없음. 표지를 길게 누르면 그 카드를 집어 바로 드래그 → 나머지는 회색으로
   // de-highlight + 50% 축소(커버만), 위/아래로 옮겨 놓으면 그 순간 정렬 완료(놓으면 원상 복귀).
-  var LONGPRESS_MS = 480, MOVE_TOL = 10;
+  var LONGPRESS_MS = 400, MOVE_TOL = 10;   // iOS 네이티브 롱프레스(~500ms)보다 낮춰 드래그가 먼저 이기게
   var suppressClick = false, suppressTmr = null;   // 드래그 직후의 click(열기/닫기 토글) 억제
   function wireCover(cover, card, b){
     // 드래그 후 발생하는 click은 무시(안 하면 놓을 때 open이 토글돼 닫힘/열림이 뒤집힘)
@@ -467,6 +467,9 @@
     cover.addEventListener("pointerdown", function(ev){
       if(ev.button && ev.button!==0) return; // 마우스는 좌클릭만(터치·펜은 button 0)
       var sx = ev.clientX, sy = ev.clientY, last = { x:sx, y:sy };
+      // 누르는 동안(롱프레스 대기)만 브라우저 텍스트 선택 시작을 막는다 → 선택 제스처가 드래그를
+      // 가로채(pointercancel) 이동이 무산되는 것을 방지. 스크롤·포인터 이벤트엔 영향 없음.
+      function noSel(e){ e.preventDefault(); }
       var tmr = setTimeout(function(){
         tmr = null; cleanup();
         startDrag(card, b.id, last.x, last.y);   // 같은 요소 → 포인터 스트림 유지(끊김 없음)
@@ -481,10 +484,12 @@
         document.removeEventListener("pointermove", mv, true);
         document.removeEventListener("pointerup", up, true);
         document.removeEventListener("pointercancel", up, true);
+        document.removeEventListener("selectstart", noSel, true);
       }
       document.addEventListener("pointermove", mv, true);
       document.addEventListener("pointerup", up, true);
       document.addEventListener("pointercancel", up, true);
+      document.addEventListener("selectstart", noSel, true);
     });
   }
 
