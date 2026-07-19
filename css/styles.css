@@ -1512,6 +1512,10 @@
 .stamp-toolbar-btns .stamp-btn:hover{ color:var(--ink); }
 .stamp-toolbar-btns .stamp-btn.primary{ color:var(--gold); background:color-mix(in srgb, var(--gold) 15%, transparent); }
 
+/* 스탬프 페이지 전체를 선택 불가로 — 카드 이미지를 길게 눌러 드래그할 때 iOS가 이미지에 user-select:none이
+   있어도 롱프레스 선택을 "주변의 선택 가능한 페이지 텍스트"에 앵커해 통째로(전체 선택) 잡아버리는 걸 막는다.
+   스탬프 페이지엔 복사할 텍스트가 없어 전체 비선택이 안전. */
+#page-stamp{ -webkit-user-select:none; user-select:none; -webkit-touch-callout:none; }
 .stamp-boards{
   display:grid; grid-template-columns:repeat(auto-fill, minmax(320px, 1fr));
   gap:24px; padding:4px 4px 40px; align-items:start;
