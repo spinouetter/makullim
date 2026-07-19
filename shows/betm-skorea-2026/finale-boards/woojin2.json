@@ -1,0 +1,54 @@
+{
+  "preview": false,
+
+  "background": {
+    "type": "svg",
+    "src": "images/finale-board-woojin2.svg?v=1",
+    "viewBox": [0, 0, 840, 1385]
+  },
+
+  "fonts": [
+    { "family": "Anton",                 "woff2": "/fonts/Anton-400.woff2",          "ttf": "/fonts/Anton-400.ttf" },
+    { "family": "IBM Plex Sans KR Medm", "woff2": "/fonts/IBMPlexSansKR-Medm.woff2", "ttf": "/fonts/IBMPlexSansKR-Medm.ttf" },
+    { "family": "IBM Plex Sans KR",      "woff2": "/fonts/IBMPlexSansKR-Regular.woff2" }
+  ],
+
+  "styles": {
+    "name":  { "fontFamily": "IBM Plex Sans KR Medm", "fill": "#20303f" },
+    "count": {
+      "numerator":   { "fontFamily": "IBM Plex Sans KR Medm", "fill": "#ffffff" },
+      "denominator": { "fontFamily": "IBM Plex Sans KR Medm", "fill": "#c3d6f5", "prefix": " / " }
+    },
+    "teamCount": {
+      "numerator":   { "fontFamily": "IBM Plex Sans KR Medm", "fill": "#1f4e9e" },
+      "denominator": { "fontFamily": "IBM Plex Sans KR Medm", "fill": "#8a9bb5", "prefix": " / " }
+    }
+  },
+
+  "photos": { "pattern": "images/{name}.jpeg", "placeholder": "images/플레이스홀더.jpeg" },
+
+  "coStar": { "role": "빌리", "actor": "김우진", "mainOnly": true },
+
+  "slotTemplate": {
+    "cell": "fn-cell-{slot}-{i}",
+    "groupCount": { "id": "fn-group-{actor}", "style": "teamCount" },
+    "fields": [
+      { "type": "text",  "id": "fn-name-{slot}-{i}",  "bind": "$item.name",    "style": "name" },
+      { "type": "photo", "id": "fn-photo-{slot}-{i}", "bind": "$item.name" },
+      { "type": "count", "id": "fn-cnt-{slot}-{i}",   "bind": "$item.stat",    "style": "count" }
+    ]
+  },
+
+  "onUnplaced": "ignore",
+
+  "seatmap": {
+    "target":    { "svgId": "fn-seatbox" },
+    "panel":     { "fill": "none", "rx": 8.5, "stroke": "#7f7f7f", "strokeWidth": 0.75 },
+    "heat":      ["#4aa3ff", "#2fd0c8", "#46c84e", "#c2d92a", "#ffd21f", "#ff9a1f", "#ff6322", "#ef3b2f", "#d81e4a", "#b3126e"],
+    "gradeRamp": { "VIP": 0.30, "R": 0.42, "S": 0.54, "A": 0.64, "default": 0.68 },
+    "floorGap":  { "default": -2, "3": -2.5 },
+    "padding":   { "x": 8, "top": 4, "legendZone": 24 },
+    "legend":    { "count": 10 },
+    "stage":     { "fill": "#f2e8d5", "textFill": "#9c1a1a", "label": "STAGE" }
+  }
+}
