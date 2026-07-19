@@ -54,7 +54,7 @@ const ROWS = [
   ["tall_boy","small_boy"]
 ];
 
-const VB_W = 840, POSTER_H = 1262, VB_H = 1500;   // 포스터 아래로 확장 → 발레(한 줄)·앙상블
+const VB_W = 840, POSTER_H = 1262, VB_H = 1405;   // 발레·앙상블을 톨보이 아래로 끌어올림
 const EXT_BG = "#f3f2f0";   // 확장 영역 배경 = 포스터 빈 공간 회색
 const CX0 = 300, CW = 528 - 0.3*58;   // 콘텐츠 폭 — 오른쪽 여백을 0.3*사진(d58)만큼 늘림
 const BLUE = "#2f6bcf", BLUE_D = "#1f4e9e", INK = "#20303f", RING = "#9fbdea";
@@ -143,8 +143,8 @@ const smX = gridRight - smW;
 heading("SEAT MAP", smX, bandTop + 14, smW, 12.5);
 P(`<rect id="fn-seatbox" x="${smX.toFixed(1)}" y="${(bandTop + 24).toFixed(1)}" width="${smW.toFixed(1)}" height="${smH.toFixed(1)}" fill="none"/>`);
 
-// ── 확장 영역(포스터 아래): 배역 순서 이어서 → 발레걸즈(adult·애싱턴·베들링턴 한 줄) → 앙상블 ──
-const EX_X = 40, EX_W = 760;
+// ── 배역 순서 이어서: 톨보이 아래(포스터 하단 회색, 소년 발 오른쪽)로 끌어올림 → 발레걸즈 → 앙상블 ──
+const EX_X = 150, EX_W = 660;   // 소년 발을 피해 오른쪽에서 시작
 // 여러 하위그룹을 한 줄에 이어 배치. 팀(teamId) 있으면 함께관극수(fn-group)를 선 위·오른쪽 정렬로.
 function groupRow(groups, yTop, d){
   const totalN = groups.reduce((s, g) => s + g.n, 0); if(totalN <= 0) return;
@@ -165,9 +165,9 @@ groupRow([
   { slot:"ballet_girls",            label:"BALLET GIRLS", n:ADULT_N, teamId:null },
   { slot:"ballet_girls_ashington",  label:"ASHINGTON",    n:ASH_N,   teamId:"ashington" },
   { slot:"ballet_girls_bedlington", label:"BEDLINGTON",   n:BED_N,   teamId:"bedlington" }
-], 1290, 50);
+], 1215, 41);
 // 앙상블
-groupRow([{ slot:"ensemble", label:"ENSEMBLE", n:ENS_N, teamId:null }], 1400, 38);
+groupRow([{ slot:"ensemble", label:"ENSEMBLE", n:ENS_N, teamId:null }], 1318, 33);
 
 P(`</svg>`);
 

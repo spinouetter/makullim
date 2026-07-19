@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 840 1500" font-size="12px">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 840 1405" font-size="12px">
 <defs>
 <clipPath id="clip-michael-0"><circle cx="363.8" cy="552.0" r="40.0"/></clipPath>
 <clipPath id="clip-michael-1"><circle cx="491.5" cy="552.0" r="40.0"/></clipPath>
@@ -27,39 +27,39 @@
 <clipPath id="clip-small_boy-0"><circle cx="376.0" cy="1129.0" r="29.0"/></clipPath>
 <clipPath id="clip-small_boy-1"><circle cx="446.0" cy="1129.0" r="29.0"/></clipPath>
 <clipPath id="clip-small_boy-2"><circle cx="516.0" cy="1129.0" r="29.0"/></clipPath>
-<clipPath id="clip-ballet_girls-0"><circle cx="67.1" cy="1339.0" r="25.0"/></clipPath>
-<clipPath id="clip-ballet_girls-1"><circle cx="121.4" cy="1339.0" r="25.0"/></clipPath>
-<clipPath id="clip-ballet_girls-2"><circle cx="175.7" cy="1339.0" r="25.0"/></clipPath>
-<clipPath id="clip-ballet_girls-3"><circle cx="230.0" cy="1339.0" r="25.0"/></clipPath>
-<clipPath id="clip-ballet_girls_ashington-0"><circle cx="284.3" cy="1339.0" r="25.0"/></clipPath>
-<clipPath id="clip-ballet_girls_ashington-1"><circle cx="338.6" cy="1339.0" r="25.0"/></clipPath>
-<clipPath id="clip-ballet_girls_ashington-2"><circle cx="392.9" cy="1339.0" r="25.0"/></clipPath>
-<clipPath id="clip-ballet_girls_ashington-3"><circle cx="447.1" cy="1339.0" r="25.0"/></clipPath>
-<clipPath id="clip-ballet_girls_ashington-4"><circle cx="501.4" cy="1339.0" r="25.0"/></clipPath>
-<clipPath id="clip-ballet_girls_bedlington-0"><circle cx="555.7" cy="1339.0" r="25.0"/></clipPath>
-<clipPath id="clip-ballet_girls_bedlington-1"><circle cx="610.0" cy="1339.0" r="25.0"/></clipPath>
-<clipPath id="clip-ballet_girls_bedlington-2"><circle cx="664.3" cy="1339.0" r="25.0"/></clipPath>
-<clipPath id="clip-ballet_girls_bedlington-3"><circle cx="718.6" cy="1339.0" r="25.0"/></clipPath>
-<clipPath id="clip-ballet_girls_bedlington-4"><circle cx="772.9" cy="1339.0" r="25.0"/></clipPath>
-<clipPath id="clip-ensemble-0"><circle cx="62.4" cy="1443.0" r="19.0"/></clipPath>
-<clipPath id="clip-ensemble-1"><circle cx="107.1" cy="1443.0" r="19.0"/></clipPath>
-<clipPath id="clip-ensemble-2"><circle cx="151.8" cy="1443.0" r="19.0"/></clipPath>
-<clipPath id="clip-ensemble-3"><circle cx="196.5" cy="1443.0" r="19.0"/></clipPath>
-<clipPath id="clip-ensemble-4"><circle cx="241.2" cy="1443.0" r="19.0"/></clipPath>
-<clipPath id="clip-ensemble-5"><circle cx="285.9" cy="1443.0" r="19.0"/></clipPath>
-<clipPath id="clip-ensemble-6"><circle cx="330.6" cy="1443.0" r="19.0"/></clipPath>
-<clipPath id="clip-ensemble-7"><circle cx="375.3" cy="1443.0" r="19.0"/></clipPath>
-<clipPath id="clip-ensemble-8"><circle cx="420.0" cy="1443.0" r="19.0"/></clipPath>
-<clipPath id="clip-ensemble-9"><circle cx="464.7" cy="1443.0" r="19.0"/></clipPath>
-<clipPath id="clip-ensemble-10"><circle cx="509.4" cy="1443.0" r="19.0"/></clipPath>
-<clipPath id="clip-ensemble-11"><circle cx="554.1" cy="1443.0" r="19.0"/></clipPath>
-<clipPath id="clip-ensemble-12"><circle cx="598.8" cy="1443.0" r="19.0"/></clipPath>
-<clipPath id="clip-ensemble-13"><circle cx="643.5" cy="1443.0" r="19.0"/></clipPath>
-<clipPath id="clip-ensemble-14"><circle cx="688.2" cy="1443.0" r="19.0"/></clipPath>
-<clipPath id="clip-ensemble-15"><circle cx="732.9" cy="1443.0" r="19.0"/></clipPath>
-<clipPath id="clip-ensemble-16"><circle cx="777.6" cy="1443.0" r="19.0"/></clipPath>
+<clipPath id="clip-ballet_girls-0"><circle cx="173.6" cy="1259.5" r="20.5"/></clipPath>
+<clipPath id="clip-ballet_girls-1"><circle cx="220.7" cy="1259.5" r="20.5"/></clipPath>
+<clipPath id="clip-ballet_girls-2"><circle cx="267.9" cy="1259.5" r="20.5"/></clipPath>
+<clipPath id="clip-ballet_girls-3"><circle cx="315.0" cy="1259.5" r="20.5"/></clipPath>
+<clipPath id="clip-ballet_girls_ashington-0"><circle cx="362.1" cy="1259.5" r="20.5"/></clipPath>
+<clipPath id="clip-ballet_girls_ashington-1"><circle cx="409.3" cy="1259.5" r="20.5"/></clipPath>
+<clipPath id="clip-ballet_girls_ashington-2"><circle cx="456.4" cy="1259.5" r="20.5"/></clipPath>
+<clipPath id="clip-ballet_girls_ashington-3"><circle cx="503.6" cy="1259.5" r="20.5"/></clipPath>
+<clipPath id="clip-ballet_girls_ashington-4"><circle cx="550.7" cy="1259.5" r="20.5"/></clipPath>
+<clipPath id="clip-ballet_girls_bedlington-0"><circle cx="597.9" cy="1259.5" r="20.5"/></clipPath>
+<clipPath id="clip-ballet_girls_bedlington-1"><circle cx="645.0" cy="1259.5" r="20.5"/></clipPath>
+<clipPath id="clip-ballet_girls_bedlington-2"><circle cx="692.1" cy="1259.5" r="20.5"/></clipPath>
+<clipPath id="clip-ballet_girls_bedlington-3"><circle cx="739.3" cy="1259.5" r="20.5"/></clipPath>
+<clipPath id="clip-ballet_girls_bedlington-4"><circle cx="786.4" cy="1259.5" r="20.5"/></clipPath>
+<clipPath id="clip-ensemble-0"><circle cx="169.4" cy="1358.5" r="16.5"/></clipPath>
+<clipPath id="clip-ensemble-1"><circle cx="208.2" cy="1358.5" r="16.5"/></clipPath>
+<clipPath id="clip-ensemble-2"><circle cx="247.1" cy="1358.5" r="16.5"/></clipPath>
+<clipPath id="clip-ensemble-3"><circle cx="285.9" cy="1358.5" r="16.5"/></clipPath>
+<clipPath id="clip-ensemble-4"><circle cx="324.7" cy="1358.5" r="16.5"/></clipPath>
+<clipPath id="clip-ensemble-5"><circle cx="363.5" cy="1358.5" r="16.5"/></clipPath>
+<clipPath id="clip-ensemble-6"><circle cx="402.4" cy="1358.5" r="16.5"/></clipPath>
+<clipPath id="clip-ensemble-7"><circle cx="441.2" cy="1358.5" r="16.5"/></clipPath>
+<clipPath id="clip-ensemble-8"><circle cx="480.0" cy="1358.5" r="16.5"/></clipPath>
+<clipPath id="clip-ensemble-9"><circle cx="518.8" cy="1358.5" r="16.5"/></clipPath>
+<clipPath id="clip-ensemble-10"><circle cx="557.6" cy="1358.5" r="16.5"/></clipPath>
+<clipPath id="clip-ensemble-11"><circle cx="596.5" cy="1358.5" r="16.5"/></clipPath>
+<clipPath id="clip-ensemble-12"><circle cx="635.3" cy="1358.5" r="16.5"/></clipPath>
+<clipPath id="clip-ensemble-13"><circle cx="674.1" cy="1358.5" r="16.5"/></clipPath>
+<clipPath id="clip-ensemble-14"><circle cx="712.9" cy="1358.5" r="16.5"/></clipPath>
+<clipPath id="clip-ensemble-15"><circle cx="751.8" cy="1358.5" r="16.5"/></clipPath>
+<clipPath id="clip-ensemble-16"><circle cx="790.6" cy="1358.5" r="16.5"/></clipPath>
 </defs>
-<rect x="0" y="0" width="840" height="1500" fill="#f3f2f0"/>
+<rect x="0" y="0" width="840" height="1405" fill="#f3f2f0"/>
 <image x="0" y="0" width="840" height="1262" preserveAspectRatio="none" xlink:href="/shows/betm-skorea-2026/images/finale-board-woojin-bg.jpg"/>
 <text x="323.8" y="495.0" font-family="Anton, sans-serif" font-size="18" letter-spacing="0.5" fill="#1f4e9e">MICHAEL</text>
 <line x1="323.8" y1="500.0" x2="786.8" y2="500.0" stroke="#1f4e9e" stroke-width="1"/>
@@ -270,169 +270,169 @@
 <text x="592.7" y="962.0" font-family="Anton, sans-serif" font-size="12.5" letter-spacing="0.5" fill="#1f4e9e">SEAT MAP</text>
 <line x1="592.7" y1="967.0" x2="797.1" y2="967.0" stroke="#1f4e9e" stroke-width="1"/>
 <rect id="fn-seatbox" x="592.7" y="972.0" width="204.3" height="207.5" fill="none"/>
-<text x="42.1" y="1304.0" font-family="Anton, sans-serif" font-size="13" letter-spacing="0.5" fill="#1f4e9e">BALLET GIRLS</text>
-<line x1="42.1" y1="1309.0" x2="255.0" y2="1309.0" stroke="#1f4e9e" stroke-width="1"/>
+<text x="153.1" y="1229.0" font-family="Anton, sans-serif" font-size="13" letter-spacing="0.5" fill="#1f4e9e">BALLET GIRLS</text>
+<line x1="153.1" y1="1234.0" x2="335.5" y2="1234.0" stroke="#1f4e9e" stroke-width="1"/>
 <g id="fn-cell-ballet_girls-0">
-  <image id="fn-photo-ballet_girls-0" x="42.1" y="1314.0" width="50.0" height="50.0" preserveAspectRatio="xMidYMin slice" clip-path="url(#clip-ballet_girls-0)" xlink:href="images/%ED%94%8C%EB%A0%88%EC%9D%B4%EC%8A%A4%ED%99%80%EB%8D%94.jpeg"/>
-  <circle cx="67.1" cy="1339.0" r="25.0" fill="none" stroke="#9fbdea" stroke-width="1.2"/>
-  <text id="fn-name-ballet_girls-0" x="67.1" y="1377.0" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="12" fill="#20303f"> </text>
+  <image id="fn-photo-ballet_girls-0" x="153.1" y="1239.0" width="41.0" height="41.0" preserveAspectRatio="xMidYMin slice" clip-path="url(#clip-ballet_girls-0)" xlink:href="images/%ED%94%8C%EB%A0%88%EC%9D%B4%EC%8A%A4%ED%99%80%EB%8D%94.jpeg"/>
+  <circle cx="173.6" cy="1259.5" r="20.5" fill="none" stroke="#9fbdea" stroke-width="1.2"/>
+  <text id="fn-name-ballet_girls-0" x="173.6" y="1290.7" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="9.84" fill="#20303f"> </text>
 </g>
 <g id="fn-cell-ballet_girls-1">
-  <image id="fn-photo-ballet_girls-1" x="96.4" y="1314.0" width="50.0" height="50.0" preserveAspectRatio="xMidYMin slice" clip-path="url(#clip-ballet_girls-1)" xlink:href="images/%ED%94%8C%EB%A0%88%EC%9D%B4%EC%8A%A4%ED%99%80%EB%8D%94.jpeg"/>
-  <circle cx="121.4" cy="1339.0" r="25.0" fill="none" stroke="#9fbdea" stroke-width="1.2"/>
-  <text id="fn-name-ballet_girls-1" x="121.4" y="1377.0" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="12" fill="#20303f"> </text>
+  <image id="fn-photo-ballet_girls-1" x="200.2" y="1239.0" width="41.0" height="41.0" preserveAspectRatio="xMidYMin slice" clip-path="url(#clip-ballet_girls-1)" xlink:href="images/%ED%94%8C%EB%A0%88%EC%9D%B4%EC%8A%A4%ED%99%80%EB%8D%94.jpeg"/>
+  <circle cx="220.7" cy="1259.5" r="20.5" fill="none" stroke="#9fbdea" stroke-width="1.2"/>
+  <text id="fn-name-ballet_girls-1" x="220.7" y="1290.7" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="9.84" fill="#20303f"> </text>
 </g>
 <g id="fn-cell-ballet_girls-2">
-  <image id="fn-photo-ballet_girls-2" x="150.7" y="1314.0" width="50.0" height="50.0" preserveAspectRatio="xMidYMin slice" clip-path="url(#clip-ballet_girls-2)" xlink:href="images/%ED%94%8C%EB%A0%88%EC%9D%B4%EC%8A%A4%ED%99%80%EB%8D%94.jpeg"/>
-  <circle cx="175.7" cy="1339.0" r="25.0" fill="none" stroke="#9fbdea" stroke-width="1.2"/>
-  <text id="fn-name-ballet_girls-2" x="175.7" y="1377.0" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="12" fill="#20303f"> </text>
+  <image id="fn-photo-ballet_girls-2" x="247.4" y="1239.0" width="41.0" height="41.0" preserveAspectRatio="xMidYMin slice" clip-path="url(#clip-ballet_girls-2)" xlink:href="images/%ED%94%8C%EB%A0%88%EC%9D%B4%EC%8A%A4%ED%99%80%EB%8D%94.jpeg"/>
+  <circle cx="267.9" cy="1259.5" r="20.5" fill="none" stroke="#9fbdea" stroke-width="1.2"/>
+  <text id="fn-name-ballet_girls-2" x="267.9" y="1290.7" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="9.84" fill="#20303f"> </text>
 </g>
 <g id="fn-cell-ballet_girls-3">
-  <image id="fn-photo-ballet_girls-3" x="205.0" y="1314.0" width="50.0" height="50.0" preserveAspectRatio="xMidYMin slice" clip-path="url(#clip-ballet_girls-3)" xlink:href="images/%ED%94%8C%EB%A0%88%EC%9D%B4%EC%8A%A4%ED%99%80%EB%8D%94.jpeg"/>
-  <circle cx="230.0" cy="1339.0" r="25.0" fill="none" stroke="#9fbdea" stroke-width="1.2"/>
-  <text id="fn-name-ballet_girls-3" x="230.0" y="1377.0" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="12" fill="#20303f"> </text>
+  <image id="fn-photo-ballet_girls-3" x="294.5" y="1239.0" width="41.0" height="41.0" preserveAspectRatio="xMidYMin slice" clip-path="url(#clip-ballet_girls-3)" xlink:href="images/%ED%94%8C%EB%A0%88%EC%9D%B4%EC%8A%A4%ED%99%80%EB%8D%94.jpeg"/>
+  <circle cx="315.0" cy="1259.5" r="20.5" fill="none" stroke="#9fbdea" stroke-width="1.2"/>
+  <text id="fn-name-ballet_girls-3" x="315.0" y="1290.7" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="9.84" fill="#20303f"> </text>
 </g>
-<text x="259.3" y="1304.0" font-family="Anton, sans-serif" font-size="13" letter-spacing="0.5" fill="#1f4e9e">ASHINGTON</text>
-<line x1="259.3" y1="1309.0" x2="526.4" y2="1309.0" stroke="#1f4e9e" stroke-width="1"/>
-<text id="fn-group-ashington" x="526.4" y="1302.0" text-anchor="end" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="12" font-weight="700" fill="#1f4e9e">0</text>
+<text x="341.6" y="1229.0" font-family="Anton, sans-serif" font-size="13" letter-spacing="0.5" fill="#1f4e9e">ASHINGTON</text>
+<line x1="341.6" y1="1234.0" x2="571.2" y2="1234.0" stroke="#1f4e9e" stroke-width="1"/>
+<text id="fn-group-ashington" x="571.2" y="1227.0" text-anchor="end" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="12" font-weight="700" fill="#1f4e9e">0</text>
 <g id="fn-cell-ballet_girls_ashington-0">
-  <image id="fn-photo-ballet_girls_ashington-0" x="259.3" y="1314.0" width="50.0" height="50.0" preserveAspectRatio="xMidYMin slice" clip-path="url(#clip-ballet_girls_ashington-0)" xlink:href="images/%ED%94%8C%EB%A0%88%EC%9D%B4%EC%8A%A4%ED%99%80%EB%8D%94.jpeg"/>
-  <circle cx="284.3" cy="1339.0" r="25.0" fill="none" stroke="#9fbdea" stroke-width="1.2"/>
-  <text id="fn-name-ballet_girls_ashington-0" x="284.3" y="1377.0" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="12" fill="#20303f"> </text>
+  <image id="fn-photo-ballet_girls_ashington-0" x="341.6" y="1239.0" width="41.0" height="41.0" preserveAspectRatio="xMidYMin slice" clip-path="url(#clip-ballet_girls_ashington-0)" xlink:href="images/%ED%94%8C%EB%A0%88%EC%9D%B4%EC%8A%A4%ED%99%80%EB%8D%94.jpeg"/>
+  <circle cx="362.1" cy="1259.5" r="20.5" fill="none" stroke="#9fbdea" stroke-width="1.2"/>
+  <text id="fn-name-ballet_girls_ashington-0" x="362.1" y="1290.7" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="9.84" fill="#20303f"> </text>
 </g>
 <g id="fn-cell-ballet_girls_ashington-1">
-  <image id="fn-photo-ballet_girls_ashington-1" x="313.6" y="1314.0" width="50.0" height="50.0" preserveAspectRatio="xMidYMin slice" clip-path="url(#clip-ballet_girls_ashington-1)" xlink:href="images/%ED%94%8C%EB%A0%88%EC%9D%B4%EC%8A%A4%ED%99%80%EB%8D%94.jpeg"/>
-  <circle cx="338.6" cy="1339.0" r="25.0" fill="none" stroke="#9fbdea" stroke-width="1.2"/>
-  <text id="fn-name-ballet_girls_ashington-1" x="338.6" y="1377.0" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="12" fill="#20303f"> </text>
+  <image id="fn-photo-ballet_girls_ashington-1" x="388.8" y="1239.0" width="41.0" height="41.0" preserveAspectRatio="xMidYMin slice" clip-path="url(#clip-ballet_girls_ashington-1)" xlink:href="images/%ED%94%8C%EB%A0%88%EC%9D%B4%EC%8A%A4%ED%99%80%EB%8D%94.jpeg"/>
+  <circle cx="409.3" cy="1259.5" r="20.5" fill="none" stroke="#9fbdea" stroke-width="1.2"/>
+  <text id="fn-name-ballet_girls_ashington-1" x="409.3" y="1290.7" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="9.84" fill="#20303f"> </text>
 </g>
 <g id="fn-cell-ballet_girls_ashington-2">
-  <image id="fn-photo-ballet_girls_ashington-2" x="367.9" y="1314.0" width="50.0" height="50.0" preserveAspectRatio="xMidYMin slice" clip-path="url(#clip-ballet_girls_ashington-2)" xlink:href="images/%ED%94%8C%EB%A0%88%EC%9D%B4%EC%8A%A4%ED%99%80%EB%8D%94.jpeg"/>
-  <circle cx="392.9" cy="1339.0" r="25.0" fill="none" stroke="#9fbdea" stroke-width="1.2"/>
-  <text id="fn-name-ballet_girls_ashington-2" x="392.9" y="1377.0" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="12" fill="#20303f"> </text>
+  <image id="fn-photo-ballet_girls_ashington-2" x="435.9" y="1239.0" width="41.0" height="41.0" preserveAspectRatio="xMidYMin slice" clip-path="url(#clip-ballet_girls_ashington-2)" xlink:href="images/%ED%94%8C%EB%A0%88%EC%9D%B4%EC%8A%A4%ED%99%80%EB%8D%94.jpeg"/>
+  <circle cx="456.4" cy="1259.5" r="20.5" fill="none" stroke="#9fbdea" stroke-width="1.2"/>
+  <text id="fn-name-ballet_girls_ashington-2" x="456.4" y="1290.7" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="9.84" fill="#20303f"> </text>
 </g>
 <g id="fn-cell-ballet_girls_ashington-3">
-  <image id="fn-photo-ballet_girls_ashington-3" x="422.1" y="1314.0" width="50.0" height="50.0" preserveAspectRatio="xMidYMin slice" clip-path="url(#clip-ballet_girls_ashington-3)" xlink:href="images/%ED%94%8C%EB%A0%88%EC%9D%B4%EC%8A%A4%ED%99%80%EB%8D%94.jpeg"/>
-  <circle cx="447.1" cy="1339.0" r="25.0" fill="none" stroke="#9fbdea" stroke-width="1.2"/>
-  <text id="fn-name-ballet_girls_ashington-3" x="447.1" y="1377.0" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="12" fill="#20303f"> </text>
+  <image id="fn-photo-ballet_girls_ashington-3" x="483.1" y="1239.0" width="41.0" height="41.0" preserveAspectRatio="xMidYMin slice" clip-path="url(#clip-ballet_girls_ashington-3)" xlink:href="images/%ED%94%8C%EB%A0%88%EC%9D%B4%EC%8A%A4%ED%99%80%EB%8D%94.jpeg"/>
+  <circle cx="503.6" cy="1259.5" r="20.5" fill="none" stroke="#9fbdea" stroke-width="1.2"/>
+  <text id="fn-name-ballet_girls_ashington-3" x="503.6" y="1290.7" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="9.84" fill="#20303f"> </text>
 </g>
 <g id="fn-cell-ballet_girls_ashington-4">
-  <image id="fn-photo-ballet_girls_ashington-4" x="476.4" y="1314.0" width="50.0" height="50.0" preserveAspectRatio="xMidYMin slice" clip-path="url(#clip-ballet_girls_ashington-4)" xlink:href="images/%ED%94%8C%EB%A0%88%EC%9D%B4%EC%8A%A4%ED%99%80%EB%8D%94.jpeg"/>
-  <circle cx="501.4" cy="1339.0" r="25.0" fill="none" stroke="#9fbdea" stroke-width="1.2"/>
-  <text id="fn-name-ballet_girls_ashington-4" x="501.4" y="1377.0" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="12" fill="#20303f"> </text>
+  <image id="fn-photo-ballet_girls_ashington-4" x="530.2" y="1239.0" width="41.0" height="41.0" preserveAspectRatio="xMidYMin slice" clip-path="url(#clip-ballet_girls_ashington-4)" xlink:href="images/%ED%94%8C%EB%A0%88%EC%9D%B4%EC%8A%A4%ED%99%80%EB%8D%94.jpeg"/>
+  <circle cx="550.7" cy="1259.5" r="20.5" fill="none" stroke="#9fbdea" stroke-width="1.2"/>
+  <text id="fn-name-ballet_girls_ashington-4" x="550.7" y="1290.7" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="9.84" fill="#20303f"> </text>
 </g>
-<text x="530.7" y="1304.0" font-family="Anton, sans-serif" font-size="13" letter-spacing="0.5" fill="#1f4e9e">BEDLINGTON</text>
-<line x1="530.7" y1="1309.0" x2="797.9" y2="1309.0" stroke="#1f4e9e" stroke-width="1"/>
-<text id="fn-group-bedlington" x="797.9" y="1302.0" text-anchor="end" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="12" font-weight="700" fill="#1f4e9e">0</text>
+<text x="577.4" y="1229.0" font-family="Anton, sans-serif" font-size="13" letter-spacing="0.5" fill="#1f4e9e">BEDLINGTON</text>
+<line x1="577.4" y1="1234.0" x2="806.9" y2="1234.0" stroke="#1f4e9e" stroke-width="1"/>
+<text id="fn-group-bedlington" x="806.9" y="1227.0" text-anchor="end" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="12" font-weight="700" fill="#1f4e9e">0</text>
 <g id="fn-cell-ballet_girls_bedlington-0">
-  <image id="fn-photo-ballet_girls_bedlington-0" x="530.7" y="1314.0" width="50.0" height="50.0" preserveAspectRatio="xMidYMin slice" clip-path="url(#clip-ballet_girls_bedlington-0)" xlink:href="images/%ED%94%8C%EB%A0%88%EC%9D%B4%EC%8A%A4%ED%99%80%EB%8D%94.jpeg"/>
-  <circle cx="555.7" cy="1339.0" r="25.0" fill="none" stroke="#9fbdea" stroke-width="1.2"/>
-  <text id="fn-name-ballet_girls_bedlington-0" x="555.7" y="1377.0" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="12" fill="#20303f"> </text>
+  <image id="fn-photo-ballet_girls_bedlington-0" x="577.4" y="1239.0" width="41.0" height="41.0" preserveAspectRatio="xMidYMin slice" clip-path="url(#clip-ballet_girls_bedlington-0)" xlink:href="images/%ED%94%8C%EB%A0%88%EC%9D%B4%EC%8A%A4%ED%99%80%EB%8D%94.jpeg"/>
+  <circle cx="597.9" cy="1259.5" r="20.5" fill="none" stroke="#9fbdea" stroke-width="1.2"/>
+  <text id="fn-name-ballet_girls_bedlington-0" x="597.9" y="1290.7" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="9.84" fill="#20303f"> </text>
 </g>
 <g id="fn-cell-ballet_girls_bedlington-1">
-  <image id="fn-photo-ballet_girls_bedlington-1" x="585.0" y="1314.0" width="50.0" height="50.0" preserveAspectRatio="xMidYMin slice" clip-path="url(#clip-ballet_girls_bedlington-1)" xlink:href="images/%ED%94%8C%EB%A0%88%EC%9D%B4%EC%8A%A4%ED%99%80%EB%8D%94.jpeg"/>
-  <circle cx="610.0" cy="1339.0" r="25.0" fill="none" stroke="#9fbdea" stroke-width="1.2"/>
-  <text id="fn-name-ballet_girls_bedlington-1" x="610.0" y="1377.0" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="12" fill="#20303f"> </text>
+  <image id="fn-photo-ballet_girls_bedlington-1" x="624.5" y="1239.0" width="41.0" height="41.0" preserveAspectRatio="xMidYMin slice" clip-path="url(#clip-ballet_girls_bedlington-1)" xlink:href="images/%ED%94%8C%EB%A0%88%EC%9D%B4%EC%8A%A4%ED%99%80%EB%8D%94.jpeg"/>
+  <circle cx="645.0" cy="1259.5" r="20.5" fill="none" stroke="#9fbdea" stroke-width="1.2"/>
+  <text id="fn-name-ballet_girls_bedlington-1" x="645.0" y="1290.7" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="9.84" fill="#20303f"> </text>
 </g>
 <g id="fn-cell-ballet_girls_bedlington-2">
-  <image id="fn-photo-ballet_girls_bedlington-2" x="639.3" y="1314.0" width="50.0" height="50.0" preserveAspectRatio="xMidYMin slice" clip-path="url(#clip-ballet_girls_bedlington-2)" xlink:href="images/%ED%94%8C%EB%A0%88%EC%9D%B4%EC%8A%A4%ED%99%80%EB%8D%94.jpeg"/>
-  <circle cx="664.3" cy="1339.0" r="25.0" fill="none" stroke="#9fbdea" stroke-width="1.2"/>
-  <text id="fn-name-ballet_girls_bedlington-2" x="664.3" y="1377.0" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="12" fill="#20303f"> </text>
+  <image id="fn-photo-ballet_girls_bedlington-2" x="671.6" y="1239.0" width="41.0" height="41.0" preserveAspectRatio="xMidYMin slice" clip-path="url(#clip-ballet_girls_bedlington-2)" xlink:href="images/%ED%94%8C%EB%A0%88%EC%9D%B4%EC%8A%A4%ED%99%80%EB%8D%94.jpeg"/>
+  <circle cx="692.1" cy="1259.5" r="20.5" fill="none" stroke="#9fbdea" stroke-width="1.2"/>
+  <text id="fn-name-ballet_girls_bedlington-2" x="692.1" y="1290.7" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="9.84" fill="#20303f"> </text>
 </g>
 <g id="fn-cell-ballet_girls_bedlington-3">
-  <image id="fn-photo-ballet_girls_bedlington-3" x="693.6" y="1314.0" width="50.0" height="50.0" preserveAspectRatio="xMidYMin slice" clip-path="url(#clip-ballet_girls_bedlington-3)" xlink:href="images/%ED%94%8C%EB%A0%88%EC%9D%B4%EC%8A%A4%ED%99%80%EB%8D%94.jpeg"/>
-  <circle cx="718.6" cy="1339.0" r="25.0" fill="none" stroke="#9fbdea" stroke-width="1.2"/>
-  <text id="fn-name-ballet_girls_bedlington-3" x="718.6" y="1377.0" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="12" fill="#20303f"> </text>
+  <image id="fn-photo-ballet_girls_bedlington-3" x="718.8" y="1239.0" width="41.0" height="41.0" preserveAspectRatio="xMidYMin slice" clip-path="url(#clip-ballet_girls_bedlington-3)" xlink:href="images/%ED%94%8C%EB%A0%88%EC%9D%B4%EC%8A%A4%ED%99%80%EB%8D%94.jpeg"/>
+  <circle cx="739.3" cy="1259.5" r="20.5" fill="none" stroke="#9fbdea" stroke-width="1.2"/>
+  <text id="fn-name-ballet_girls_bedlington-3" x="739.3" y="1290.7" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="9.84" fill="#20303f"> </text>
 </g>
 <g id="fn-cell-ballet_girls_bedlington-4">
-  <image id="fn-photo-ballet_girls_bedlington-4" x="747.9" y="1314.0" width="50.0" height="50.0" preserveAspectRatio="xMidYMin slice" clip-path="url(#clip-ballet_girls_bedlington-4)" xlink:href="images/%ED%94%8C%EB%A0%88%EC%9D%B4%EC%8A%A4%ED%99%80%EB%8D%94.jpeg"/>
-  <circle cx="772.9" cy="1339.0" r="25.0" fill="none" stroke="#9fbdea" stroke-width="1.2"/>
-  <text id="fn-name-ballet_girls_bedlington-4" x="772.9" y="1377.0" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="12" fill="#20303f"> </text>
+  <image id="fn-photo-ballet_girls_bedlington-4" x="765.9" y="1239.0" width="41.0" height="41.0" preserveAspectRatio="xMidYMin slice" clip-path="url(#clip-ballet_girls_bedlington-4)" xlink:href="images/%ED%94%8C%EB%A0%88%EC%9D%B4%EC%8A%A4%ED%99%80%EB%8D%94.jpeg"/>
+  <circle cx="786.4" cy="1259.5" r="20.5" fill="none" stroke="#9fbdea" stroke-width="1.2"/>
+  <text id="fn-name-ballet_girls_bedlington-4" x="786.4" y="1290.7" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="9.84" fill="#20303f"> </text>
 </g>
-<text x="43.4" y="1414.0" font-family="Anton, sans-serif" font-size="13" letter-spacing="0.5" fill="#1f4e9e">ENSEMBLE</text>
-<line x1="43.4" y1="1419.0" x2="796.6" y2="1419.0" stroke="#1f4e9e" stroke-width="1"/>
+<text x="152.9" y="1332.0" font-family="Anton, sans-serif" font-size="13" letter-spacing="0.5" fill="#1f4e9e">ENSEMBLE</text>
+<line x1="152.9" y1="1337.0" x2="807.1" y2="1337.0" stroke="#1f4e9e" stroke-width="1"/>
 <g id="fn-cell-ensemble-0">
-  <image id="fn-photo-ensemble-0" x="43.4" y="1424.0" width="38.0" height="38.0" preserveAspectRatio="xMidYMin slice" clip-path="url(#clip-ensemble-0)" xlink:href="images/%ED%94%8C%EB%A0%88%EC%9D%B4%EC%8A%A4%ED%99%80%EB%8D%94.jpeg"/>
-  <circle cx="62.4" cy="1443.0" r="19.0" fill="none" stroke="#9fbdea" stroke-width="1.2"/>
-  <text id="fn-name-ensemble-0" x="62.4" y="1471.9" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="9.12" fill="#20303f"> </text>
+  <image id="fn-photo-ensemble-0" x="152.9" y="1342.0" width="33.0" height="33.0" preserveAspectRatio="xMidYMin slice" clip-path="url(#clip-ensemble-0)" xlink:href="images/%ED%94%8C%EB%A0%88%EC%9D%B4%EC%8A%A4%ED%99%80%EB%8D%94.jpeg"/>
+  <circle cx="169.4" cy="1358.5" r="16.5" fill="none" stroke="#9fbdea" stroke-width="1.2"/>
+  <text id="fn-name-ensemble-0" x="169.4" y="1384.0" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="8" fill="#20303f"> </text>
 </g>
 <g id="fn-cell-ensemble-1">
-  <image id="fn-photo-ensemble-1" x="88.1" y="1424.0" width="38.0" height="38.0" preserveAspectRatio="xMidYMin slice" clip-path="url(#clip-ensemble-1)" xlink:href="images/%ED%94%8C%EB%A0%88%EC%9D%B4%EC%8A%A4%ED%99%80%EB%8D%94.jpeg"/>
-  <circle cx="107.1" cy="1443.0" r="19.0" fill="none" stroke="#9fbdea" stroke-width="1.2"/>
-  <text id="fn-name-ensemble-1" x="107.1" y="1471.9" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="9.12" fill="#20303f"> </text>
+  <image id="fn-photo-ensemble-1" x="191.7" y="1342.0" width="33.0" height="33.0" preserveAspectRatio="xMidYMin slice" clip-path="url(#clip-ensemble-1)" xlink:href="images/%ED%94%8C%EB%A0%88%EC%9D%B4%EC%8A%A4%ED%99%80%EB%8D%94.jpeg"/>
+  <circle cx="208.2" cy="1358.5" r="16.5" fill="none" stroke="#9fbdea" stroke-width="1.2"/>
+  <text id="fn-name-ensemble-1" x="208.2" y="1384.0" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="8" fill="#20303f"> </text>
 </g>
 <g id="fn-cell-ensemble-2">
-  <image id="fn-photo-ensemble-2" x="132.8" y="1424.0" width="38.0" height="38.0" preserveAspectRatio="xMidYMin slice" clip-path="url(#clip-ensemble-2)" xlink:href="images/%ED%94%8C%EB%A0%88%EC%9D%B4%EC%8A%A4%ED%99%80%EB%8D%94.jpeg"/>
-  <circle cx="151.8" cy="1443.0" r="19.0" fill="none" stroke="#9fbdea" stroke-width="1.2"/>
-  <text id="fn-name-ensemble-2" x="151.8" y="1471.9" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="9.12" fill="#20303f"> </text>
+  <image id="fn-photo-ensemble-2" x="230.6" y="1342.0" width="33.0" height="33.0" preserveAspectRatio="xMidYMin slice" clip-path="url(#clip-ensemble-2)" xlink:href="images/%ED%94%8C%EB%A0%88%EC%9D%B4%EC%8A%A4%ED%99%80%EB%8D%94.jpeg"/>
+  <circle cx="247.1" cy="1358.5" r="16.5" fill="none" stroke="#9fbdea" stroke-width="1.2"/>
+  <text id="fn-name-ensemble-2" x="247.1" y="1384.0" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="8" fill="#20303f"> </text>
 </g>
 <g id="fn-cell-ensemble-3">
-  <image id="fn-photo-ensemble-3" x="177.5" y="1424.0" width="38.0" height="38.0" preserveAspectRatio="xMidYMin slice" clip-path="url(#clip-ensemble-3)" xlink:href="images/%ED%94%8C%EB%A0%88%EC%9D%B4%EC%8A%A4%ED%99%80%EB%8D%94.jpeg"/>
-  <circle cx="196.5" cy="1443.0" r="19.0" fill="none" stroke="#9fbdea" stroke-width="1.2"/>
-  <text id="fn-name-ensemble-3" x="196.5" y="1471.9" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="9.12" fill="#20303f"> </text>
+  <image id="fn-photo-ensemble-3" x="269.4" y="1342.0" width="33.0" height="33.0" preserveAspectRatio="xMidYMin slice" clip-path="url(#clip-ensemble-3)" xlink:href="images/%ED%94%8C%EB%A0%88%EC%9D%B4%EC%8A%A4%ED%99%80%EB%8D%94.jpeg"/>
+  <circle cx="285.9" cy="1358.5" r="16.5" fill="none" stroke="#9fbdea" stroke-width="1.2"/>
+  <text id="fn-name-ensemble-3" x="285.9" y="1384.0" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="8" fill="#20303f"> </text>
 </g>
 <g id="fn-cell-ensemble-4">
-  <image id="fn-photo-ensemble-4" x="222.2" y="1424.0" width="38.0" height="38.0" preserveAspectRatio="xMidYMin slice" clip-path="url(#clip-ensemble-4)" xlink:href="images/%ED%94%8C%EB%A0%88%EC%9D%B4%EC%8A%A4%ED%99%80%EB%8D%94.jpeg"/>
-  <circle cx="241.2" cy="1443.0" r="19.0" fill="none" stroke="#9fbdea" stroke-width="1.2"/>
-  <text id="fn-name-ensemble-4" x="241.2" y="1471.9" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="9.12" fill="#20303f"> </text>
+  <image id="fn-photo-ensemble-4" x="308.2" y="1342.0" width="33.0" height="33.0" preserveAspectRatio="xMidYMin slice" clip-path="url(#clip-ensemble-4)" xlink:href="images/%ED%94%8C%EB%A0%88%EC%9D%B4%EC%8A%A4%ED%99%80%EB%8D%94.jpeg"/>
+  <circle cx="324.7" cy="1358.5" r="16.5" fill="none" stroke="#9fbdea" stroke-width="1.2"/>
+  <text id="fn-name-ensemble-4" x="324.7" y="1384.0" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="8" fill="#20303f"> </text>
 </g>
 <g id="fn-cell-ensemble-5">
-  <image id="fn-photo-ensemble-5" x="266.9" y="1424.0" width="38.0" height="38.0" preserveAspectRatio="xMidYMin slice" clip-path="url(#clip-ensemble-5)" xlink:href="images/%ED%94%8C%EB%A0%88%EC%9D%B4%EC%8A%A4%ED%99%80%EB%8D%94.jpeg"/>
-  <circle cx="285.9" cy="1443.0" r="19.0" fill="none" stroke="#9fbdea" stroke-width="1.2"/>
-  <text id="fn-name-ensemble-5" x="285.9" y="1471.9" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="9.12" fill="#20303f"> </text>
+  <image id="fn-photo-ensemble-5" x="347.0" y="1342.0" width="33.0" height="33.0" preserveAspectRatio="xMidYMin slice" clip-path="url(#clip-ensemble-5)" xlink:href="images/%ED%94%8C%EB%A0%88%EC%9D%B4%EC%8A%A4%ED%99%80%EB%8D%94.jpeg"/>
+  <circle cx="363.5" cy="1358.5" r="16.5" fill="none" stroke="#9fbdea" stroke-width="1.2"/>
+  <text id="fn-name-ensemble-5" x="363.5" y="1384.0" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="8" fill="#20303f"> </text>
 </g>
 <g id="fn-cell-ensemble-6">
-  <image id="fn-photo-ensemble-6" x="311.6" y="1424.0" width="38.0" height="38.0" preserveAspectRatio="xMidYMin slice" clip-path="url(#clip-ensemble-6)" xlink:href="images/%ED%94%8C%EB%A0%88%EC%9D%B4%EC%8A%A4%ED%99%80%EB%8D%94.jpeg"/>
-  <circle cx="330.6" cy="1443.0" r="19.0" fill="none" stroke="#9fbdea" stroke-width="1.2"/>
-  <text id="fn-name-ensemble-6" x="330.6" y="1471.9" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="9.12" fill="#20303f"> </text>
+  <image id="fn-photo-ensemble-6" x="385.9" y="1342.0" width="33.0" height="33.0" preserveAspectRatio="xMidYMin slice" clip-path="url(#clip-ensemble-6)" xlink:href="images/%ED%94%8C%EB%A0%88%EC%9D%B4%EC%8A%A4%ED%99%80%EB%8D%94.jpeg"/>
+  <circle cx="402.4" cy="1358.5" r="16.5" fill="none" stroke="#9fbdea" stroke-width="1.2"/>
+  <text id="fn-name-ensemble-6" x="402.4" y="1384.0" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="8" fill="#20303f"> </text>
 </g>
 <g id="fn-cell-ensemble-7">
-  <image id="fn-photo-ensemble-7" x="356.3" y="1424.0" width="38.0" height="38.0" preserveAspectRatio="xMidYMin slice" clip-path="url(#clip-ensemble-7)" xlink:href="images/%ED%94%8C%EB%A0%88%EC%9D%B4%EC%8A%A4%ED%99%80%EB%8D%94.jpeg"/>
-  <circle cx="375.3" cy="1443.0" r="19.0" fill="none" stroke="#9fbdea" stroke-width="1.2"/>
-  <text id="fn-name-ensemble-7" x="375.3" y="1471.9" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="9.12" fill="#20303f"> </text>
+  <image id="fn-photo-ensemble-7" x="424.7" y="1342.0" width="33.0" height="33.0" preserveAspectRatio="xMidYMin slice" clip-path="url(#clip-ensemble-7)" xlink:href="images/%ED%94%8C%EB%A0%88%EC%9D%B4%EC%8A%A4%ED%99%80%EB%8D%94.jpeg"/>
+  <circle cx="441.2" cy="1358.5" r="16.5" fill="none" stroke="#9fbdea" stroke-width="1.2"/>
+  <text id="fn-name-ensemble-7" x="441.2" y="1384.0" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="8" fill="#20303f"> </text>
 </g>
 <g id="fn-cell-ensemble-8">
-  <image id="fn-photo-ensemble-8" x="401.0" y="1424.0" width="38.0" height="38.0" preserveAspectRatio="xMidYMin slice" clip-path="url(#clip-ensemble-8)" xlink:href="images/%ED%94%8C%EB%A0%88%EC%9D%B4%EC%8A%A4%ED%99%80%EB%8D%94.jpeg"/>
-  <circle cx="420.0" cy="1443.0" r="19.0" fill="none" stroke="#9fbdea" stroke-width="1.2"/>
-  <text id="fn-name-ensemble-8" x="420.0" y="1471.9" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="9.12" fill="#20303f"> </text>
+  <image id="fn-photo-ensemble-8" x="463.5" y="1342.0" width="33.0" height="33.0" preserveAspectRatio="xMidYMin slice" clip-path="url(#clip-ensemble-8)" xlink:href="images/%ED%94%8C%EB%A0%88%EC%9D%B4%EC%8A%A4%ED%99%80%EB%8D%94.jpeg"/>
+  <circle cx="480.0" cy="1358.5" r="16.5" fill="none" stroke="#9fbdea" stroke-width="1.2"/>
+  <text id="fn-name-ensemble-8" x="480.0" y="1384.0" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="8" fill="#20303f"> </text>
 </g>
 <g id="fn-cell-ensemble-9">
-  <image id="fn-photo-ensemble-9" x="445.7" y="1424.0" width="38.0" height="38.0" preserveAspectRatio="xMidYMin slice" clip-path="url(#clip-ensemble-9)" xlink:href="images/%ED%94%8C%EB%A0%88%EC%9D%B4%EC%8A%A4%ED%99%80%EB%8D%94.jpeg"/>
-  <circle cx="464.7" cy="1443.0" r="19.0" fill="none" stroke="#9fbdea" stroke-width="1.2"/>
-  <text id="fn-name-ensemble-9" x="464.7" y="1471.9" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="9.12" fill="#20303f"> </text>
+  <image id="fn-photo-ensemble-9" x="502.3" y="1342.0" width="33.0" height="33.0" preserveAspectRatio="xMidYMin slice" clip-path="url(#clip-ensemble-9)" xlink:href="images/%ED%94%8C%EB%A0%88%EC%9D%B4%EC%8A%A4%ED%99%80%EB%8D%94.jpeg"/>
+  <circle cx="518.8" cy="1358.5" r="16.5" fill="none" stroke="#9fbdea" stroke-width="1.2"/>
+  <text id="fn-name-ensemble-9" x="518.8" y="1384.0" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="8" fill="#20303f"> </text>
 </g>
 <g id="fn-cell-ensemble-10">
-  <image id="fn-photo-ensemble-10" x="490.4" y="1424.0" width="38.0" height="38.0" preserveAspectRatio="xMidYMin slice" clip-path="url(#clip-ensemble-10)" xlink:href="images/%ED%94%8C%EB%A0%88%EC%9D%B4%EC%8A%A4%ED%99%80%EB%8D%94.jpeg"/>
-  <circle cx="509.4" cy="1443.0" r="19.0" fill="none" stroke="#9fbdea" stroke-width="1.2"/>
-  <text id="fn-name-ensemble-10" x="509.4" y="1471.9" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="9.12" fill="#20303f"> </text>
+  <image id="fn-photo-ensemble-10" x="541.1" y="1342.0" width="33.0" height="33.0" preserveAspectRatio="xMidYMin slice" clip-path="url(#clip-ensemble-10)" xlink:href="images/%ED%94%8C%EB%A0%88%EC%9D%B4%EC%8A%A4%ED%99%80%EB%8D%94.jpeg"/>
+  <circle cx="557.6" cy="1358.5" r="16.5" fill="none" stroke="#9fbdea" stroke-width="1.2"/>
+  <text id="fn-name-ensemble-10" x="557.6" y="1384.0" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="8" fill="#20303f"> </text>
 </g>
 <g id="fn-cell-ensemble-11">
-  <image id="fn-photo-ensemble-11" x="535.1" y="1424.0" width="38.0" height="38.0" preserveAspectRatio="xMidYMin slice" clip-path="url(#clip-ensemble-11)" xlink:href="images/%ED%94%8C%EB%A0%88%EC%9D%B4%EC%8A%A4%ED%99%80%EB%8D%94.jpeg"/>
-  <circle cx="554.1" cy="1443.0" r="19.0" fill="none" stroke="#9fbdea" stroke-width="1.2"/>
-  <text id="fn-name-ensemble-11" x="554.1" y="1471.9" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="9.12" fill="#20303f"> </text>
+  <image id="fn-photo-ensemble-11" x="580.0" y="1342.0" width="33.0" height="33.0" preserveAspectRatio="xMidYMin slice" clip-path="url(#clip-ensemble-11)" xlink:href="images/%ED%94%8C%EB%A0%88%EC%9D%B4%EC%8A%A4%ED%99%80%EB%8D%94.jpeg"/>
+  <circle cx="596.5" cy="1358.5" r="16.5" fill="none" stroke="#9fbdea" stroke-width="1.2"/>
+  <text id="fn-name-ensemble-11" x="596.5" y="1384.0" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="8" fill="#20303f"> </text>
 </g>
 <g id="fn-cell-ensemble-12">
-  <image id="fn-photo-ensemble-12" x="579.8" y="1424.0" width="38.0" height="38.0" preserveAspectRatio="xMidYMin slice" clip-path="url(#clip-ensemble-12)" xlink:href="images/%ED%94%8C%EB%A0%88%EC%9D%B4%EC%8A%A4%ED%99%80%EB%8D%94.jpeg"/>
-  <circle cx="598.8" cy="1443.0" r="19.0" fill="none" stroke="#9fbdea" stroke-width="1.2"/>
-  <text id="fn-name-ensemble-12" x="598.8" y="1471.9" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="9.12" fill="#20303f"> </text>
+  <image id="fn-photo-ensemble-12" x="618.8" y="1342.0" width="33.0" height="33.0" preserveAspectRatio="xMidYMin slice" clip-path="url(#clip-ensemble-12)" xlink:href="images/%ED%94%8C%EB%A0%88%EC%9D%B4%EC%8A%A4%ED%99%80%EB%8D%94.jpeg"/>
+  <circle cx="635.3" cy="1358.5" r="16.5" fill="none" stroke="#9fbdea" stroke-width="1.2"/>
+  <text id="fn-name-ensemble-12" x="635.3" y="1384.0" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="8" fill="#20303f"> </text>
 </g>
 <g id="fn-cell-ensemble-13">
-  <image id="fn-photo-ensemble-13" x="624.5" y="1424.0" width="38.0" height="38.0" preserveAspectRatio="xMidYMin slice" clip-path="url(#clip-ensemble-13)" xlink:href="images/%ED%94%8C%EB%A0%88%EC%9D%B4%EC%8A%A4%ED%99%80%EB%8D%94.jpeg"/>
-  <circle cx="643.5" cy="1443.0" r="19.0" fill="none" stroke="#9fbdea" stroke-width="1.2"/>
-  <text id="fn-name-ensemble-13" x="643.5" y="1471.9" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="9.12" fill="#20303f"> </text>
+  <image id="fn-photo-ensemble-13" x="657.6" y="1342.0" width="33.0" height="33.0" preserveAspectRatio="xMidYMin slice" clip-path="url(#clip-ensemble-13)" xlink:href="images/%ED%94%8C%EB%A0%88%EC%9D%B4%EC%8A%A4%ED%99%80%EB%8D%94.jpeg"/>
+  <circle cx="674.1" cy="1358.5" r="16.5" fill="none" stroke="#9fbdea" stroke-width="1.2"/>
+  <text id="fn-name-ensemble-13" x="674.1" y="1384.0" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="8" fill="#20303f"> </text>
 </g>
 <g id="fn-cell-ensemble-14">
-  <image id="fn-photo-ensemble-14" x="669.2" y="1424.0" width="38.0" height="38.0" preserveAspectRatio="xMidYMin slice" clip-path="url(#clip-ensemble-14)" xlink:href="images/%ED%94%8C%EB%A0%88%EC%9D%B4%EC%8A%A4%ED%99%80%EB%8D%94.jpeg"/>
-  <circle cx="688.2" cy="1443.0" r="19.0" fill="none" stroke="#9fbdea" stroke-width="1.2"/>
-  <text id="fn-name-ensemble-14" x="688.2" y="1471.9" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="9.12" fill="#20303f"> </text>
+  <image id="fn-photo-ensemble-14" x="696.4" y="1342.0" width="33.0" height="33.0" preserveAspectRatio="xMidYMin slice" clip-path="url(#clip-ensemble-14)" xlink:href="images/%ED%94%8C%EB%A0%88%EC%9D%B4%EC%8A%A4%ED%99%80%EB%8D%94.jpeg"/>
+  <circle cx="712.9" cy="1358.5" r="16.5" fill="none" stroke="#9fbdea" stroke-width="1.2"/>
+  <text id="fn-name-ensemble-14" x="712.9" y="1384.0" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="8" fill="#20303f"> </text>
 </g>
 <g id="fn-cell-ensemble-15">
-  <image id="fn-photo-ensemble-15" x="713.9" y="1424.0" width="38.0" height="38.0" preserveAspectRatio="xMidYMin slice" clip-path="url(#clip-ensemble-15)" xlink:href="images/%ED%94%8C%EB%A0%88%EC%9D%B4%EC%8A%A4%ED%99%80%EB%8D%94.jpeg"/>
-  <circle cx="732.9" cy="1443.0" r="19.0" fill="none" stroke="#9fbdea" stroke-width="1.2"/>
-  <text id="fn-name-ensemble-15" x="732.9" y="1471.9" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="9.12" fill="#20303f"> </text>
+  <image id="fn-photo-ensemble-15" x="735.3" y="1342.0" width="33.0" height="33.0" preserveAspectRatio="xMidYMin slice" clip-path="url(#clip-ensemble-15)" xlink:href="images/%ED%94%8C%EB%A0%88%EC%9D%B4%EC%8A%A4%ED%99%80%EB%8D%94.jpeg"/>
+  <circle cx="751.8" cy="1358.5" r="16.5" fill="none" stroke="#9fbdea" stroke-width="1.2"/>
+  <text id="fn-name-ensemble-15" x="751.8" y="1384.0" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="8" fill="#20303f"> </text>
 </g>
 <g id="fn-cell-ensemble-16">
-  <image id="fn-photo-ensemble-16" x="758.6" y="1424.0" width="38.0" height="38.0" preserveAspectRatio="xMidYMin slice" clip-path="url(#clip-ensemble-16)" xlink:href="images/%ED%94%8C%EB%A0%88%EC%9D%B4%EC%8A%A4%ED%99%80%EB%8D%94.jpeg"/>
-  <circle cx="777.6" cy="1443.0" r="19.0" fill="none" stroke="#9fbdea" stroke-width="1.2"/>
-  <text id="fn-name-ensemble-16" x="777.6" y="1471.9" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="9.12" fill="#20303f"> </text>
+  <image id="fn-photo-ensemble-16" x="774.1" y="1342.0" width="33.0" height="33.0" preserveAspectRatio="xMidYMin slice" clip-path="url(#clip-ensemble-16)" xlink:href="images/%ED%94%8C%EB%A0%88%EC%9D%B4%EC%8A%A4%ED%99%80%EB%8D%94.jpeg"/>
+  <circle cx="790.6" cy="1358.5" r="16.5" fill="none" stroke="#9fbdea" stroke-width="1.2"/>
+  <text id="fn-name-ensemble-16" x="790.6" y="1384.0" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="8" fill="#20303f"> </text>
 </g>
 </svg>
