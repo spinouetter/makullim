@@ -453,7 +453,7 @@
   /* ---------- 순서 바꾸기(길게 눌러 바로 드래그) ---------- */
   // 별도 '정렬 모드' 없음. 표지를 길게 누르면 그 카드를 집어 바로 드래그 → 나머지는 회색으로
   // de-highlight + 50% 축소(커버만), 위/아래로 옮겨 놓으면 그 순간 정렬 완료(놓으면 원상 복귀).
-  var LONGPRESS_MS = 400, MOVE_TOL = 10;   // iOS 네이티브 롱프레스(~500ms)보다 낮춰 드래그가 먼저 이기게
+  var LONGPRESS_MS = 330, MOVE_TOL = 16;   // iOS 네이티브 롱프레스(~500ms)보다 낮춰 드래그가 먼저 이기게 + 엄지 드리프트(특히 화면 왼쪽) 허용치 확대
   var suppressClick = false, suppressTmr = null;   // 드래그 직후의 click(열기/닫기 토글) 억제
   function wireCover(cover, card, b){
     // 드래그 후 발생하는 click은 무시(안 하면 놓을 때 open이 토글돼 닫힘/열림이 뒤집힘)
