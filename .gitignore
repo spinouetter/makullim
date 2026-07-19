@@ -1,5 +1,9 @@
-# Claude Code 로컬 설정/도구
-.claude/
+# Claude Code — 로컬 설정은 무시, 공유할 SessionStart 훅·settings는 추적
+.claude/*
+!.claude/settings.json
+!.claude/hooks/
+!.claude/hooks/**
+.claude/settings.local.json
 
 # OS
 .DS_Store
