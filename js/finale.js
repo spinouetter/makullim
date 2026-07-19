@@ -20,7 +20,7 @@
   const BOARDS_URL = "finale-boards.json";
   // finale 자원 콘텐츠 버전 — SVG 보드·정의(JSON)·배우 사진을 실제로 바꿀 때만 올린다.
   //   (커밋 SHA로 매 배포 버스트하지 않고, 내용이 그대로면 브라우저 캐시를 재사용한다.)
-  const FIN_VER = 10;
+  const FIN_VER = 11;
   //   경로에 이미 ?v= 등 자체 버전 쿼리가 있으면(예: background.src="finale-board.svg?v=28") 그걸 존중하고, 없을 때만 FIN_VER를 붙인다.
   function verUrl(p){ const u = window.showUrl(p); return u.indexOf("?")>=0 ? u : (u + "?v=" + FIN_VER); }
   const JSPDF_URL   = "https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js";
@@ -300,13 +300,11 @@
     casts.forEach(c => {
       if(!c.id) return;
       if(co && c.group){
-        if(c.actors && c.actors.length){   // 발레걸즈: 팀(actor)별 슬롯 — 로스터=공용+팀전용, 함께 오른 적 있는 배우만
+        if(c.actors && c.actors.length){   // 발레걸즈: adult(상시=byTeam 없음) 베이스 + 팀전용(byTeam) 슬롯. 중복 없음.
           const mems = c.members || [];
-          c.actors.forEach(a => {
-            const roster = mems.map(m => m.byTeam ? m.byTeam[a.name] : m.name).filter(Boolean);
-            const list = roster.map(name => { const k = c.role + "|" + name; return { name, stat: { w:co.watched[k]||0, t:co.total[k]||0 } }; }).filter(m => m.stat.t > 0);
-            out.push({ slot: `${c.id}_${a.id}`, roleId: c.id, members: list });
-          });
+          const mk = list => list.map(name => { const k = c.role + "|" + name; return { name, stat: { w:co.watched[k]||0, t:co.total[k]||0 } }; }).filter(m => m.stat.t > 0);
+          out.push({ slot: c.id, roleId: c.id, members: mk(mems.filter(m => !m.byTeam && m.name).map(m => m.name)) });   // adult
+          c.actors.forEach(a => out.push({ slot: `${c.id}_${a.id}`, roleId: c.id, members: mk(mems.filter(m => m.byTeam && m.byTeam[a.name]).map(m => m.byTeam[a.name])) }));   // 팀전용
         } else {   // 앙상블: 평면 목록(전체 많은 순)
           const prefix = c.role + "|", seen = {};
           Object.keys(co.total).forEach(k => { if(k.indexOf(prefix) === 0) seen[k.slice(prefix.length)] = true; });

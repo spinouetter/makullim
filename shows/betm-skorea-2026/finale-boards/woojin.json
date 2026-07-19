@@ -3,8 +3,8 @@
 
   "background": {
     "type": "svg",
-    "src": "images/finale-board-woojin.svg?v=14",
-    "viewBox": [0, 0, 840, 1610]
+    "src": "images/finale-board-woojin.svg?v=15",
+    "viewBox": [0, 0, 840, 1500]
   },
 
   "fonts": [
