@@ -23,8 +23,22 @@ const mainNames = id => { const c = casts.find(x => x.id === id); return c && !c
 const LABEL = {
   billy:"BILLY", michael:"MICHAEL", debbie:"DEBBIE", small_boy:"SMALL BOY", tall_boy:"TALL BOY",
   mrs_wilkinson:"MRS. WILKINSON", dad:"DAD", grandma:"GRANDMA", tony:"TONY", dead_mum:"DEAD MUM",
-  old_billy:"OLDER BILLY", george:"GEORGE", mr_braithwaite:"MR. BRAITHWAITE"
+  old_billy:"OLDER BILLY", george:"GEORGE", mr_braithwaite:"MR. BRAITHWAITE",
+  ballet_girls:"BALLET GIRLS", ensemble:"ENSEMBLE"
 };
+
+// 발레걸즈·앙상블 개별 배우 수(김우진 회차, casting_by_date 기준) — 슬롯 개수 결정용.
+//  (값=내/전체는 finale.js가 런타임에 채움. 여기선 몇 칸 그릴지만 계산)
+const sched = JSON.parse(fs.readFileSync(`${SHOW}/schedule.json`, "utf8"));
+const cbd = JSON.parse(fs.readFileSync(`${SHOW}/casting_by_date.json`, "utf8"));
+const balletKeys = (casts.find(c => c.id === "ballet_girls").members || []).map(m => m.fullName || m.role);
+const wjKeys = sched.filter(p => ((p.cast || {})["빌리"] || []).includes("김우진")).map(p => `${p.date} ${p.time}`);
+const balletSet = new Set(), ensSet = new Set();
+wjKeys.forEach(k => { const d = cbd[k]; if(!d) return;
+  balletKeys.forEach(rk => { if(d[rk]) balletSet.add(d[rk]); });
+  (d["앙상블"] || []).forEach(e => ensSet.add(Array.isArray(e) ? e[0] : e));
+});
+const BALLET_N = balletSet.size, ENS_N = ensSet.size;
 // 배역 줄 묶음(한 줄 최대 6명). 마이클은 상단 강조 줄로 따로.
 const ROWS = [
   ["debbie","old_billy"],
@@ -33,7 +47,7 @@ const ROWS = [
   ["tall_boy","small_boy"]
 ];
 
-const VB_W = 840, VB_H = 1262;
+const VB_W = 840, POSTER_H = 1262, VB_H = 1525;   // 포스터(1262) 아래로 캔버스 확장 → 발레·앙상블 2줄
 const CX0 = 300, CW = 528 - 0.3*58;   // 콘텐츠 폭 — 오른쪽 여백을 0.3*사진(d58)만큼 늘림
 const BLUE = "#2f6bcf", BLUE_D = "#1f4e9e", INK = "#20303f", RING = "#9fbdea";
 const PH = "images/%ED%94%8C%EB%A0%88%EC%9D%B4%EC%8A%A4%ED%99%80%EB%8D%94.jpeg";   // 플레이스홀더.jpeg
@@ -43,11 +57,12 @@ let out = [], defs = [];
 const P = s => out.push(s);
 
 // 원형 사진 셀(그룹으로 감쌈): 사진 + 링 + 이름 + 파란 숫자판.
-function cell(slot, i, cx, top, d, big){
+function cell(slot, i, cx, top, d, big, small){
   const r = d/2, cy = top + r, clip = `clip-${slot}-${i}`;
-  const nameFs = big ? 14 : 12, nameY = cy + r + (big ? 16 : 12);
-  const pw = big ? Math.max(52, d*0.72) : Math.max(46, d*0.82), ph = big ? 18 : 15, py = nameY + (big ? 7 : 6);   // '내/전체' 분수 들어갈 폭
-  const cntFs = big ? 12 : 10.5;
+  const nameFs = big ? 14 : (small ? Math.max(8, d*0.24) : 12), nameY = cy + r + (big ? 16 : (small ? Math.max(9, d*0.26) : 12));
+  const pw = big ? Math.max(52, d*0.72) : (small ? d*0.86 : Math.max(46, d*0.82));   // '내/전체' 분수 들어갈 폭
+  const ph = big ? 18 : (small ? Math.max(9, d*0.28) : 15), py = nameY + (big ? 7 : (small ? 4 : 6));
+  const cntFs = big ? 12 : (small ? Math.max(7, d*0.2) : 10.5);
   defs.push(`<clipPath id="${clip}"><circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="${r.toFixed(1)}"/></clipPath>`);
   P(`<g id="fn-cell-${slot}-${i}">`);
   P(`  <image id="fn-photo-${slot}-${i}" x="${(cx-r).toFixed(1)}" y="${top.toFixed(1)}" width="${d.toFixed(1)}" height="${d.toFixed(1)}" preserveAspectRatio="xMidYMin slice" clip-path="url(#${clip})" xlink:href="${PH}"/>`);
@@ -87,7 +102,8 @@ function renderRow(roles, yTop, o){
 P(`<?xml version="1.0" encoding="UTF-8"?>`);
 P(`<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 ${VB_W} ${VB_H}" font-size="12px">`);
 P(`__DEFS__`);
-P(`<image x="0" y="0" width="${VB_W}" height="${VB_H}" preserveAspectRatio="none" xlink:href="/shows/betm-skorea-2026/images/finale-board-woojin-bg.jpg"/>`);
+P(`<rect x="0" y="0" width="${VB_W}" height="${VB_H}" fill="#ffffff"/>`);   // 확장 영역(포스터 아래) 흰 배경
+P(`<image x="0" y="0" width="${VB_W}" height="${POSTER_H}" preserveAspectRatio="none" xlink:href="/shows/betm-skorea-2026/images/finale-board-woojin-bg.jpg"/>`);
 
 // 빌리(김우진)는 배경 포스터가 곧 본인 → 이름·관극수·타이틀 문구 없이 배경으로만.
 
@@ -118,6 +134,18 @@ const gridRight = CX0 + CW - CELL_PITCH/2 + CELL_D/2;   // 맨 오른쪽 셀(전
 const smX = gridRight - smW;
 heading("SEAT MAP", smX, bandTop + 14, smW, 12.5);
 P(`<rect id="fn-seatbox" x="${smX.toFixed(1)}" y="${(bandTop + 24).toFixed(1)}" width="${smW.toFixed(1)}" height="${smH.toFixed(1)}" fill="none"/>`);
+
+// ── 확장 캔버스(포스터 아래 흰 영역): 발레걸즈 · 앙상블 (전체 폭, 작은 셀) ──
+//  슬롯 개수 = 김우진 회차에 함께 오른 개별 배우 수. 값(내/전체)은 finale.js가 채움.
+function fullRow(slot, n, yTop, x0, w, d){
+  if(n <= 0) return;
+  const pitch = w / n;
+  const firstLeft = x0 + pitch/2 - d/2, lastRight = x0 + (n - 0.5)*pitch + d/2;
+  heading(LABEL[slot] || slot, firstLeft, yTop + 14, lastRight - firstLeft, 13);
+  for(let i=0;i<n;i++) cell(slot, i, x0 + pitch*(i+0.5), yTop + 24, d, false, true);
+}
+fullRow("ballet_girls", BALLET_N, 1298, 40, 760, 48);
+fullRow("ensemble",     ENS_N,    1414, 40, 760, 38);
 
 P(`</svg>`);
 

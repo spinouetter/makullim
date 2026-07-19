@@ -20,7 +20,7 @@
   const BOARDS_URL = "finale-boards.json";
   // finale 자원 콘텐츠 버전 — SVG 보드·정의(JSON)·배우 사진을 실제로 바꿀 때만 올린다.
   //   (커밋 SHA로 매 배포 버스트하지 않고, 내용이 그대로면 브라우저 캐시를 재사용한다.)
-  const FIN_VER = 6;
+  const FIN_VER = 7;
   //   경로에 이미 ?v= 등 자체 버전 쿼리가 있으면(예: background.src="finale-board.svg?v=28") 그걸 존중하고, 없을 때만 FIN_VER를 붙인다.
   function verUrl(p){ const u = window.showUrl(p); return u.indexOf("?")>=0 ? u : (u + "?v=" + FIN_VER); }
   const JSPDF_URL   = "https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js";
@@ -262,16 +262,36 @@
   //   watched = 그 중 내가 실제 관극(종료+좌석)한 회차, total = 그 배우가 함께 오른 전체 회차.
   //   합계는 스케줄 회차 캐스팅(p.cast)에서 직접 집계 — 코드에 배역/이름 하드코딩 없음.
   //  값은 '배역|배우' 키로 집계 — 한 배우가 여러 배역(예: 조지+아빠커버)을 맡아도 배역별로 분리된다.
+  // 발레걸즈·앙상블 개별 배우는 schedule에 없고 casting_by_date(회차별 개인 배정)에만 있음 → coStar 보드에서만 지연 로드.
+  let _cbd = null, _cbdPromise = null;
+  function loadCastingByDate(){
+    if(_cbd) return Promise.resolve(_cbd);
+    if(!_cbdPromise) _cbdPromise = fetch(verUrl("casting_by_date.json")).then(r=>r.json()).then(d=>{ _cbd=d; return d; }).catch(()=>{ _cbd={}; return _cbd; });
+    return _cbdPromise;
+  }
+  // 발레 개별 배역 키(casting_by_date에서 쓰는 이름) — casts.json ballet_girls.members에서 파생(하드코딩 X)
+  function balletRoleKeys(){
+    const c = (performanceData.casts||[]).find(x=>x.id==="ballet_girls");
+    return c ? (c.members||[]).map(m=>m.fullName||m.role).filter(Boolean) : [];
+  }
   function coStarCounts(role, actorName){
     const watched = {}, total = {};
     const inc = (o, k) => { o[k] = (o[k] || 0) + 1; };
     const perfs = (typeof performanceData !== "undefined" && performanceData && performanceData.performances) || [];
     const names = (typeof castVisibleNamesOf === "function") ? castVisibleNamesOf : (e => []);
+    const cbd = _cbd || {}, bKeys = balletRoleKeys();
     perfs.forEach(p => {
       if(names(p.cast ? p.cast[role] : null).indexOf(actorName) < 0) return;   // 그 주역(김우진 빌리) 회차만
       const w = (typeof isEnded === "function" && isEnded(p)) && (typeof hasSeat === "function" && hasSeat(p));
       const cst = p.cast || {};
-      Object.keys(cst).forEach(r => names(cst[r]).forEach(n => { const k = r + "|" + n; inc(total, k); if(w) inc(watched, k); }));
+      Object.keys(cst).forEach(r => { if(r==="발레걸즈") return;   // 팀명(베들링턴/애싱턴) 스킵 — 개별은 casting_by_date에서
+        names(cst[r]).forEach(n => { const k = r + "|" + n; inc(total, k); if(w) inc(watched, k); }); });
+      // 발레걸즈·앙상블 개별 배우: 그 회차의 casting_by_date에서
+      const day = cbd[(p.date||"") + " " + (p.time||"")];
+      if(day){
+        bKeys.forEach(rk => { const a = day[rk]; if(a){ const k="발레걸즈|"+a; inc(total,k); if(w) inc(watched,k); } });
+        (day["앙상블"]||[]).forEach(e => { const n = Array.isArray(e) ? e[0] : e; if(n){ const k="앙상블|"+n; inc(total,k); if(w) inc(watched,k); } });
+      }
     });
     return { watched, total };
   }
@@ -280,6 +300,17 @@
     const co = (coStar && coStar.role && coStar.actor) ? coStarCounts(coStar.role, coStar.actor) : null;
     casts.forEach(c => {
       if(!c.id) return;
+      if(co && c.group){   // coStar 모드 그룹(발레·앙상블): co 집계(배역|배우)에서 개별 배우를 평면 목록으로
+        const prefix = c.role + "|";
+        const seen = {};
+        Object.keys(co.total).forEach(k => { if(k.indexOf(prefix) === 0) seen[k.slice(prefix.length)] = true; });
+        const members = Object.keys(seen).map(name => {
+          const k = prefix + name, cw = co.watched[k] || 0;
+          return { name, stat: { w:cw, t:(co.total[k]||0), co:cw } };
+        }).filter(m => m.stat.t > 0).sort((a,b) => (b.stat.t - a.stat.t) || (b.stat.co - a.stat.co) || a.name.localeCompare(b.name));
+        out.push({ slot: c.id, roleId: c.id, members });
+        return;
+      }
       if(!c.group){
         if(co){   // coStar 모드: 값=함께 관극수, 주역 배역은 그 배우만 노출(다른 빌리 숨김)
           let actors = c.actors || [];
@@ -741,6 +772,7 @@
   async function renderBoardInto(container, entry, asId){
     if(!dataReady()) return null;
     const mani = await maniFor(entry);
+    if(mani.coStar) await loadCastingByDate();   // 발레·앙상블 개별 집계용(coStar 보드만)
     const [txt, css] = await Promise.all([svgTextFor(mani), fontCssFor(mani)]);
     container.innerHTML = txt;
     const svg = container.querySelector("svg"); if(!svg) return null;
