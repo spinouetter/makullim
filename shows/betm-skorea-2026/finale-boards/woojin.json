@@ -3,7 +3,7 @@
 
   "background": {
     "type": "svg",
-    "src": "images/finale-board-woojin.svg?v=6",
+    "src": "images/finale-board-woojin.svg?v=7",
     "viewBox": [0, 0, 840, 1262]
   },
 
@@ -15,7 +15,10 @@
 
   "styles": {
     "name":  { "fontFamily": "IBM Plex Sans KR Medm", "fill": "#20303f" },
-    "count": { "fontFamily": "IBM Plex Sans KR Medm", "fill": "#ffffff" }
+    "count": {
+      "numerator":   { "fontFamily": "IBM Plex Sans KR Medm", "fill": "#ffffff" },
+      "denominator": { "fontFamily": "IBM Plex Sans KR Medm", "fill": "#c3d6f5", "prefix": " / " }
+    }
   },
 
   "photos": { "pattern": "images/{name}.jpeg", "placeholder": "images/플레이스홀더.jpeg" },
@@ -27,7 +30,7 @@
     "fields": [
       { "type": "text",  "id": "fn-name-{slot}-{i}",  "bind": "$item.name",    "style": "name" },
       { "type": "photo", "id": "fn-photo-{slot}-{i}", "bind": "$item.name" },
-      { "type": "text",  "id": "fn-cnt-{slot}-{i}",   "bind": "$item.stat.co", "style": "count" }
+      { "type": "count", "id": "fn-cnt-{slot}-{i}",   "bind": "$item.stat",    "style": "count" }
     ]
   },
 
