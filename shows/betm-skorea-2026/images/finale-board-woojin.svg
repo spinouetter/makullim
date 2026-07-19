@@ -238,5 +238,4 @@
 <text x="570.0" y="962.0" font-family="Anton, sans-serif" font-size="12.5" letter-spacing="0.5" fill="#1f4e9e">SEAT MAP</text>
 <line x1="570.0" y1="967.0" x2="797.0" y2="967.0" stroke="#1f4e9e" stroke-width="1"/>
 <rect id="fn-seatbox" x="570.0" y="972.0" width="227.0" height="230.6" fill="none"/>
-<text id="fn-subtitle" x="565" y="1252" text-anchor="middle" font-family="IBM Plex Sans KR, sans-serif" font-size="10" fill="#5a6675"> </text>
 </svg>

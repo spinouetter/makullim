@@ -3,7 +3,7 @@
 
   "background": {
     "type": "svg",
-    "src": "images/finale-board-woojin.svg?v=8",
+    "src": "images/finale-board-woojin.svg?v=9",
     "viewBox": [0, 0, 840, 1262]
   },
 
@@ -35,8 +35,6 @@
   },
 
   "onUnplaced": "ignore",
-
-  "subtitle": { "svgId": "fn-subtitle", "padMonth": false },
 
   "seatmap": {
     "target":    { "svgId": "fn-seatbox" },
