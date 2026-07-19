@@ -1531,7 +1531,13 @@
   box-shadow:0 6px 18px rgba(20,30,55,.28); background:#f7f2e2;
 }
 .stamp-img{ position:absolute; inset:0; width:100%; height:100%; object-fit:contain; display:block; touch-action:pan-y;
+  /* pointer-events:none — 커버 이미지를 직접 누르면 iOS가 이미지 드래그/콜아웃 인식기를 돌려 pointercancel을
+     쏘고 롱프레스 타이머가 죽는다(왼쪽/중앙=맨 이미지 영역이 빨리 꺼지던 원인). 터치를 뒤의 .stamp-cover-box(div)로
+     넘겨 이미지 인식기를 우회. */
+  pointer-events:none;
   -webkit-user-drag:none; user-drag:none; -webkit-touch-callout:none; -webkit-user-select:none; user-select:none; }
+/* 오버레이 텍스트(개수/번호/이름)도 터치를 커버로 통과시켜 커버 전체가 균일하게 롱프레스되도록. 아이콘 버튼은 클릭 유지. */
+.stamp-cover-count, .stamp-cover-num, .stamp-cover-name{ pointer-events:none; }
 /* 모바일에서 커버를 길게 눌러 드래그할 때 브라우저의 이미지 콜아웃/컨텍스트 메뉴/텍스트 선택이 뜨지 않게.
    touch-action:pan-y — 세로 스크롤은 살리되 iOS 제스처 인식을 세로 팬으로 제한해 롱프레스 선택/콜아웃 인식기를
    억제한다(user-select:none만으론 touch-action:auto라 iOS가 선택을 그대로 실행). 드래그 시작 후엔 .stamp-dragging이 touch-action:none으로 덮어씀. */
