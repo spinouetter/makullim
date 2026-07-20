@@ -121,10 +121,11 @@ P(`<image x="0" y="0" width="${VB_W}" height="${POSTER_H}" preserveAspectRatio="
 
 // 빌리(김우진)는 배경 포스터가 곧 본인 → 이름·관극수·타이틀 문구 없이 배경으로만.
 
-// ── 함께한 시간(내/전체) — 배경 타이틀(THE MUSICAL)과 MICHAEL 사이, 타이틀 중심에 정렬.
-//    문구·값은 finale.js totalCount(labelStyle.label + coStar 내/전체)가 채움.
-//    주의: woojin(v2) 보드는 배경이 woojin-base.jpg라 타이틀 중심이 달라 x=565.6, y=445로 수동 조정됨.
-P(`<text id="fn-total" x="502.4" y="432.0" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="17" fill="${BLUE_D}">0</text>`);
+// ── 함께한 시간(내/전체) — 배경 타이틀(THE MUSICAL)과 MICHAEL 사이 2줄.
+//    오른쪽 정렬 기준 = 실루엣 소년의 발끝(x). 문구는 정적, 숫자(fn-total)는 finale.js totalCount(coStar 내/전체)가 채움.
+//    주의: woojin(v2) 보드는 배경이 woojin-base.jpg라 발끝이 달라 x=722, y=432/470으로 수동 조정됨.
+P(`<text x="635.0" y="422.0" text-anchor="end" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="20" fill="${BLUE_D}">우진 빌리와 함께한 시간 ⋯</text>`);
+P(`<text id="fn-total" x="635.0" y="460.0" text-anchor="end" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="32" fill="${BLUE_D}">0</text>`);
 
 // ── MICHAEL: 김우진의 짝(빌리×마이클) → 큰 한 줄로 강조 (헤딩·실선을 셀에 맞춤) ──
 //   구성(칸 수·피치·크기)은 그대로 두고, 오른끝을 다른 줄(그리드 오른끝=gridRight)에 맞춰 오른쪽 정렬.
