@@ -1,22 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 840 1262" font-size="12px">
 <defs>
-<clipPath id="clip-michael-0"><circle cx="366.0" cy="552.0" r="40.0"/></clipPath>
-<clipPath id="clip-michael-1"><circle cx="498.0" cy="552.0" r="40.0"/></clipPath>
-<clipPath id="clip-michael-2"><circle cx="630.0" cy="552.0" r="40.0"/></clipPath>
-<clipPath id="clip-michael-3"><circle cx="762.0" cy="552.0" r="40.0"/></clipPath>
-<clipPath id="clip-debbie-0"><circle cx="344.0" cy="715.0" r="29.0"/></clipPath>
-<clipPath id="clip-debbie-1"><circle cx="432.0" cy="715.0" r="29.0"/></clipPath>
-<clipPath id="clip-debbie-2"><circle cx="520.0" cy="715.0" r="29.0"/></clipPath>
-<clipPath id="clip-old_billy-0"><circle cx="608.0" cy="715.0" r="29.0"/></clipPath>
-<clipPath id="clip-old_billy-1"><circle cx="696.0" cy="715.0" r="29.0"/></clipPath>
-<clipPath id="clip-old_billy-2"><circle cx="784.0" cy="715.0" r="29.0"/></clipPath>
-<clipPath id="clip-tony-0"><circle cx="344.0" cy="858.0" r="29.0"/></clipPath>
-<clipPath id="clip-dad-0"><circle cx="432.0" cy="858.0" r="29.0"/></clipPath>
-<clipPath id="clip-dad-1"><circle cx="520.0" cy="858.0" r="29.0"/></clipPath>
-<clipPath id="clip-dead_mum-0"><circle cx="608.0" cy="858.0" r="29.0"/></clipPath>
-<clipPath id="clip-mrs_wilkinson-0"><circle cx="696.0" cy="858.0" r="29.0"/></clipPath>
-<clipPath id="clip-mrs_wilkinson-1"><circle cx="784.0" cy="858.0" r="29.0"/></clipPath>
+<clipPath id="clip-michael-0"><circle cx="363.8" cy="552.0" r="40.0"/></clipPath>
+<clipPath id="clip-michael-1"><circle cx="491.5" cy="552.0" r="40.0"/></clipPath>
+<clipPath id="clip-michael-2"><circle cx="619.1" cy="552.0" r="40.0"/></clipPath>
+<clipPath id="clip-michael-3"><circle cx="746.8" cy="552.0" r="40.0"/></clipPath>
+<clipPath id="clip-debbie-0"><circle cx="342.6" cy="715.0" r="29.0"/></clipPath>
+<clipPath id="clip-debbie-1"><circle cx="427.6" cy="715.0" r="29.0"/></clipPath>
+<clipPath id="clip-debbie-2"><circle cx="512.8" cy="715.0" r="29.0"/></clipPath>
+<clipPath id="clip-old_billy-0"><circle cx="597.8" cy="715.0" r="29.0"/></clipPath>
+<clipPath id="clip-old_billy-1"><circle cx="682.9" cy="715.0" r="29.0"/></clipPath>
+<clipPath id="clip-old_billy-2"><circle cx="768.0" cy="715.0" r="29.0"/></clipPath>
+<clipPath id="clip-tony-0"><circle cx="342.6" cy="858.0" r="29.0"/></clipPath>
+<clipPath id="clip-dad-0"><circle cx="427.7" cy="858.0" r="29.0"/></clipPath>
+<clipPath id="clip-dad-1"><circle cx="512.8" cy="858.0" r="29.0"/></clipPath>
+<clipPath id="clip-dead_mum-0"><circle cx="597.9" cy="858.0" r="29.0"/></clipPath>
+<clipPath id="clip-mrs_wilkinson-0"><circle cx="683.0" cy="858.0" r="29.0"/></clipPath>
+<clipPath id="clip-mrs_wilkinson-1"><circle cx="768.1" cy="858.0" r="29.0"/></clipPath>
 <clipPath id="clip-grandma-0"><circle cx="236.0" cy="1001.0" r="29.0"/></clipPath>
 <clipPath id="clip-grandma-1"><circle cx="306.0" cy="1001.0" r="29.0"/></clipPath>
 <clipPath id="clip-grandma-2"><circle cx="376.0" cy="1001.0" r="29.0"/></clipPath>
@@ -29,132 +29,131 @@
 <clipPath id="clip-small_boy-2"><circle cx="516.0" cy="1129.0" r="29.0"/></clipPath>
 </defs>
 <image x="0" y="0" width="840" height="1262" preserveAspectRatio="none" xlink:href="/shows/betm-skorea-2026/images/finale-board-woojin-bg.jpg"/>
-<text x="565" y="455" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="14" letter-spacing="1" fill="#1f4e9e">김우진 빌리와 함께한 무대</text>
 <text x="300.0" y="495.0" font-family="Anton, sans-serif" font-size="18" letter-spacing="0.5" fill="#1f4e9e">MICHAEL</text>
-<line x1="300.0" y1="500.0" x2="828.0" y2="500.0" stroke="#1f4e9e" stroke-width="1"/>
+<line x1="300.0" y1="500.0" x2="810.6" y2="500.0" stroke="#1f4e9e" stroke-width="1"/>
 <g id="fn-cell-michael-0">
-  <image id="fn-photo-michael-0" x="326.0" y="512.0" width="80.0" height="80.0" preserveAspectRatio="xMidYMin slice" clip-path="url(#clip-michael-0)" xlink:href="images/%ED%94%8C%EB%A0%88%EC%9D%B4%EC%8A%A4%ED%99%80%EB%8D%94.jpeg"/>
-  <circle cx="366.0" cy="552.0" r="40.0" fill="none" stroke="#9fbdea" stroke-width="1.6"/>
-  <text id="fn-name-michael-0" x="366.0" y="608.0" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="14" fill="#20303f"> </text>
-  <rect x="346.0" y="615.0" width="40.0" height="18" rx="9.0" fill="#2f6bcf"/>
-  <text id="fn-cnt-michael-0" x="366.0" y="628.0" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="12" font-weight="700" fill="#ffffff">0</text>
+  <image id="fn-photo-michael-0" x="323.8" y="512.0" width="80.0" height="80.0" preserveAspectRatio="xMidYMin slice" clip-path="url(#clip-michael-0)" xlink:href="images/%ED%94%8C%EB%A0%88%EC%9D%B4%EC%8A%A4%ED%99%80%EB%8D%94.jpeg"/>
+  <circle cx="363.8" cy="552.0" r="40.0" fill="none" stroke="#9fbdea" stroke-width="1.6"/>
+  <text id="fn-name-michael-0" x="363.8" y="608.0" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="14" fill="#20303f"> </text>
+  <rect x="335.0" y="615.0" width="57.6" height="18" rx="9.0" fill="#2f6bcf"/>
+  <text id="fn-cnt-michael-0" x="363.8" y="628.0" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="12" font-weight="700" fill="#ffffff">0</text>
 </g>
 <g id="fn-cell-michael-1">
-  <image id="fn-photo-michael-1" x="458.0" y="512.0" width="80.0" height="80.0" preserveAspectRatio="xMidYMin slice" clip-path="url(#clip-michael-1)" xlink:href="images/%ED%94%8C%EB%A0%88%EC%9D%B4%EC%8A%A4%ED%99%80%EB%8D%94.jpeg"/>
-  <circle cx="498.0" cy="552.0" r="40.0" fill="none" stroke="#9fbdea" stroke-width="1.6"/>
-  <text id="fn-name-michael-1" x="498.0" y="608.0" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="14" fill="#20303f"> </text>
-  <rect x="478.0" y="615.0" width="40.0" height="18" rx="9.0" fill="#2f6bcf"/>
-  <text id="fn-cnt-michael-1" x="498.0" y="628.0" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="12" font-weight="700" fill="#ffffff">0</text>
+  <image id="fn-photo-michael-1" x="451.5" y="512.0" width="80.0" height="80.0" preserveAspectRatio="xMidYMin slice" clip-path="url(#clip-michael-1)" xlink:href="images/%ED%94%8C%EB%A0%88%EC%9D%B4%EC%8A%A4%ED%99%80%EB%8D%94.jpeg"/>
+  <circle cx="491.5" cy="552.0" r="40.0" fill="none" stroke="#9fbdea" stroke-width="1.6"/>
+  <text id="fn-name-michael-1" x="491.5" y="608.0" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="14" fill="#20303f"> </text>
+  <rect x="462.7" y="615.0" width="57.6" height="18" rx="9.0" fill="#2f6bcf"/>
+  <text id="fn-cnt-michael-1" x="491.5" y="628.0" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="12" font-weight="700" fill="#ffffff">0</text>
 </g>
 <g id="fn-cell-michael-2">
-  <image id="fn-photo-michael-2" x="590.0" y="512.0" width="80.0" height="80.0" preserveAspectRatio="xMidYMin slice" clip-path="url(#clip-michael-2)" xlink:href="images/%ED%94%8C%EB%A0%88%EC%9D%B4%EC%8A%A4%ED%99%80%EB%8D%94.jpeg"/>
-  <circle cx="630.0" cy="552.0" r="40.0" fill="none" stroke="#9fbdea" stroke-width="1.6"/>
-  <text id="fn-name-michael-2" x="630.0" y="608.0" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="14" fill="#20303f"> </text>
-  <rect x="610.0" y="615.0" width="40.0" height="18" rx="9.0" fill="#2f6bcf"/>
-  <text id="fn-cnt-michael-2" x="630.0" y="628.0" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="12" font-weight="700" fill="#ffffff">0</text>
+  <image id="fn-photo-michael-2" x="579.1" y="512.0" width="80.0" height="80.0" preserveAspectRatio="xMidYMin slice" clip-path="url(#clip-michael-2)" xlink:href="images/%ED%94%8C%EB%A0%88%EC%9D%B4%EC%8A%A4%ED%99%80%EB%8D%94.jpeg"/>
+  <circle cx="619.1" cy="552.0" r="40.0" fill="none" stroke="#9fbdea" stroke-width="1.6"/>
+  <text id="fn-name-michael-2" x="619.1" y="608.0" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="14" fill="#20303f"> </text>
+  <rect x="590.3" y="615.0" width="57.6" height="18" rx="9.0" fill="#2f6bcf"/>
+  <text id="fn-cnt-michael-2" x="619.1" y="628.0" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="12" font-weight="700" fill="#ffffff">0</text>
 </g>
 <g id="fn-cell-michael-3">
-  <image id="fn-photo-michael-3" x="722.0" y="512.0" width="80.0" height="80.0" preserveAspectRatio="xMidYMin slice" clip-path="url(#clip-michael-3)" xlink:href="images/%ED%94%8C%EB%A0%88%EC%9D%B4%EC%8A%A4%ED%99%80%EB%8D%94.jpeg"/>
-  <circle cx="762.0" cy="552.0" r="40.0" fill="none" stroke="#9fbdea" stroke-width="1.6"/>
-  <text id="fn-name-michael-3" x="762.0" y="608.0" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="14" fill="#20303f"> </text>
-  <rect x="742.0" y="615.0" width="40.0" height="18" rx="9.0" fill="#2f6bcf"/>
-  <text id="fn-cnt-michael-3" x="762.0" y="628.0" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="12" font-weight="700" fill="#ffffff">0</text>
+  <image id="fn-photo-michael-3" x="706.8" y="512.0" width="80.0" height="80.0" preserveAspectRatio="xMidYMin slice" clip-path="url(#clip-michael-3)" xlink:href="images/%ED%94%8C%EB%A0%88%EC%9D%B4%EC%8A%A4%ED%99%80%EB%8D%94.jpeg"/>
+  <circle cx="746.8" cy="552.0" r="40.0" fill="none" stroke="#9fbdea" stroke-width="1.6"/>
+  <text id="fn-name-michael-3" x="746.8" y="608.0" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="14" fill="#20303f"> </text>
+  <rect x="718.0" y="615.0" width="57.6" height="18" rx="9.0" fill="#2f6bcf"/>
+  <text id="fn-cnt-michael-3" x="746.8" y="628.0" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="12" font-weight="700" fill="#ffffff">0</text>
 </g>
 <text x="302.0" y="676.0" font-family="Anton, sans-serif" font-size="12.5" letter-spacing="0.5" fill="#1f4e9e">DEBBIE</text>
-<line x1="302.0" y1="681.0" x2="558.0" y2="681.0" stroke="#1f4e9e" stroke-width="1"/>
+<line x1="302.0" y1="681.0" x2="549.3" y2="681.0" stroke="#1f4e9e" stroke-width="1"/>
 <g id="fn-cell-debbie-0">
-  <image id="fn-photo-debbie-0" x="315.0" y="686.0" width="58.0" height="58.0" preserveAspectRatio="xMidYMin slice" clip-path="url(#clip-debbie-0)" xlink:href="images/%ED%94%8C%EB%A0%88%EC%9D%B4%EC%8A%A4%ED%99%80%EB%8D%94.jpeg"/>
-  <circle cx="344.0" cy="715.0" r="29.0" fill="none" stroke="#9fbdea" stroke-width="1.2"/>
-  <text id="fn-name-debbie-0" x="344.0" y="756.0" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="12" fill="#20303f"> </text>
-  <rect x="326.6" y="762.0" width="34.8" height="15" rx="7.5" fill="#2f6bcf"/>
-  <text id="fn-cnt-debbie-0" x="344.0" y="772.8" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="10.5" font-weight="700" fill="#ffffff">0</text>
+  <image id="fn-photo-debbie-0" x="313.6" y="686.0" width="58.0" height="58.0" preserveAspectRatio="xMidYMin slice" clip-path="url(#clip-debbie-0)" xlink:href="images/%ED%94%8C%EB%A0%88%EC%9D%B4%EC%8A%A4%ED%99%80%EB%8D%94.jpeg"/>
+  <circle cx="342.6" cy="715.0" r="29.0" fill="none" stroke="#9fbdea" stroke-width="1.2"/>
+  <text id="fn-name-debbie-0" x="342.6" y="756.0" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="12" fill="#20303f"> </text>
+  <rect x="318.8" y="762.0" width="47.6" height="15" rx="7.5" fill="#2f6bcf"/>
+  <text id="fn-cnt-debbie-0" x="342.6" y="772.8" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="10.5" font-weight="700" fill="#ffffff">0</text>
 </g>
 <g id="fn-cell-debbie-1">
-  <image id="fn-photo-debbie-1" x="403.0" y="686.0" width="58.0" height="58.0" preserveAspectRatio="xMidYMin slice" clip-path="url(#clip-debbie-1)" xlink:href="images/%ED%94%8C%EB%A0%88%EC%9D%B4%EC%8A%A4%ED%99%80%EB%8D%94.jpeg"/>
-  <circle cx="432.0" cy="715.0" r="29.0" fill="none" stroke="#9fbdea" stroke-width="1.2"/>
-  <text id="fn-name-debbie-1" x="432.0" y="756.0" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="12" fill="#20303f"> </text>
-  <rect x="414.6" y="762.0" width="34.8" height="15" rx="7.5" fill="#2f6bcf"/>
-  <text id="fn-cnt-debbie-1" x="432.0" y="772.8" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="10.5" font-weight="700" fill="#ffffff">0</text>
+  <image id="fn-photo-debbie-1" x="398.6" y="686.0" width="58.0" height="58.0" preserveAspectRatio="xMidYMin slice" clip-path="url(#clip-debbie-1)" xlink:href="images/%ED%94%8C%EB%A0%88%EC%9D%B4%EC%8A%A4%ED%99%80%EB%8D%94.jpeg"/>
+  <circle cx="427.6" cy="715.0" r="29.0" fill="none" stroke="#9fbdea" stroke-width="1.2"/>
+  <text id="fn-name-debbie-1" x="427.6" y="756.0" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="12" fill="#20303f"> </text>
+  <rect x="403.9" y="762.0" width="47.6" height="15" rx="7.5" fill="#2f6bcf"/>
+  <text id="fn-cnt-debbie-1" x="427.6" y="772.8" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="10.5" font-weight="700" fill="#ffffff">0</text>
 </g>
 <g id="fn-cell-debbie-2">
-  <image id="fn-photo-debbie-2" x="491.0" y="686.0" width="58.0" height="58.0" preserveAspectRatio="xMidYMin slice" clip-path="url(#clip-debbie-2)" xlink:href="images/%ED%94%8C%EB%A0%88%EC%9D%B4%EC%8A%A4%ED%99%80%EB%8D%94.jpeg"/>
-  <circle cx="520.0" cy="715.0" r="29.0" fill="none" stroke="#9fbdea" stroke-width="1.2"/>
-  <text id="fn-name-debbie-2" x="520.0" y="756.0" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="12" fill="#20303f"> </text>
-  <rect x="502.6" y="762.0" width="34.8" height="15" rx="7.5" fill="#2f6bcf"/>
-  <text id="fn-cnt-debbie-2" x="520.0" y="772.8" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="10.5" font-weight="700" fill="#ffffff">0</text>
+  <image id="fn-photo-debbie-2" x="483.8" y="686.0" width="58.0" height="58.0" preserveAspectRatio="xMidYMin slice" clip-path="url(#clip-debbie-2)" xlink:href="images/%ED%94%8C%EB%A0%88%EC%9D%B4%EC%8A%A4%ED%99%80%EB%8D%94.jpeg"/>
+  <circle cx="512.8" cy="715.0" r="29.0" fill="none" stroke="#9fbdea" stroke-width="1.2"/>
+  <text id="fn-name-debbie-2" x="512.8" y="756.0" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="12" fill="#20303f"> </text>
+  <rect x="489.0" y="762.0" width="47.6" height="15" rx="7.5" fill="#2f6bcf"/>
+  <text id="fn-cnt-debbie-2" x="512.8" y="772.8" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="10.5" font-weight="700" fill="#ffffff">0</text>
 </g>
-<text x="566.0" y="676.0" font-family="Anton, sans-serif" font-size="12.5" letter-spacing="0.5" fill="#1f4e9e">OLDER BILLY</text>
-<line x1="566.0" y1="681.0" x2="822.0" y2="681.0" stroke="#1f4e9e" stroke-width="1"/>
+<text x="557.3" y="676.0" font-family="Anton, sans-serif" font-size="12.5" letter-spacing="0.5" fill="#1f4e9e">OLDER BILLY</text>
+<line x1="557.3" y1="681.0" x2="804.6" y2="681.0" stroke="#1f4e9e" stroke-width="1"/>
 <g id="fn-cell-old_billy-0">
-  <image id="fn-photo-old_billy-0" x="579.0" y="686.0" width="58.0" height="58.0" preserveAspectRatio="xMidYMin slice" clip-path="url(#clip-old_billy-0)" xlink:href="images/%ED%94%8C%EB%A0%88%EC%9D%B4%EC%8A%A4%ED%99%80%EB%8D%94.jpeg"/>
-  <circle cx="608.0" cy="715.0" r="29.0" fill="none" stroke="#9fbdea" stroke-width="1.2"/>
-  <text id="fn-name-old_billy-0" x="608.0" y="756.0" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="12" fill="#20303f"> </text>
-  <rect x="590.6" y="762.0" width="34.8" height="15" rx="7.5" fill="#2f6bcf"/>
-  <text id="fn-cnt-old_billy-0" x="608.0" y="772.8" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="10.5" font-weight="700" fill="#ffffff">0</text>
+  <image id="fn-photo-old_billy-0" x="568.8" y="686.0" width="58.0" height="58.0" preserveAspectRatio="xMidYMin slice" clip-path="url(#clip-old_billy-0)" xlink:href="images/%ED%94%8C%EB%A0%88%EC%9D%B4%EC%8A%A4%ED%99%80%EB%8D%94.jpeg"/>
+  <circle cx="597.8" cy="715.0" r="29.0" fill="none" stroke="#9fbdea" stroke-width="1.2"/>
+  <text id="fn-name-old_billy-0" x="597.8" y="756.0" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="12" fill="#20303f"> </text>
+  <rect x="574.1" y="762.0" width="47.6" height="15" rx="7.5" fill="#2f6bcf"/>
+  <text id="fn-cnt-old_billy-0" x="597.8" y="772.8" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="10.5" font-weight="700" fill="#ffffff">0</text>
 </g>
 <g id="fn-cell-old_billy-1">
-  <image id="fn-photo-old_billy-1" x="667.0" y="686.0" width="58.0" height="58.0" preserveAspectRatio="xMidYMin slice" clip-path="url(#clip-old_billy-1)" xlink:href="images/%ED%94%8C%EB%A0%88%EC%9D%B4%EC%8A%A4%ED%99%80%EB%8D%94.jpeg"/>
-  <circle cx="696.0" cy="715.0" r="29.0" fill="none" stroke="#9fbdea" stroke-width="1.2"/>
-  <text id="fn-name-old_billy-1" x="696.0" y="756.0" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="12" fill="#20303f"> </text>
-  <rect x="678.6" y="762.0" width="34.8" height="15" rx="7.5" fill="#2f6bcf"/>
-  <text id="fn-cnt-old_billy-1" x="696.0" y="772.8" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="10.5" font-weight="700" fill="#ffffff">0</text>
+  <image id="fn-photo-old_billy-1" x="653.9" y="686.0" width="58.0" height="58.0" preserveAspectRatio="xMidYMin slice" clip-path="url(#clip-old_billy-1)" xlink:href="images/%ED%94%8C%EB%A0%88%EC%9D%B4%EC%8A%A4%ED%99%80%EB%8D%94.jpeg"/>
+  <circle cx="682.9" cy="715.0" r="29.0" fill="none" stroke="#9fbdea" stroke-width="1.2"/>
+  <text id="fn-name-old_billy-1" x="682.9" y="756.0" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="12" fill="#20303f"> </text>
+  <rect x="659.2" y="762.0" width="47.6" height="15" rx="7.5" fill="#2f6bcf"/>
+  <text id="fn-cnt-old_billy-1" x="682.9" y="772.8" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="10.5" font-weight="700" fill="#ffffff">0</text>
 </g>
 <g id="fn-cell-old_billy-2">
-  <image id="fn-photo-old_billy-2" x="755.0" y="686.0" width="58.0" height="58.0" preserveAspectRatio="xMidYMin slice" clip-path="url(#clip-old_billy-2)" xlink:href="images/%ED%94%8C%EB%A0%88%EC%9D%B4%EC%8A%A4%ED%99%80%EB%8D%94.jpeg"/>
-  <circle cx="784.0" cy="715.0" r="29.0" fill="none" stroke="#9fbdea" stroke-width="1.2"/>
-  <text id="fn-name-old_billy-2" x="784.0" y="756.0" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="12" fill="#20303f"> </text>
-  <rect x="766.6" y="762.0" width="34.8" height="15" rx="7.5" fill="#2f6bcf"/>
-  <text id="fn-cnt-old_billy-2" x="784.0" y="772.8" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="10.5" font-weight="700" fill="#ffffff">0</text>
+  <image id="fn-photo-old_billy-2" x="739.0" y="686.0" width="58.0" height="58.0" preserveAspectRatio="xMidYMin slice" clip-path="url(#clip-old_billy-2)" xlink:href="images/%ED%94%8C%EB%A0%88%EC%9D%B4%EC%8A%A4%ED%99%80%EB%8D%94.jpeg"/>
+  <circle cx="768.0" cy="715.0" r="29.0" fill="none" stroke="#9fbdea" stroke-width="1.2"/>
+  <text id="fn-name-old_billy-2" x="768.0" y="756.0" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="12" fill="#20303f"> </text>
+  <rect x="744.3" y="762.0" width="47.6" height="15" rx="7.5" fill="#2f6bcf"/>
+  <text id="fn-cnt-old_billy-2" x="768.0" y="772.8" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="10.5" font-weight="700" fill="#ffffff">0</text>
 </g>
 <text x="302.0" y="819.0" font-family="Anton, sans-serif" font-size="12.5" letter-spacing="0.5" fill="#1f4e9e">TONY</text>
-<line x1="302.0" y1="824.0" x2="382.0" y2="824.0" stroke="#1f4e9e" stroke-width="1"/>
+<line x1="302.0" y1="824.0" x2="379.1" y2="824.0" stroke="#1f4e9e" stroke-width="1"/>
 <g id="fn-cell-tony-0">
-  <image id="fn-photo-tony-0" x="315.0" y="829.0" width="58.0" height="58.0" preserveAspectRatio="xMidYMin slice" clip-path="url(#clip-tony-0)" xlink:href="images/%ED%94%8C%EB%A0%88%EC%9D%B4%EC%8A%A4%ED%99%80%EB%8D%94.jpeg"/>
-  <circle cx="344.0" cy="858.0" r="29.0" fill="none" stroke="#9fbdea" stroke-width="1.2"/>
-  <text id="fn-name-tony-0" x="344.0" y="899.0" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="12" fill="#20303f"> </text>
-  <rect x="326.6" y="905.0" width="34.8" height="15" rx="7.5" fill="#2f6bcf"/>
-  <text id="fn-cnt-tony-0" x="344.0" y="915.8" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="10.5" font-weight="700" fill="#ffffff">0</text>
+  <image id="fn-photo-tony-0" x="313.6" y="829.0" width="58.0" height="58.0" preserveAspectRatio="xMidYMin slice" clip-path="url(#clip-tony-0)" xlink:href="images/%ED%94%8C%EB%A0%88%EC%9D%B4%EC%8A%A4%ED%99%80%EB%8D%94.jpeg"/>
+  <circle cx="342.6" cy="858.0" r="29.0" fill="none" stroke="#9fbdea" stroke-width="1.2"/>
+  <text id="fn-name-tony-0" x="342.6" y="899.0" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="12" fill="#20303f"> </text>
+  <rect x="318.8" y="905.0" width="47.6" height="15" rx="7.5" fill="#2f6bcf"/>
+  <text id="fn-cnt-tony-0" x="342.6" y="915.8" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="10.5" font-weight="700" fill="#ffffff">0</text>
 </g>
-<text x="390.0" y="819.0" font-family="Anton, sans-serif" font-size="12.5" letter-spacing="0.5" fill="#1f4e9e">DAD</text>
-<line x1="390.0" y1="824.0" x2="558.0" y2="824.0" stroke="#1f4e9e" stroke-width="1"/>
+<text x="387.1" y="819.0" font-family="Anton, sans-serif" font-size="12.5" letter-spacing="0.5" fill="#1f4e9e">DAD</text>
+<line x1="387.1" y1="824.0" x2="549.3" y2="824.0" stroke="#1f4e9e" stroke-width="1"/>
 <g id="fn-cell-dad-0">
-  <image id="fn-photo-dad-0" x="403.0" y="829.0" width="58.0" height="58.0" preserveAspectRatio="xMidYMin slice" clip-path="url(#clip-dad-0)" xlink:href="images/%ED%94%8C%EB%A0%88%EC%9D%B4%EC%8A%A4%ED%99%80%EB%8D%94.jpeg"/>
-  <circle cx="432.0" cy="858.0" r="29.0" fill="none" stroke="#9fbdea" stroke-width="1.2"/>
-  <text id="fn-name-dad-0" x="432.0" y="899.0" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="12" fill="#20303f"> </text>
-  <rect x="414.6" y="905.0" width="34.8" height="15" rx="7.5" fill="#2f6bcf"/>
-  <text id="fn-cnt-dad-0" x="432.0" y="915.8" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="10.5" font-weight="700" fill="#ffffff">0</text>
+  <image id="fn-photo-dad-0" x="398.7" y="829.0" width="58.0" height="58.0" preserveAspectRatio="xMidYMin slice" clip-path="url(#clip-dad-0)" xlink:href="images/%ED%94%8C%EB%A0%88%EC%9D%B4%EC%8A%A4%ED%99%80%EB%8D%94.jpeg"/>
+  <circle cx="427.7" cy="858.0" r="29.0" fill="none" stroke="#9fbdea" stroke-width="1.2"/>
+  <text id="fn-name-dad-0" x="427.7" y="899.0" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="12" fill="#20303f"> </text>
+  <rect x="403.9" y="905.0" width="47.6" height="15" rx="7.5" fill="#2f6bcf"/>
+  <text id="fn-cnt-dad-0" x="427.7" y="915.8" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="10.5" font-weight="700" fill="#ffffff">0</text>
 </g>
 <g id="fn-cell-dad-1">
-  <image id="fn-photo-dad-1" x="491.0" y="829.0" width="58.0" height="58.0" preserveAspectRatio="xMidYMin slice" clip-path="url(#clip-dad-1)" xlink:href="images/%ED%94%8C%EB%A0%88%EC%9D%B4%EC%8A%A4%ED%99%80%EB%8D%94.jpeg"/>
-  <circle cx="520.0" cy="858.0" r="29.0" fill="none" stroke="#9fbdea" stroke-width="1.2"/>
-  <text id="fn-name-dad-1" x="520.0" y="899.0" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="12" fill="#20303f"> </text>
-  <rect x="502.6" y="905.0" width="34.8" height="15" rx="7.5" fill="#2f6bcf"/>
-  <text id="fn-cnt-dad-1" x="520.0" y="915.8" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="10.5" font-weight="700" fill="#ffffff">0</text>
+  <image id="fn-photo-dad-1" x="483.8" y="829.0" width="58.0" height="58.0" preserveAspectRatio="xMidYMin slice" clip-path="url(#clip-dad-1)" xlink:href="images/%ED%94%8C%EB%A0%88%EC%9D%B4%EC%8A%A4%ED%99%80%EB%8D%94.jpeg"/>
+  <circle cx="512.8" cy="858.0" r="29.0" fill="none" stroke="#9fbdea" stroke-width="1.2"/>
+  <text id="fn-name-dad-1" x="512.8" y="899.0" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="12" fill="#20303f"> </text>
+  <rect x="489.0" y="905.0" width="47.6" height="15" rx="7.5" fill="#2f6bcf"/>
+  <text id="fn-cnt-dad-1" x="512.8" y="915.8" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="10.5" font-weight="700" fill="#ffffff">0</text>
 </g>
-<text x="566.0" y="819.0" font-family="Anton, sans-serif" font-size="12.5" letter-spacing="0.5" fill="#1f4e9e">DEAD MUM</text>
-<line x1="566.0" y1="824.0" x2="646.0" y2="824.0" stroke="#1f4e9e" stroke-width="1"/>
+<text x="557.3" y="819.0" font-family="Anton, sans-serif" font-size="12.5" letter-spacing="0.5" fill="#1f4e9e">DEAD MUM</text>
+<line x1="557.3" y1="824.0" x2="634.4" y2="824.0" stroke="#1f4e9e" stroke-width="1"/>
 <g id="fn-cell-dead_mum-0">
-  <image id="fn-photo-dead_mum-0" x="579.0" y="829.0" width="58.0" height="58.0" preserveAspectRatio="xMidYMin slice" clip-path="url(#clip-dead_mum-0)" xlink:href="images/%ED%94%8C%EB%A0%88%EC%9D%B4%EC%8A%A4%ED%99%80%EB%8D%94.jpeg"/>
-  <circle cx="608.0" cy="858.0" r="29.0" fill="none" stroke="#9fbdea" stroke-width="1.2"/>
-  <text id="fn-name-dead_mum-0" x="608.0" y="899.0" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="12" fill="#20303f"> </text>
-  <rect x="590.6" y="905.0" width="34.8" height="15" rx="7.5" fill="#2f6bcf"/>
-  <text id="fn-cnt-dead_mum-0" x="608.0" y="915.8" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="10.5" font-weight="700" fill="#ffffff">0</text>
+  <image id="fn-photo-dead_mum-0" x="568.9" y="829.0" width="58.0" height="58.0" preserveAspectRatio="xMidYMin slice" clip-path="url(#clip-dead_mum-0)" xlink:href="images/%ED%94%8C%EB%A0%88%EC%9D%B4%EC%8A%A4%ED%99%80%EB%8D%94.jpeg"/>
+  <circle cx="597.9" cy="858.0" r="29.0" fill="none" stroke="#9fbdea" stroke-width="1.2"/>
+  <text id="fn-name-dead_mum-0" x="597.9" y="899.0" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="12" fill="#20303f"> </text>
+  <rect x="574.1" y="905.0" width="47.6" height="15" rx="7.5" fill="#2f6bcf"/>
+  <text id="fn-cnt-dead_mum-0" x="597.9" y="915.8" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="10.5" font-weight="700" fill="#ffffff">0</text>
 </g>
-<text x="654.0" y="819.0" font-family="Anton, sans-serif" font-size="12.5" letter-spacing="0.5" fill="#1f4e9e">MRS. WILKINSON</text>
-<line x1="654.0" y1="824.0" x2="822.0" y2="824.0" stroke="#1f4e9e" stroke-width="1"/>
+<text x="642.4" y="819.0" font-family="Anton, sans-serif" font-size="12.5" letter-spacing="0.5" fill="#1f4e9e">MRS. WILKINSON</text>
+<line x1="642.4" y1="824.0" x2="804.6" y2="824.0" stroke="#1f4e9e" stroke-width="1"/>
 <g id="fn-cell-mrs_wilkinson-0">
-  <image id="fn-photo-mrs_wilkinson-0" x="667.0" y="829.0" width="58.0" height="58.0" preserveAspectRatio="xMidYMin slice" clip-path="url(#clip-mrs_wilkinson-0)" xlink:href="images/%ED%94%8C%EB%A0%88%EC%9D%B4%EC%8A%A4%ED%99%80%EB%8D%94.jpeg"/>
-  <circle cx="696.0" cy="858.0" r="29.0" fill="none" stroke="#9fbdea" stroke-width="1.2"/>
-  <text id="fn-name-mrs_wilkinson-0" x="696.0" y="899.0" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="12" fill="#20303f"> </text>
-  <rect x="678.6" y="905.0" width="34.8" height="15" rx="7.5" fill="#2f6bcf"/>
-  <text id="fn-cnt-mrs_wilkinson-0" x="696.0" y="915.8" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="10.5" font-weight="700" fill="#ffffff">0</text>
+  <image id="fn-photo-mrs_wilkinson-0" x="654.0" y="829.0" width="58.0" height="58.0" preserveAspectRatio="xMidYMin slice" clip-path="url(#clip-mrs_wilkinson-0)" xlink:href="images/%ED%94%8C%EB%A0%88%EC%9D%B4%EC%8A%A4%ED%99%80%EB%8D%94.jpeg"/>
+  <circle cx="683.0" cy="858.0" r="29.0" fill="none" stroke="#9fbdea" stroke-width="1.2"/>
+  <text id="fn-name-mrs_wilkinson-0" x="683.0" y="899.0" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="12" fill="#20303f"> </text>
+  <rect x="659.2" y="905.0" width="47.6" height="15" rx="7.5" fill="#2f6bcf"/>
+  <text id="fn-cnt-mrs_wilkinson-0" x="683.0" y="915.8" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="10.5" font-weight="700" fill="#ffffff">0</text>
 </g>
 <g id="fn-cell-mrs_wilkinson-1">
-  <image id="fn-photo-mrs_wilkinson-1" x="755.0" y="829.0" width="58.0" height="58.0" preserveAspectRatio="xMidYMin slice" clip-path="url(#clip-mrs_wilkinson-1)" xlink:href="images/%ED%94%8C%EB%A0%88%EC%9D%B4%EC%8A%A4%ED%99%80%EB%8D%94.jpeg"/>
-  <circle cx="784.0" cy="858.0" r="29.0" fill="none" stroke="#9fbdea" stroke-width="1.2"/>
-  <text id="fn-name-mrs_wilkinson-1" x="784.0" y="899.0" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="12" fill="#20303f"> </text>
-  <rect x="766.6" y="905.0" width="34.8" height="15" rx="7.5" fill="#2f6bcf"/>
-  <text id="fn-cnt-mrs_wilkinson-1" x="784.0" y="915.8" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="10.5" font-weight="700" fill="#ffffff">0</text>
+  <image id="fn-photo-mrs_wilkinson-1" x="739.1" y="829.0" width="58.0" height="58.0" preserveAspectRatio="xMidYMin slice" clip-path="url(#clip-mrs_wilkinson-1)" xlink:href="images/%ED%94%8C%EB%A0%88%EC%9D%B4%EC%8A%A4%ED%99%80%EB%8D%94.jpeg"/>
+  <circle cx="768.1" cy="858.0" r="29.0" fill="none" stroke="#9fbdea" stroke-width="1.2"/>
+  <text id="fn-name-mrs_wilkinson-1" x="768.1" y="899.0" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="12" fill="#20303f"> </text>
+  <rect x="744.3" y="905.0" width="47.6" height="15" rx="7.5" fill="#2f6bcf"/>
+  <text id="fn-cnt-mrs_wilkinson-1" x="768.1" y="915.8" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="10.5" font-weight="700" fill="#ffffff">0</text>
 </g>
 <text x="203.0" y="962.0" font-family="Anton, sans-serif" font-size="12" letter-spacing="0.5" fill="#1f4e9e">GRANDMA</text>
 <line x1="203.0" y1="967.0" x2="405.0" y2="967.0" stroke="#1f4e9e" stroke-width="1"/>
@@ -162,21 +161,21 @@
   <image id="fn-photo-grandma-0" x="207.0" y="972.0" width="58.0" height="58.0" preserveAspectRatio="xMidYMin slice" clip-path="url(#clip-grandma-0)" xlink:href="images/%ED%94%8C%EB%A0%88%EC%9D%B4%EC%8A%A4%ED%99%80%EB%8D%94.jpeg"/>
   <circle cx="236.0" cy="1001.0" r="29.0" fill="none" stroke="#9fbdea" stroke-width="1.2"/>
   <text id="fn-name-grandma-0" x="236.0" y="1042.0" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="12" fill="#20303f"> </text>
-  <rect x="218.6" y="1048.0" width="34.8" height="15" rx="7.5" fill="#2f6bcf"/>
+  <rect x="212.2" y="1048.0" width="47.6" height="15" rx="7.5" fill="#2f6bcf"/>
   <text id="fn-cnt-grandma-0" x="236.0" y="1058.8" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="10.5" font-weight="700" fill="#ffffff">0</text>
 </g>
 <g id="fn-cell-grandma-1">
   <image id="fn-photo-grandma-1" x="277.0" y="972.0" width="58.0" height="58.0" preserveAspectRatio="xMidYMin slice" clip-path="url(#clip-grandma-1)" xlink:href="images/%ED%94%8C%EB%A0%88%EC%9D%B4%EC%8A%A4%ED%99%80%EB%8D%94.jpeg"/>
   <circle cx="306.0" cy="1001.0" r="29.0" fill="none" stroke="#9fbdea" stroke-width="1.2"/>
   <text id="fn-name-grandma-1" x="306.0" y="1042.0" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="12" fill="#20303f"> </text>
-  <rect x="288.6" y="1048.0" width="34.8" height="15" rx="7.5" fill="#2f6bcf"/>
+  <rect x="282.2" y="1048.0" width="47.6" height="15" rx="7.5" fill="#2f6bcf"/>
   <text id="fn-cnt-grandma-1" x="306.0" y="1058.8" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="10.5" font-weight="700" fill="#ffffff">0</text>
 </g>
 <g id="fn-cell-grandma-2">
   <image id="fn-photo-grandma-2" x="347.0" y="972.0" width="58.0" height="58.0" preserveAspectRatio="xMidYMin slice" clip-path="url(#clip-grandma-2)" xlink:href="images/%ED%94%8C%EB%A0%88%EC%9D%B4%EC%8A%A4%ED%99%80%EB%8D%94.jpeg"/>
   <circle cx="376.0" cy="1001.0" r="29.0" fill="none" stroke="#9fbdea" stroke-width="1.2"/>
   <text id="fn-name-grandma-2" x="376.0" y="1042.0" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="12" fill="#20303f"> </text>
-  <rect x="358.6" y="1048.0" width="34.8" height="15" rx="7.5" fill="#2f6bcf"/>
+  <rect x="352.2" y="1048.0" width="47.6" height="15" rx="7.5" fill="#2f6bcf"/>
   <text id="fn-cnt-grandma-2" x="376.0" y="1058.8" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="10.5" font-weight="700" fill="#ffffff">0</text>
 </g>
 <text x="413.0" y="962.0" font-family="Anton, sans-serif" font-size="12" letter-spacing="0.5" fill="#1f4e9e">GEORGE</text>
@@ -185,7 +184,7 @@
   <image id="fn-photo-george-0" x="417.0" y="972.0" width="58.0" height="58.0" preserveAspectRatio="xMidYMin slice" clip-path="url(#clip-george-0)" xlink:href="images/%ED%94%8C%EB%A0%88%EC%9D%B4%EC%8A%A4%ED%99%80%EB%8D%94.jpeg"/>
   <circle cx="446.0" cy="1001.0" r="29.0" fill="none" stroke="#9fbdea" stroke-width="1.2"/>
   <text id="fn-name-george-0" x="446.0" y="1042.0" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="12" fill="#20303f"> </text>
-  <rect x="428.6" y="1048.0" width="34.8" height="15" rx="7.5" fill="#2f6bcf"/>
+  <rect x="422.2" y="1048.0" width="47.6" height="15" rx="7.5" fill="#2f6bcf"/>
   <text id="fn-cnt-george-0" x="446.0" y="1058.8" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="10.5" font-weight="700" fill="#ffffff">0</text>
 </g>
 <text x="483.0" y="962.0" font-family="Anton, sans-serif" font-size="12" letter-spacing="0.5" fill="#1f4e9e">BRAITH.</text>
@@ -194,7 +193,7 @@
   <image id="fn-photo-mr_braithwaite-0" x="487.0" y="972.0" width="58.0" height="58.0" preserveAspectRatio="xMidYMin slice" clip-path="url(#clip-mr_braithwaite-0)" xlink:href="images/%ED%94%8C%EB%A0%88%EC%9D%B4%EC%8A%A4%ED%99%80%EB%8D%94.jpeg"/>
   <circle cx="516.0" cy="1001.0" r="29.0" fill="none" stroke="#9fbdea" stroke-width="1.2"/>
   <text id="fn-name-mr_braithwaite-0" x="516.0" y="1042.0" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="12" fill="#20303f"> </text>
-  <rect x="498.6" y="1048.0" width="34.8" height="15" rx="7.5" fill="#2f6bcf"/>
+  <rect x="492.2" y="1048.0" width="47.6" height="15" rx="7.5" fill="#2f6bcf"/>
   <text id="fn-cnt-mr_braithwaite-0" x="516.0" y="1058.8" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="10.5" font-weight="700" fill="#ffffff">0</text>
 </g>
 <text x="203.0" y="1090.0" font-family="Anton, sans-serif" font-size="12" letter-spacing="0.5" fill="#1f4e9e">TALL BOY</text>
@@ -203,14 +202,14 @@
   <image id="fn-photo-tall_boy-0" x="207.0" y="1100.0" width="58.0" height="58.0" preserveAspectRatio="xMidYMin slice" clip-path="url(#clip-tall_boy-0)" xlink:href="images/%ED%94%8C%EB%A0%88%EC%9D%B4%EC%8A%A4%ED%99%80%EB%8D%94.jpeg"/>
   <circle cx="236.0" cy="1129.0" r="29.0" fill="none" stroke="#9fbdea" stroke-width="1.2"/>
   <text id="fn-name-tall_boy-0" x="236.0" y="1170.0" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="12" fill="#20303f"> </text>
-  <rect x="218.6" y="1176.0" width="34.8" height="15" rx="7.5" fill="#2f6bcf"/>
+  <rect x="212.2" y="1176.0" width="47.6" height="15" rx="7.5" fill="#2f6bcf"/>
   <text id="fn-cnt-tall_boy-0" x="236.0" y="1186.8" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="10.5" font-weight="700" fill="#ffffff">0</text>
 </g>
 <g id="fn-cell-tall_boy-1">
   <image id="fn-photo-tall_boy-1" x="277.0" y="1100.0" width="58.0" height="58.0" preserveAspectRatio="xMidYMin slice" clip-path="url(#clip-tall_boy-1)" xlink:href="images/%ED%94%8C%EB%A0%88%EC%9D%B4%EC%8A%A4%ED%99%80%EB%8D%94.jpeg"/>
   <circle cx="306.0" cy="1129.0" r="29.0" fill="none" stroke="#9fbdea" stroke-width="1.2"/>
   <text id="fn-name-tall_boy-1" x="306.0" y="1170.0" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="12" fill="#20303f"> </text>
-  <rect x="288.6" y="1176.0" width="34.8" height="15" rx="7.5" fill="#2f6bcf"/>
+  <rect x="282.2" y="1176.0" width="47.6" height="15" rx="7.5" fill="#2f6bcf"/>
   <text id="fn-cnt-tall_boy-1" x="306.0" y="1186.8" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="10.5" font-weight="700" fill="#ffffff">0</text>
 </g>
 <text x="343.0" y="1090.0" font-family="Anton, sans-serif" font-size="12" letter-spacing="0.5" fill="#1f4e9e">SMALL BOY</text>
@@ -219,25 +218,25 @@
   <image id="fn-photo-small_boy-0" x="347.0" y="1100.0" width="58.0" height="58.0" preserveAspectRatio="xMidYMin slice" clip-path="url(#clip-small_boy-0)" xlink:href="images/%ED%94%8C%EB%A0%88%EC%9D%B4%EC%8A%A4%ED%99%80%EB%8D%94.jpeg"/>
   <circle cx="376.0" cy="1129.0" r="29.0" fill="none" stroke="#9fbdea" stroke-width="1.2"/>
   <text id="fn-name-small_boy-0" x="376.0" y="1170.0" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="12" fill="#20303f"> </text>
-  <rect x="358.6" y="1176.0" width="34.8" height="15" rx="7.5" fill="#2f6bcf"/>
+  <rect x="352.2" y="1176.0" width="47.6" height="15" rx="7.5" fill="#2f6bcf"/>
   <text id="fn-cnt-small_boy-0" x="376.0" y="1186.8" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="10.5" font-weight="700" fill="#ffffff">0</text>
 </g>
 <g id="fn-cell-small_boy-1">
   <image id="fn-photo-small_boy-1" x="417.0" y="1100.0" width="58.0" height="58.0" preserveAspectRatio="xMidYMin slice" clip-path="url(#clip-small_boy-1)" xlink:href="images/%ED%94%8C%EB%A0%88%EC%9D%B4%EC%8A%A4%ED%99%80%EB%8D%94.jpeg"/>
   <circle cx="446.0" cy="1129.0" r="29.0" fill="none" stroke="#9fbdea" stroke-width="1.2"/>
   <text id="fn-name-small_boy-1" x="446.0" y="1170.0" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="12" fill="#20303f"> </text>
-  <rect x="428.6" y="1176.0" width="34.8" height="15" rx="7.5" fill="#2f6bcf"/>
+  <rect x="422.2" y="1176.0" width="47.6" height="15" rx="7.5" fill="#2f6bcf"/>
   <text id="fn-cnt-small_boy-1" x="446.0" y="1186.8" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="10.5" font-weight="700" fill="#ffffff">0</text>
 </g>
 <g id="fn-cell-small_boy-2">
   <image id="fn-photo-small_boy-2" x="487.0" y="1100.0" width="58.0" height="58.0" preserveAspectRatio="xMidYMin slice" clip-path="url(#clip-small_boy-2)" xlink:href="images/%ED%94%8C%EB%A0%88%EC%9D%B4%EC%8A%A4%ED%99%80%EB%8D%94.jpeg"/>
   <circle cx="516.0" cy="1129.0" r="29.0" fill="none" stroke="#9fbdea" stroke-width="1.2"/>
   <text id="fn-name-small_boy-2" x="516.0" y="1170.0" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="12" fill="#20303f"> </text>
-  <rect x="498.6" y="1176.0" width="34.8" height="15" rx="7.5" fill="#2f6bcf"/>
+  <rect x="492.2" y="1176.0" width="47.6" height="15" rx="7.5" fill="#2f6bcf"/>
   <text id="fn-cnt-small_boy-2" x="516.0" y="1186.8" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="10.5" font-weight="700" fill="#ffffff">0</text>
 </g>
 <text x="566.0" y="962.0" font-family="Anton, sans-serif" font-size="12.5" letter-spacing="0.5" fill="#1f4e9e">SEAT MAP</text>
-<line x1="566.0" y1="967.0" x2="824.0" y2="967.0" stroke="#1f4e9e" stroke-width="1"/>
-<rect id="fn-seatbox" x="566" y="972.0" width="258" height="262" fill="none"/>
+<line x1="566.0" y1="967.0" x2="772.4" y2="967.0" stroke="#1f4e9e" stroke-width="1"/>
+<rect id="fn-seatbox" x="566" y="972.0" width="206.4" height="209.6" fill="none"/>
 <text id="fn-subtitle" x="565" y="1252" text-anchor="middle" font-family="IBM Plex Sans KR, sans-serif" font-size="10" fill="#5a6675"> </text>
 </svg>
