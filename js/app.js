@@ -6467,6 +6467,9 @@ async function init(){
   // 이후 삭제/순서 변경이 이 목록을 갱신·저장하므로 삭제 정보가 그대로 유지된다.
   if(!localStorage.getItem(STORAGE_KEY)) saveState();
 
+  // 비밀 피날레 보드: URL이 ?board=<id> 또는 #<id>로 hidden 보드를 가리키면 자동으로 크게 연다.
+  if(typeof window.finaleTryAutoOpen === "function") window.finaleTryAutoOpen();
+
   renderSchedule();
   renderStats();
   renderSeatMap();

@@ -38,6 +38,16 @@
   //  - 레지스트리(finale-boards.json) = 카탈로그: id·name·hidden·default·def(경로). 갤러리 목록의 권위.
   //  - def(finale-boards/<id>.json) = 순수 렌더 스펙(id·name 없음). 실행 시 레지스트리의 id·name을 얹는다.
   const _boardParam = new URLSearchParams(location.search).get("board") || "";
+  // 비밀 보드 진입: ?board=<id> (쿼리) 또는 #<id> / #board=<id> (해시 앵커)로 지정한 보드를 자동으로 크게 연다.
+  //  갤러리(buildThumbs)는 hidden 보드를 계속 감추므로, 이 링크를 아는 사람만 접근한다.
+  function targetBoardId(){
+    const q = (new URLSearchParams(location.search).get("board") || "").trim();
+    if(q) return q;
+    const h = (location.hash || "").replace(/^#/, "").trim();
+    if(!h) return "";
+    const m = /^board[=/-](.+)$/.exec(h);
+    return decodeURIComponent(m ? m[1] : h);
+  }
   let _registry = null, _registryPromise = null;
   function loadRegistry(){
     if(_registry) return Promise.resolve(_registry);
@@ -247,14 +257,44 @@
   //  주연(!group): slot=id, 멤버=actors(+통계).
   //  그룹+actors(발레): actor마다 slot={id}_{actor.id}(byTeam) + 베이스 slot=id(byTeam 없는 members=어른). 통계 없음.
   //  그룹 no actors(앙상블): slot=id, 멤버=members. 통계 없음.
-  function castSlotGroups(casts){
+  // coStar 정산판: 특정 주역(예: 빌리=김우진)과 '함께 선' 관극수.
+  //  각 배우의 값 = 그 주역이 role을 맡은 회차 중, 그 배우도 (자기 배역으로) 함께 오른 회차 수.
+  //   watched = 그 중 내가 실제 관극(종료+좌석)한 회차, total = 그 배우가 함께 오른 전체 회차.
+  //   합계는 스케줄 회차 캐스팅(p.cast)에서 직접 집계 — 코드에 배역/이름 하드코딩 없음.
+  //  값은 '배역|배우' 키로 집계 — 한 배우가 여러 배역(예: 조지+아빠커버)을 맡아도 배역별로 분리된다.
+  function coStarCounts(role, actorName){
+    const watched = {}, total = {};
+    const inc = (o, k) => { o[k] = (o[k] || 0) + 1; };
+    const perfs = (typeof performanceData !== "undefined" && performanceData && performanceData.performances) || [];
+    const names = (typeof castVisibleNamesOf === "function") ? castVisibleNamesOf : (e => []);
+    perfs.forEach(p => {
+      if(names(p.cast ? p.cast[role] : null).indexOf(actorName) < 0) return;   // 그 주역(김우진 빌리) 회차만
+      const w = (typeof isEnded === "function" && isEnded(p)) && (typeof hasSeat === "function" && hasSeat(p));
+      const cst = p.cast || {};
+      Object.keys(cst).forEach(r => names(cst[r]).forEach(n => { const k = r + "|" + n; inc(total, k); if(w) inc(watched, k); }));
+    });
+    return { watched, total };
+  }
+  function castSlotGroups(casts, coStar){
     const out = [];
+    const co = (coStar && coStar.role && coStar.actor) ? coStarCounts(coStar.role, coStar.actor) : null;
     casts.forEach(c => {
       if(!c.id) return;
       if(!c.group){
-        const rs = (typeof computeRoleActorStats === "function") ? computeRoleActorStats(c.role, finaleMode) : {};
-        out.push({ slot: c.id, roleId: c.id, members: (c.actors||[]).map(a => ({
-          name:a.name, role:a.role, stat: rs[a.name] ? { w:rs[a.name].watched, t:rs[a.name].total } : { w:0, t:0 } })) });
+        if(co){   // coStar 모드: 값=함께 관극수, 주역 배역은 그 배우만 노출(다른 빌리 숨김)
+          let actors = c.actors || [];
+          if(c.role === coStar.role) actors = actors.filter(a => a.name === coStar.actor);
+          if(coStar.mainOnly) actors = actors.filter(a => !/^(cover|standby|alternative)$/.test(a.role || ""));   // 주연(cast)만
+          const members = actors.map(a => {
+            const k = c.role + "|" + a.name, cw = co.watched[k] || 0;
+            return { name:a.name, role:a.role, stat: { w:cw, t:(co.total[k]||0), co:cw } };
+          }).filter(m => m.stat.co > 0);   // 함께 관극수 0(안 본 배우)는 정산판에서 제외
+          out.push({ slot: c.id, roleId: c.id, members });
+        } else {
+          const rs = (typeof computeRoleActorStats === "function") ? computeRoleActorStats(c.role, finaleMode) : {};
+          out.push({ slot: c.id, roleId: c.id, members: (c.actors||[]).map(a => ({
+            name:a.name, role:a.role, stat: rs[a.name] ? { w:rs[a.name].watched, t:rs[a.name].total } : { w:0, t:0 } })) });
+        }
       } else if(c.actors && c.actors.length){
         const members = c.members || [];
         c.actors.forEach(a => {
@@ -309,6 +349,8 @@
     while(svg.querySelector("#" + idOf(fields[0].id, i))){   // 첫 필드 요소가 있으면 그 슬롯 존재
       const item = items[i];
       fields.forEach(f => renderField(svg, mani, f, svg.querySelector("#" + idOf(f.id, i)), item, photos));
+      // 셀 그룹(tmpl.cell)이 있으면 통째로 표시/숨김 — 링·숫자판 등 장식까지 함께(빈 슬롯 완전 숨김)
+      if(tmpl.cell){ const cg = svg.querySelector("#" + idOf(tmpl.cell, i)); if(cg) cg.style.display = (item && item.name != null) ? "" : "none"; }
       i++;
     }
     return i;   // 배경에 존재하는 슬롯 개수(칠할 자리 수)
@@ -334,7 +376,7 @@
     // ── 슬롯: casts 자동 파생 + exclude. 배치 못한 항목은 onUnplaced 정책 ──
     const roleNameOf = id => { const c = casts.find(x => x.id === id); return c ? c.role : null; };
     const unplaced = [];
-    castSlotGroups(casts).forEach(g => {
+    castSlotGroups(casts, mani.coStar).forEach(g => {
       const rName = roleNameOf(g.roleId);
       if(ex.roleIds.has(g.roleId) || (rName && ex.roleNames.has(rName))){   // 역할/그룹 통째 제외 → 슬롯 숨김
         hideSlot(svg, tmpl, g.slot); return;
@@ -856,6 +898,18 @@
     }
     requestAnimationFrame(fitBoard);   // 표시 후 뷰포트 크기 확정된 뒤 맞춤
   }
+  // 쿼리(?board=)·해시(#id)가 가리키는 보드를 자동으로 크게 연다(hidden 보드 직접 진입).
+  let _autoOpenedId = "";
+  async function tryAutoOpen(){
+    if(!dataReady()) return;
+    const id = targetBoardId(); if(!id || id === _autoOpenedId) return;
+    const reg = await loadRegistry();
+    const entry = (reg.boards || []).find(b => b.id === id);
+    if(!entry) return;
+    _autoOpenedId = id;
+    await openFinaleOverlay(entry);                                              // 먼저 내 보드 렌더(_activeEntry 확정)
+    if(typeof window.activateTab === "function") window.activateTab("finale");   // 그 뒤 탭 활성화(닫으면 갤러리로)
+  }
   function hideOverlay(){ const ov=document.getElementById("finaleOverlay"); if(ov) ov.style.display="none"; }
   // 닫기 버튼·배경 클릭 → 우리가 push한 히스토리 항목을 되돌려(뒤로가기) popstate에서 실제로 닫음
   function closeFinaleOverlay(){
@@ -1106,9 +1160,12 @@
     // 배경(뷰포트 밖) 클릭 시 닫기
     const ov=document.getElementById("finaleOverlay");
     if(ov) ov.addEventListener("click", e=>{ if(e.target===ov) closeFinaleOverlay(); });
+    // 해시 앵커(#<보드id>)로 바꿔 들어와도 그 보드를 연다
+    window.addEventListener("hashchange", ()=>{ tryAutoOpen(); });
   }
 
   window.renderFinale = function(){ renderFinale(); };
+  window.finaleTryAutoOpen = function(){ tryAutoOpen(); };   // app.js가 데이터 로드 후 호출
   window.renderFinaleBoard = async function(){   // CI 썸네일 생성용(기본/지정 보드를 뷰포트에 렌더)
     const reg = await loadRegistry(); const entry = resolveEntry(reg);
     const vp = getViewport(); if(!vp || !entry) return null;
