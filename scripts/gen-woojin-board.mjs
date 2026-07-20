@@ -40,11 +40,11 @@ wjKeys.forEach(k => { const d = cbd[k]; if(!d) return;
   balletKeys.forEach(rk => { if(d[rk]) balletCnt[d[rk]] = (balletCnt[d[rk]] || 0) + 1; });
   (d["앙상블"] || []).forEach(e => ensSet.add(Array.isArray(e) ? e[0] : e));
 });
-// 팀별 로스터(공용+팀전용) 중 김우진과 함께 오른 적 있는 배우 수 = 슬롯 수
-const teamRosterWJ = teamName => (balletCast.members || [])
-  .map(m => m.byTeam ? m.byTeam[teamName] : m.name).filter(Boolean)
-  .filter(name => (balletCnt[name] || 0) > 0);
-const BALLET_ASH_N = teamRosterWJ("애싱턴").length, BALLET_BED_N = teamRosterWJ("베들링턴").length;
+// 발레걸즈 구성: adult(상시=byTeam 없음) + Ashington(byTeam) + Bedlington(byTeam). 김우진과 함께 오른 배우만.
+const withWJ = names => names.filter(n => (balletCnt[n] || 0) > 0);
+const ADULT_N = withWJ((balletCast.members || []).filter(m => !m.byTeam && m.name).map(m => m.name)).length;
+const ASH_N   = withWJ((balletCast.members || []).filter(m => m.byTeam && m.byTeam["애싱턴"]).map(m => m.byTeam["애싱턴"])).length;
+const BED_N   = withWJ((balletCast.members || []).filter(m => m.byTeam && m.byTeam["베들링턴"]).map(m => m.byTeam["베들링턴"])).length;
 const ENS_N = ensSet.size;
 // 배역 줄 묶음(한 줄 최대 6명). 마이클은 상단 강조 줄로 따로.
 const ROWS = [
@@ -54,7 +54,8 @@ const ROWS = [
   ["tall_boy","small_boy"]
 ];
 
-const VB_W = 840, POSTER_H = 1262, VB_H = 1610;   // 포스터 아래로 확장 → 발레(팀)·앙상블
+const VB_W = 840, POSTER_H = 1262, VB_H = 1500;   // 포스터 아래로 확장 → 발레(한 줄)·앙상블
+const EXT_BG = "#f3f2f0";   // 확장 영역 배경 = 포스터 빈 공간 회색
 const CX0 = 300, CW = 528 - 0.3*58;   // 콘텐츠 폭 — 오른쪽 여백을 0.3*사진(d58)만큼 늘림
 const BLUE = "#2f6bcf", BLUE_D = "#1f4e9e", INK = "#20303f", RING = "#9fbdea";
 const PH = "images/%ED%94%8C%EB%A0%88%EC%9D%B4%EC%8A%A4%ED%99%80%EB%8D%94.jpeg";   // 플레이스홀더.jpeg
@@ -111,7 +112,7 @@ function renderRow(roles, yTop, o){
 P(`<?xml version="1.0" encoding="UTF-8"?>`);
 P(`<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 ${VB_W} ${VB_H}" font-size="12px">`);
 P(`__DEFS__`);
-P(`<rect x="0" y="0" width="${VB_W}" height="${VB_H}" fill="#ffffff"/>`);   // 확장 영역(포스터 아래) 흰 배경
+P(`<rect x="0" y="0" width="${VB_W}" height="${VB_H}" fill="${EXT_BG}"/>`);   // 확장 영역(포스터 아래) = 빈 공간 회색
 P(`<image x="0" y="0" width="${VB_W}" height="${POSTER_H}" preserveAspectRatio="none" xlink:href="/shows/betm-skorea-2026/images/finale-board-woojin-bg.jpg"/>`);
 
 // 빌리(김우진)는 배경 포스터가 곧 본인 → 이름·관극수·타이틀 문구 없이 배경으로만.
@@ -142,22 +143,31 @@ const smX = gridRight - smW;
 heading("SEAT MAP", smX, bandTop + 14, smW, 12.5);
 P(`<rect id="fn-seatbox" x="${smX.toFixed(1)}" y="${(bandTop + 24).toFixed(1)}" width="${smW.toFixed(1)}" height="${smH.toFixed(1)}" fill="none"/>`);
 
-// ── 확장 캔버스(포스터 아래 흰 영역): 톨보이·스몰보이 → 발레(애싱턴·베들링턴) → 앙상블 ──
+// ── 확장 영역(포스터 아래): 배역 순서 이어서 → 발레걸즈(adult·애싱턴·베들링턴 한 줄) → 앙상블 ──
 const EX_X = 40, EX_W = 760;
-// 전체 폭 작은 셀 한 줄(발레/앙상블). 팀 카운트(fn-group)는 선 위쪽 오른쪽 정렬로.
-function extRow(slot, n, yTop, d, teamId){
-  if(n <= 0) return;
-  const pitch = EX_W / n;
-  const firstLeft = EX_X + pitch/2 - d/2, lastRight = EX_X + (n - 0.5)*pitch + d/2;
-  heading(LABEL[teamId || slot] || slot, firstLeft, yTop + 14, lastRight - firstLeft, 13);
-  if(teamId)   // 발레 팀 카운트(내/전체) — 실선 위쪽, 오른쪽 정렬(값은 finale.js가 채움)
-    P(`<text id="fn-group-${teamId}" x="${lastRight.toFixed(1)}" y="${(yTop + 12).toFixed(1)}" text-anchor="end" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="12" font-weight="700" fill="${BLUE_D}">0</text>`);
-  const svgSlot = teamId ? `ballet_girls_${teamId}` : slot;
-  for(let i=0;i<n;i++) cell(svgSlot, i, EX_X + pitch*(i+0.5), yTop + 24, d, false, true);
+// 여러 하위그룹을 한 줄에 이어 배치. 팀(teamId) 있으면 함께관극수(fn-group)를 선 위·오른쪽 정렬로.
+function groupRow(groups, yTop, d){
+  const totalN = groups.reduce((s, g) => s + g.n, 0); if(totalN <= 0) return;
+  const pitch = EX_W / totalN;
+  let x = EX_X;
+  groups.forEach(g => {
+    if(g.n <= 0) return;
+    const firstLeft = x + pitch/2 - d/2, lastRight = x + (g.n - 0.5)*pitch + d/2;
+    heading(g.label, firstLeft, yTop + 14, lastRight - firstLeft, 13);
+    if(g.teamId)   // 팀 함께관극수(내/전체) — 실선 위쪽, 오른쪽 정렬(값은 finale.js가 채움)
+      P(`<text id="fn-group-${g.teamId}" x="${lastRight.toFixed(1)}" y="${(yTop + 12).toFixed(1)}" text-anchor="end" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="12" font-weight="700" fill="${BLUE_D}">0</text>`);
+    for(let i=0;i<g.n;i++) cell(g.slot, i, x + pitch*(i+0.5), yTop + 24, d, false, true);
+    x += g.n*pitch;
+  });
 }
-extRow(null, BALLET_ASH_N, 1298, 52, "ashington");
-extRow(null, BALLET_BED_N, 1402, 52, "bedlington");
-extRow("ensemble", ENS_N, 1506, 38);
+// 발레걸즈: adult(상시) + 애싱턴 + 베들링턴 = 한 줄(4·5·5)
+groupRow([
+  { slot:"ballet_girls",            label:"BALLET GIRLS", n:ADULT_N, teamId:null },
+  { slot:"ballet_girls_ashington",  label:"ASHINGTON",    n:ASH_N,   teamId:"ashington" },
+  { slot:"ballet_girls_bedlington", label:"BEDLINGTON",   n:BED_N,   teamId:"bedlington" }
+], 1290, 50);
+// 앙상블
+groupRow([{ slot:"ensemble", label:"ENSEMBLE", n:ENS_N, teamId:null }], 1400, 38);
 
 P(`</svg>`);
 
