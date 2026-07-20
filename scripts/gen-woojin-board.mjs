@@ -13,6 +13,7 @@
    ========================================================= */
 import fs from "fs";
 
+const OUT_ID = process.argv[2] || "woojin";   // 출력 파일 id(woojin·woojin2…). 레이아웃·배경은 동일, 파일명만 분리.
 const SHOW = "shows/betm-skorea-2026";
 const casts = JSON.parse(fs.readFileSync(`${SHOW}/casts.json`, "utf8"));
 const isCover = r => /^(cover|standby|alternative)$/.test(r || "");
@@ -184,6 +185,6 @@ groupRow([{ slot:"ensemble", label:"ENSEMBLE", n:ENS_N, teamId:null }], Y_ENS, E
 P(`</svg>`);
 
 const svg = out.join("\n").replace("__DEFS__", `<defs>\n${defs.join("\n")}\n</defs>`);
-const dest = `${SHOW}/images/finale-board-woojin.svg`;
+const dest = `${SHOW}/images/finale-board-${OUT_ID}.svg`;
 fs.writeFileSync(dest, svg);
 console.log("wrote", dest, svg.length, "bytes");
