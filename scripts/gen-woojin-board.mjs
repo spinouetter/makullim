@@ -128,23 +128,27 @@ P(`<image x="0" y="0" width="${VB_W}" height="${POSTER_H}" preserveAspectRatio="
   for(let i=0;i<n;i++) cell("michael", i, cxOf(i), 512, d, true);
 }
 
-// ── 상단 두 줄(전체 폭 6칸): 데비·올드빌리 / 토니·아빠·엄마·윌킨슨 ──
-const ROW_TOP0 = 662, ROW_H = 143;
-renderRow(ROWS[0], ROW_TOP0, { alignLeft:true, alignRight:true });
-renderRow(ROWS[1], ROW_TOP0 + ROW_H, { alignLeft:true, alignRight:true });
+// ── 세로 배치: 각 줄 '문자 탑'(헤딩 glyphTop)이 '이전 줄 단추 보톰 + 지정 간격'이 되게 ──
+//   간격(위→아래): michael→debbie 25 · debbie→tony 24 · tony→grandma 24 · grandma→tallboy 24 · tallboy→ballet 12 · ballet→ensemble 9
+const GRID_HTOP = 2.8, GRID_BB = 115, MICH_BB = 633;   // 그리드 헤딩 glyphTop=yTop+2.8, 단추 보톰=yTop+115, 마이클 단추 보톰(고정)
+const Y_DEBBIE = (MICH_BB           + 25) - GRID_HTOP;
+const Y_TONY   = (Y_DEBBIE + GRID_BB + 24) - GRID_HTOP;
+const Y_GRAND  = (Y_TONY   + GRID_BB + 24) - GRID_HTOP;
+const Y_TALL   = (Y_GRAND  + GRID_BB + 24) - GRID_HTOP;
+renderRow(ROWS[0], Y_DEBBIE, { alignLeft:true, alignRight:true });
+renderRow(ROWS[1], Y_TONY,   { alignLeft:true, alignRight:true });
 
 // ── 아래 두 줄(할머니·조지·브웨 / 톨보이·스몰보이) 왼쪽 + 오른쪽 좌석맵 ──
-const bandTop = ROW_TOP0 + 2*ROW_H;                    // ≈948
 const SHORT = { mr_braithwaite:"BRAITH." };            // 좁은 칸용 짧은 라벨
 const leftBig = { x0:200, w:352, pitch:70, d:58, hfs:12, label:SHORT };
-renderRow(ROWS[2], bandTop, { ...leftBig, alignRight:true });   // 할머니·조지·브웨
-renderRow(ROWS[3], bandTop + 128, leftBig);                     // 톨보이·스몰보이 (원래 자리)
-// 좌석맵(오른쪽) — 크기 0.9배, 오른쪽 끝을 전수미 사진에 정렬
-const smW = 258*0.8*1.1*0.95, smH = 262*0.8*1.1*0.95;   // 바닥을 톨보이 숫자단추 바닥(~1191)에 맞춤
+renderRow(ROWS[2], Y_GRAND, { ...leftBig, alignRight:true });   // 할머니·조지·브웨
+renderRow(ROWS[3], Y_TALL,  leftBig);                           // 톨보이·스몰보이
+// 좌석맵(오른쪽) — 오른끝은 그리드 오른끝, 바닥은 톨보이 숫자단추 바닥에 맞춤(비율 258:262 유지)
 const gridRight = CX0 + CW - CELL_PITCH/2 + CELL_D/2;   // 맨 오른쪽 셀(전수미) 사진 오른쪽 끝
+const smH = (Y_TALL + GRID_BB) - (Y_GRAND + 24), smW = smH * (258/262);
 const smX = gridRight - smW;
-heading("SEAT MAP", smX, bandTop + 14, smW, 12.5);
-P(`<rect id="fn-seatbox" x="${smX.toFixed(1)}" y="${(bandTop + 24).toFixed(1)}" width="${smW.toFixed(1)}" height="${smH.toFixed(1)}" fill="none"/>`);
+heading("SEAT MAP", smX, Y_GRAND + 14, smW, 12.5);
+P(`<rect id="fn-seatbox" x="${smX.toFixed(1)}" y="${(Y_GRAND + 24).toFixed(1)}" width="${smW.toFixed(1)}" height="${smH.toFixed(1)}" fill="none"/>`);
 
 // ── 배역 순서 이어서: 톨보이 아래로. 오른쪽 끝=다른 줄(gridRight)에 정렬, 왼쪽은 소년 발 위까지 확장(겹침 허용) ──
 const EX_L = 40, EX_R = gridRight;
@@ -163,14 +167,19 @@ function groupRow(groups, yTop, d){
     for(let i=0;i<g.n;i++){ cell(g.slot, i, cxOf(idx), yTop + 24, d, false, true); idx++; }
   });
 }
+// ── 발레·앙상블: small 헤딩 glyphTop=yTop+1.9, 발레 이름 바닥=yTop+24+d+max(9,d*0.26) ──
+const SMALL_HTOP = 1.9, BALLET_D = 48, ENS_D = 38;
+const Y_BALLET = (Y_TALL + GRID_BB + 12) - SMALL_HTOP;                        // 톨보이 단추 보톰 + 12
+const balletBottom = Y_BALLET + 24 + BALLET_D + Math.max(9, BALLET_D*0.26);   // 발레 이름 baseline(바닥)
+const Y_ENS = (balletBottom + 9) - SMALL_HTOP;                                // 발레 이름 바닥 + 9
 // 발레걸즈: adult(상시) + 애싱턴 + 베들링턴 = 한 줄(4·5·5)
 groupRow([
   { slot:"ballet_girls",            label:"BALLET GIRLS", n:ADULT_N, teamId:null },
   { slot:"ballet_girls_ashington",  label:"ASHINGTON",    n:ASH_N,   teamId:"ashington" },
   { slot:"ballet_girls_bedlington", label:"BEDLINGTON",   n:BED_N,   teamId:"bedlington" }
-], 1198, 48);
-// 앙상블 — 발레 바로 아래(더 붙여서)
-groupRow([{ slot:"ensemble", label:"ENSEMBLE", n:ENS_N, teamId:null }], 1298, 38);
+], Y_BALLET, BALLET_D);
+// 앙상블 — 발레 바로 아래
+groupRow([{ slot:"ensemble", label:"ENSEMBLE", n:ENS_N, teamId:null }], Y_ENS, ENS_D);
 
 P(`</svg>`);
 
