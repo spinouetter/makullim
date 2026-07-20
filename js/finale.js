@@ -20,7 +20,7 @@
   const BOARDS_URL = "finale-boards.json";
   // finale 자원 콘텐츠 버전 — SVG 보드·정의(JSON)·배우 사진을 실제로 바꿀 때만 올린다.
   //   (커밋 SHA로 매 배포 버스트하지 않고, 내용이 그대로면 브라우저 캐시를 재사용한다.)
-  const FIN_VER = 19;
+  const FIN_VER = 20;
   //   경로에 이미 ?v= 등 자체 버전 쿼리가 있으면(예: background.src="finale-board.svg?v=28") 그걸 존중하고, 없을 때만 FIN_VER를 붙인다.
   function verUrl(p){ const u = window.showUrl(p); return u.indexOf("?")>=0 ? u : (u + "?v=" + FIN_VER); }
   const JSPDF_URL   = "https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js";
@@ -156,8 +156,13 @@
     };
     return (s && e) ? `${f(s)} ~ ${f(e)}` : "";
   }
-  function seatWatchCount(id){
-    return performanceData.performances.filter(p => p.seat===id && isEnded(p)).length;
+  function seatWatchCount(id, coStar){
+    let ps = performanceData.performances.filter(p => p.seat===id && isEnded(p));
+    if(coStar && coStar.role && coStar.actor){   // coStar 보드: 그 주역(빌리=김우진) 회차의 좌석만 (coStarCounts 회차 필터와 동일)
+      const names = (typeof castVisibleNamesOf === "function") ? castVisibleNamesOf : (e => []);
+      ps = ps.filter(p => names(p.cast ? p.cast[coStar.role] : null).indexOf(coStar.actor) >= 0);
+    }
+    return ps.length;
   }
   function rosterOf(roleKey){
     const c = (performanceData.casts||[]).find(c=>normRole(c.role)===roleKey);
@@ -467,7 +472,7 @@
       if(el){ applyStyleAttrs(el, resolveStyle(mani, mani.subtitle.style));
         const v = periodVenueVal(mani.subtitle); if(v) el.textContent = v; }
     }
-    if(mani.seatmap) injectSeatmap(svg, mani.seatmap);              // 좌석 히트맵
+    if(mani.seatmap) injectSeatmap(svg, mani.seatmap, mani.coStar); // 좌석 히트맵(coStar 보드는 그 주역 회차만)
     if(mani.preview) injectPreviewWatermark(svg);                   // preview:true → 대각선 "PREVIEW" 워터마크
   }
   // 보드 전체를 대각선으로 가르는 검은 볼드 "PREVIEW" 워터마크(미확정 보드 표시용).
@@ -495,7 +500,7 @@
   function hx(c){ return [parseInt(c.slice(1,3),16),parseInt(c.slice(3,5),16),parseInt(c.slice(5,7),16)]; }
   function mix(a,b,t){ const A=hx(a),B=hx(b); return '#'+[0,1,2].map(i=>Math.round(A[i]+(B[i]-A[i])*t).toString(16).padStart(2,'0')).join(''); }
 
-  function injectSeatmap(svg, cfg){
+  function injectSeatmap(svg, cfg, coStar){
     cfg = cfg || {};
     const sm = seatmapData; if(!sm || !sm.seats) return;
     const HEAT = cfg.heat || ['#4aa3ff','#2fd0c8','#46c84e','#c2d92a','#ffd21f','#ff9a1f','#ff6322','#ef3b2f','#d81e4a','#b3126e'];
@@ -572,7 +577,7 @@
       });
       const sz=Math.max(1.4, 0.82*scale);
       b.fs.forEach(s=>{
-        const cnt = seatWatchCount(s.id);   // 랜덤 모드에선 위에서 배정한 무작위 좌석이 반영됨
+        const cnt = seatWatchCount(s.id, coStar);   // coStar 보드는 그 주역 회차만 / 랜덤 모드에선 위에서 배정한 무작위 좌석이 반영됨
         const color = cnt>0 ? heatColor(cnt) : gradeBase(gradeOf(s.id));
         mk += `<rect x="${(X(s.svgX)-sz/2).toFixed(1)}" y="${(Y(s.svgY)-sz/2).toFixed(1)}" width="${sz.toFixed(1)}" height="${sz.toFixed(1)}" rx="${(sz*0.22).toFixed(1)}" fill="${color}"/>`;
       });
