@@ -114,7 +114,6 @@ const smX = gridRight - smW;
 heading("SEAT MAP", smX, bandTop + 14, smW, 12.5);
 P(`<rect id="fn-seatbox" x="${smX.toFixed(1)}" y="${(bandTop + 24).toFixed(1)}" width="${smW.toFixed(1)}" height="${smH.toFixed(1)}" fill="none"/>`);
 
-P(`<text id="fn-subtitle" x="565" y="1252" text-anchor="middle" font-family="IBM Plex Sans KR, sans-serif" font-size="10" fill="#5a6675"> </text>`);
 P(`</svg>`);
 
 const svg = out.join("\n").replace("__DEFS__", `<defs>\n${defs.join("\n")}\n</defs>`);
