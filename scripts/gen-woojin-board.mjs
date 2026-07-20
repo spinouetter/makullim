@@ -13,7 +13,9 @@
    ========================================================= */
 import fs from "fs";
 
-const OUT_ID = process.argv[2] || "woojin";   // 출력 파일 id(woojin·woojin2…). 레이아웃·배경은 동일, 파일명만 분리.
+const OUT_ID = process.argv[2] || "woojin";   // 출력 파일 id(woojin·woojin2…). 파일명 분리.
+const MODE   = process.argv[3] || "full";     // full=발레·앙상블 포함(확장영역) / compact=제외(포스터 높이만)
+const WITH_GROUPS = MODE !== "compact";
 const SHOW = "shows/betm-skorea-2026";
 const casts = JSON.parse(fs.readFileSync(`${SHOW}/casts.json`, "utf8"));
 const isCover = r => /^(cover|standby|alternative)$/.test(r || "");
@@ -55,7 +57,8 @@ const ROWS = [
   ["tall_boy","small_boy"]
 ];
 
-const VB_W = 840, POSTER_H = 1262, VB_H = 1385;   // 발레·앙상블 위로, 우측 정렬
+const VB_W = 840, POSTER_H = 1262;
+const VB_H = WITH_GROUPS ? 1385 : POSTER_H;   // full=확장영역 포함 / compact=포스터 높이만(아래 여백 없음)
 const EXT_BG = "#f3f2f0";   // 확장 영역 배경 = 포스터 빈 공간 회색
 const CX0 = 300, CW = 528 - 0.3*58;   // 콘텐츠 폭 — 오른쪽 여백을 0.3*사진(d58)만큼 늘림
 const BLUE = "#2f6bcf", BLUE_D = "#1f4e9e", INK = "#20303f", RING = "#9fbdea";
@@ -168,19 +171,22 @@ function groupRow(groups, yTop, d){
     for(let i=0;i<g.n;i++){ cell(g.slot, i, cxOf(idx), yTop + 24, d, false, true); idx++; }
   });
 }
-// ── 발레·앙상블: small 헤딩 glyphTop=yTop+1.9, 발레 이름 바닥=yTop+24+d+max(9,d*0.26) ──
-const SMALL_HTOP = 1.9, BALLET_D = 48, ENS_D = 38;
-const Y_BALLET = (Y_TALL + GRID_BB + 12) - SMALL_HTOP;                        // 톨보이 단추 보톰 + 12
-const balletBottom = Y_BALLET + 24 + BALLET_D + Math.max(9, BALLET_D*0.26);   // 발레 이름 baseline(바닥)
-const Y_ENS = (balletBottom + 9) - SMALL_HTOP;                                // 발레 이름 바닥 + 9
-// 발레걸즈: adult(상시) + 애싱턴 + 베들링턴 = 한 줄(4·5·5)
-groupRow([
-  { slot:"ballet_girls",            label:"BALLET GIRLS", n:ADULT_N, teamId:null },
-  { slot:"ballet_girls_ashington",  label:"ASHINGTON",    n:ASH_N,   teamId:"ashington" },
-  { slot:"ballet_girls_bedlington", label:"BEDLINGTON",   n:BED_N,   teamId:"bedlington" }
-], Y_BALLET, BALLET_D);
-// 앙상블 — 발레 바로 아래
-groupRow([{ slot:"ensemble", label:"ENSEMBLE", n:ENS_N, teamId:null }], Y_ENS, ENS_D);
+// ── 발레·앙상블(확장영역): compact 모드에선 통째 생략(발레걸즈·앙상블 없음 + 아래 여백 없음) ──
+if(WITH_GROUPS){
+  // small 헤딩 glyphTop=yTop+1.9, 발레 이름 바닥=yTop+24+d+max(9,d*0.26)
+  const SMALL_HTOP = 1.9, BALLET_D = 48, ENS_D = 38;
+  const Y_BALLET = (Y_TALL + GRID_BB + 12) - SMALL_HTOP;                        // 톨보이 단추 보톰 + 12
+  const balletBottom = Y_BALLET + 24 + BALLET_D + Math.max(9, BALLET_D*0.26);   // 발레 이름 baseline(바닥)
+  const Y_ENS = (balletBottom + 9) - SMALL_HTOP;                                // 발레 이름 바닥 + 9
+  // 발레걸즈: adult(상시) + 애싱턴 + 베들링턴 = 한 줄(4·5·5)
+  groupRow([
+    { slot:"ballet_girls",            label:"BALLET GIRLS", n:ADULT_N, teamId:null },
+    { slot:"ballet_girls_ashington",  label:"ASHINGTON",    n:ASH_N,   teamId:"ashington" },
+    { slot:"ballet_girls_bedlington", label:"BEDLINGTON",   n:BED_N,   teamId:"bedlington" }
+  ], Y_BALLET, BALLET_D);
+  // 앙상블 — 발레 바로 아래
+  groupRow([{ slot:"ensemble", label:"ENSEMBLE", n:ENS_N, teamId:null }], Y_ENS, ENS_D);
+}
 
 P(`</svg>`);
 
