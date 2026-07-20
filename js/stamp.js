@@ -532,8 +532,14 @@
     document.addEventListener("pointermove", onDragMove, true);
     document.addEventListener("pointerup", onDragEnd, true);
     document.addEventListener("pointercancel", onDragEnd, true);
+    // touch-action은 제스처 '시작 시점' 값으로 고정된다 — 커버의 pan-y로 시작한 터치는
+    // 드래그 중 CSS를 touch-action:none으로 바꿔도 브라우저가 세로 팬(스크롤)을 시작할 수 있고,
+    // 팬이 시작되면 pointercancel이 와서 드래그가 즉시 끊긴다. 드래그 동안만 touchmove를
+    // 직접 preventDefault(non-passive)해 팬 자체를 막는다(스크롤은 autoScrollTick이 담당).
+    document.addEventListener("touchmove", blockTouchScroll, { passive:false, capture:true });
     drag.raf = requestAnimationFrame(autoScrollTick);
   }
+  function blockTouchScroll(e){ if(drag) e.preventDefault(); }
   // 컨테이너가 실제로 몇 열인지(단일 열이면 축소 모드). grid-template-columns의 트랙 수로 판정.
   function isSingleColumn(){
     if(!boardsEl) return true;
@@ -559,6 +565,7 @@
     document.removeEventListener("pointermove", onDragMove, true);
     document.removeEventListener("pointerup", onDragEnd, true);
     document.removeEventListener("pointercancel", onDragEnd, true);
+    document.removeEventListener("touchmove", blockTouchScroll, { capture:true });
     if(drag.raf) cancelAnimationFrame(drag.raf);
     var el = drag.el, ph = drag.ph;
     // 커버를 placeholder 자리(=놓을 위치)에 넣고 placeholder 제거

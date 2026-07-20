@@ -1540,7 +1540,9 @@
 .stamp-cover-count, .stamp-cover-num, .stamp-cover-name{ pointer-events:none; }
 /* 모바일에서 커버를 길게 눌러 드래그할 때 브라우저의 이미지 콜아웃/컨텍스트 메뉴/텍스트 선택이 뜨지 않게.
    touch-action:pan-y — 세로 스크롤은 살리되 iOS 제스처 인식을 세로 팬으로 제한해 롱프레스 선택/콜아웃 인식기를
-   억제한다(user-select:none만으론 touch-action:auto라 iOS가 선택을 그대로 실행). 드래그 시작 후엔 .stamp-dragging이 touch-action:none으로 덮어씀. */
+   억제한다(user-select:none만으론 touch-action:auto라 iOS가 선택을 그대로 실행).
+   주의: touch-action은 터치 '시작 시점' 값으로 고정 — 드래그 시작 후 .stamp-dragging의 touch-action:none은
+   진행 중인 터치에는 적용되지 않는다. 드래그 중 스크롤 팬 차단은 stamp.js가 touchmove preventDefault로 처리. */
 .stamp-cover-box{ cursor:pointer; touch-action:pan-y; -webkit-touch-callout:none; -webkit-user-select:none; user-select:none; }
 /* touch-action은 상속되지 않으므로 커버 내부 실제 터치 대상(이미지·오버레이 텍스트·아이콘)에도 pan-y를 건다. */
 .stamp-cover-box *{ touch-action:pan-y; }
