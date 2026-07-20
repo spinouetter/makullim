@@ -27,7 +27,7 @@
     },
     "total": {
       "numerator":   { "fontFamily": "Handlee", "fill": "#1f4e9e" },
-      "denominator": { "fontFamily": "Paytone One", "fill": "#8cc5f2", "prefix": " / " }
+      "denominator": { "fontFamily": "Paytone One", "fill": "#4ca8eb", "prefix": " / " }
     }
   },
 
