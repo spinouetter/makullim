@@ -41,7 +41,7 @@
   "onUnplaced": "warn",
 
   "totalCount": { "svgId": "fn-total",    "style": "count", "labelStyle": "total" },
-  "subtitle":   { "svgId": "fn-subtitle", "style": "subtitle" },
+  "subtitle":   { "svgId": "fn-subtitle", "style": "subtitle", "padMonth": false },
   "headings":   { "selector": "text.st21, text.st23", "style": "roleLabel" },
 
   "seatmap": {
