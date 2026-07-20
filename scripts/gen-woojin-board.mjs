@@ -26,7 +26,7 @@ const mainNames = id => { const c = casts.find(x => x.id === id); return c && !c
 const LABEL = {
   billy:"BILLY", michael:"MICHAEL", debbie:"DEBBIE", small_boy:"SMALL BOY", tall_boy:"TALL BOY",
   mrs_wilkinson:"MRS. WILKINSON", dad:"DAD", grandma:"GRANDMA", tony:"TONY", dead_mum:"DEAD MUM",
-  old_billy:"OLDER BILLY", george:"GEORGE", mr_braithwaite:"MR. BRAITHWAITE",
+  old_billy:"OLD BILLY", george:"GEORGE", mr_braithwaite:"MR. BRAITHWAITE",
   ballet_girls:"BALLET GIRLS", ensemble:"ENSEMBLE", ashington:"ASHINGTON", bedlington:"BEDLINGTON"
 };
 
@@ -149,7 +149,7 @@ renderRow(ROWS[0], Y_DEBBIE, { alignLeft:true, alignRight:true });
 renderRow(ROWS[1], Y_TONY,   { alignLeft:true, alignRight:true });
 
 // ── 아래 두 줄(할머니·조지·브웨 / 톨보이·스몰보이) 왼쪽 + 오른쪽 좌석맵 ──
-const SHORT = { mr_braithwaite:"BRAITH." };            // 좁은 칸용 짧은 라벨
+const SHORT = { mr_braithwaite:"BRAITHWAITE" };        // 좁은 칸용 라벨(실선은 셀 폭 유지, 텍스트만 넘침 허용)
 const leftBig = { x0:200, w:352, pitch:70, d:58, hfs:12, label:SHORT };
 renderRow(ROWS[2], Y_GRAND, { ...leftBig, alignRight:true });   // 할머니·조지·브웨
 renderRow(ROWS[3], Y_TALL,  leftBig);                           // 톨보이·스몰보이
