@@ -20,7 +20,7 @@
   const BOARDS_URL = "finale-boards.json";
   // finale 자원 콘텐츠 버전 — SVG 보드·정의(JSON)·배우 사진을 실제로 바꿀 때만 올린다.
   //   (커밋 SHA로 매 배포 버스트하지 않고, 내용이 그대로면 브라우저 캐시를 재사용한다.)
-  const FIN_VER = 8;
+  const FIN_VER = 9;
   //   경로에 이미 ?v= 등 자체 버전 쿼리가 있으면(예: background.src="finale-board.svg?v=28") 그걸 존중하고, 없을 때만 FIN_VER를 붙인다.
   function verUrl(p){ const u = window.showUrl(p); return u.indexOf("?")>=0 ? u : (u + "?v=" + FIN_VER); }
   const JSPDF_URL   = "https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js";
@@ -284,8 +284,8 @@
       if(names(p.cast ? p.cast[role] : null).indexOf(actorName) < 0) return;   // 그 주역(김우진 빌리) 회차만
       const w = (typeof isEnded === "function" && isEnded(p)) && (typeof hasSeat === "function" && hasSeat(p));
       const cst = p.cast || {};
-      Object.keys(cst).forEach(r => { if(r==="발레걸즈") return;   // 팀명(베들링턴/애싱턴) 스킵 — 개별은 casting_by_date에서
-        names(cst[r]).forEach(n => { const k = r + "|" + n; inc(total, k); if(w) inc(watched, k); }); });
+      // 발레걸즈는 schedule에 '팀명'으로 들어옴 → 팀 카운트(발레걸즈|애싱턴/베들링턴)로 집계. 개별은 아래 casting_by_date에서.
+      Object.keys(cst).forEach(r => names(cst[r]).forEach(n => { const k = r + "|" + n; inc(total, k); if(w) inc(watched, k); }));
       // 발레걸즈·앙상블 개별 배우: 그 회차의 casting_by_date에서
       const day = cbd[(p.date||"") + " " + (p.time||"")];
       if(day){
@@ -295,20 +295,25 @@
     });
     return { watched, total };
   }
-  function castSlotGroups(casts, coStar){
+  function castSlotGroups(casts, coStar, co){
     const out = [];
-    const co = (coStar && coStar.role && coStar.actor) ? coStarCounts(coStar.role, coStar.actor) : null;
     casts.forEach(c => {
       if(!c.id) return;
-      if(co && c.group){   // coStar 모드 그룹(발레·앙상블): co 집계(배역|배우)에서 개별 배우를 평면 목록으로
-        const prefix = c.role + "|";
-        const seen = {};
-        Object.keys(co.total).forEach(k => { if(k.indexOf(prefix) === 0) seen[k.slice(prefix.length)] = true; });
-        const members = Object.keys(seen).map(name => {
-          const k = prefix + name, cw = co.watched[k] || 0;
-          return { name, stat: { w:cw, t:(co.total[k]||0), co:cw } };
-        }).filter(m => m.stat.t > 0).sort((a,b) => (b.stat.t - a.stat.t) || (b.stat.co - a.stat.co) || a.name.localeCompare(b.name));
-        out.push({ slot: c.id, roleId: c.id, members });
+      if(co && c.group){
+        if(c.actors && c.actors.length){   // 발레걸즈: 팀(actor)별 슬롯 — 로스터=공용+팀전용, 함께 오른 적 있는 배우만
+          const mems = c.members || [];
+          c.actors.forEach(a => {
+            const roster = mems.map(m => m.byTeam ? m.byTeam[a.name] : m.name).filter(Boolean);
+            const list = roster.map(name => { const k = c.role + "|" + name; return { name, stat: { w:co.watched[k]||0, t:co.total[k]||0 } }; }).filter(m => m.stat.t > 0);
+            out.push({ slot: `${c.id}_${a.id}`, roleId: c.id, members: list });
+          });
+        } else {   // 앙상블: 평면 목록(전체 많은 순)
+          const prefix = c.role + "|", seen = {};
+          Object.keys(co.total).forEach(k => { if(k.indexOf(prefix) === 0) seen[k.slice(prefix.length)] = true; });
+          const list = Object.keys(seen).map(name => { const k = prefix + name, cw = co.watched[k] || 0; return { name, stat: { w:cw, t:(co.total[k]||0), co:cw } }; })
+            .filter(m => m.stat.t > 0).sort((a,b) => (b.stat.t - a.stat.t) || a.name.localeCompare(b.name));
+          out.push({ slot: c.id, roleId: c.id, members: list });
+        }
         return;
       }
       if(!c.group){
@@ -403,11 +408,13 @@
     const casts = (typeof performanceData !== "undefined" && performanceData && performanceData.casts) || [];
     const ex = parseExclude(mani.exclude);
     const roleExcluded = c => ex.roleIds.has(c.id) || ex.roleNames.has(c.role);
+    // coStar 함께관극수는 한 번만 계산해 슬롯·팀 카운트가 공유
+    const coStarMap = (mani.coStar && mani.coStar.role && mani.coStar.actor) ? coStarCounts(mani.coStar.role, mani.coStar.actor) : null;
 
     // ── 슬롯: casts 자동 파생 + exclude. 배치 못한 항목은 onUnplaced 정책 ──
     const roleNameOf = id => { const c = casts.find(x => x.id === id); return c ? c.role : null; };
     const unplaced = [];
-    castSlotGroups(casts, mani.coStar).forEach(g => {
+    castSlotGroups(casts, mani.coStar, coStarMap).forEach(g => {
       const rName = roleNameOf(g.roleId);
       if(ex.roleIds.has(g.roleId) || (rName && ex.roleNames.has(rName))){   // 역할/그룹 통째 제외 → 슬롯 숨김
         hideSlot(svg, tmpl, g.slot); return;
@@ -441,7 +448,8 @@
           if(!a.id) return;
           const el = svg.querySelector("#" + gc.id.replace(/\{actor\}/g, a.id)); if(!el) return;
           if(excl){ el.style.display = "none"; return; }           // 그룹 제외 시 총계도 숨김
-          const v = actorStatVal(c.role, a.name);
+          // coStar 보드: 팀(발레 애싱턴/베들링턴)의 '함께관극수'(내/전체). 아니면 기존 팀 총계.
+          const v = coStarMap ? { w:(coStarMap.watched[c.role+"|"+a.name]||0), t:(coStarMap.total[c.role+"|"+a.name]||0) } : actorStatVal(c.role, a.name);
           setCount(el, v.w, v.t, gcOpts);
         });
       });

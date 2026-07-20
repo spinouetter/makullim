@@ -24,21 +24,28 @@ const LABEL = {
   billy:"BILLY", michael:"MICHAEL", debbie:"DEBBIE", small_boy:"SMALL BOY", tall_boy:"TALL BOY",
   mrs_wilkinson:"MRS. WILKINSON", dad:"DAD", grandma:"GRANDMA", tony:"TONY", dead_mum:"DEAD MUM",
   old_billy:"OLDER BILLY", george:"GEORGE", mr_braithwaite:"MR. BRAITHWAITE",
-  ballet_girls:"BALLET GIRLS", ensemble:"ENSEMBLE"
+  ballet_girls:"BALLET GIRLS", ensemble:"ENSEMBLE", ashington:"ASHINGTON", bedlington:"BEDLINGTON"
 };
 
 // 발레걸즈·앙상블 개별 배우 수(김우진 회차, casting_by_date 기준) — 슬롯 개수 결정용.
 //  (값=내/전체는 finale.js가 런타임에 채움. 여기선 몇 칸 그릴지만 계산)
 const sched = JSON.parse(fs.readFileSync(`${SHOW}/schedule.json`, "utf8"));
 const cbd = JSON.parse(fs.readFileSync(`${SHOW}/casting_by_date.json`, "utf8"));
-const balletKeys = (casts.find(c => c.id === "ballet_girls").members || []).map(m => m.fullName || m.role);
+const balletCast = casts.find(c => c.id === "ballet_girls");
+const balletKeys = (balletCast.members || []).map(m => m.fullName || m.role);
 const wjKeys = sched.filter(p => ((p.cast || {})["빌리"] || []).includes("김우진")).map(p => `${p.date} ${p.time}`);
-const balletSet = new Set(), ensSet = new Set();
+// 개별 발레 배우별 김우진 회차 출연수
+const balletCnt = {}, ensSet = new Set();
 wjKeys.forEach(k => { const d = cbd[k]; if(!d) return;
-  balletKeys.forEach(rk => { if(d[rk]) balletSet.add(d[rk]); });
+  balletKeys.forEach(rk => { if(d[rk]) balletCnt[d[rk]] = (balletCnt[d[rk]] || 0) + 1; });
   (d["앙상블"] || []).forEach(e => ensSet.add(Array.isArray(e) ? e[0] : e));
 });
-const BALLET_N = balletSet.size, ENS_N = ensSet.size;
+// 팀별 로스터(공용+팀전용) 중 김우진과 함께 오른 적 있는 배우 수 = 슬롯 수
+const teamRosterWJ = teamName => (balletCast.members || [])
+  .map(m => m.byTeam ? m.byTeam[teamName] : m.name).filter(Boolean)
+  .filter(name => (balletCnt[name] || 0) > 0);
+const BALLET_ASH_N = teamRosterWJ("애싱턴").length, BALLET_BED_N = teamRosterWJ("베들링턴").length;
+const ENS_N = ensSet.size;
 // 배역 줄 묶음(한 줄 최대 6명). 마이클은 상단 강조 줄로 따로.
 const ROWS = [
   ["debbie","old_billy"],
@@ -47,7 +54,7 @@ const ROWS = [
   ["tall_boy","small_boy"]
 ];
 
-const VB_W = 840, POSTER_H = 1262, VB_H = 1525;   // 포스터(1262) 아래로 캔버스 확장 → 발레·앙상블 2줄
+const VB_W = 840, POSTER_H = 1262, VB_H = 1720;   // 포스터 아래로 캔버스 확장 → 톨보이·발레(팀)·앙상블
 const CX0 = 300, CW = 528 - 0.3*58;   // 콘텐츠 폭 — 오른쪽 여백을 0.3*사진(d58)만큼 늘림
 const BLUE = "#2f6bcf", BLUE_D = "#1f4e9e", INK = "#20303f", RING = "#9fbdea";
 const PH = "images/%ED%94%8C%EB%A0%88%EC%9D%B4%EC%8A%A4%ED%99%80%EB%8D%94.jpeg";   // 플레이스홀더.jpeg
@@ -122,32 +129,36 @@ const ROW_TOP0 = 662, ROW_H = 143;
 renderRow(ROWS[0], ROW_TOP0, { alignLeft:true, alignRight:true });
 renderRow(ROWS[1], ROW_TOP0 + ROW_H, { alignLeft:true, alignRight:true });
 
-// ── 아래 두 줄(할머니·조지·브레이스웨이트 / 톨보이·스몰보이)은 왼쪽에 몰고, 오른쪽에 좌석맵 ──
+// ── 아래(할머니·조지·브레이스웨이트) 왼쪽 + 오른쪽 좌석맵. 톨보이·스몰보이는 확장영역(발레 옆)으로 이동 ──
 const bandTop = ROW_TOP0 + 2*ROW_H;                    // ≈948
 const SHORT = { mr_braithwaite:"BRAITH." };            // 좁은 칸용 짧은 라벨
-// 왼쪽으로 몰되(빌리 다리 옆까지) 위쪽 줄과 같은 큰 사이즈로. 오른쪽엔 좌석맵.
 const leftBig = { x0:200, w:352, pitch:70, d:58, hfs:12, label:SHORT };
-renderRow(ROWS[2], bandTop, { ...leftBig, alignRight:true });   // 4열: 실선 오른쪽 끝만 셀에 맞춤(왼쪽은 다리 옆 유지)
-renderRow(ROWS[3], bandTop + 128, leftBig);
-// 좌석맵 자리(오른쪽): injectSeatmap이 이 rect 위치·크기에 좌석 히트맵을 그림.
-//  크기 = 원본 4/5 × 1.1, 오른쪽 끝을 전수미(상단 그리드 맨 오른쪽 셀) 사진 오른쪽 끝에 맞춤.
-const smW = 258*0.8*1.1, smH = 262*0.8*1.1;
+renderRow(ROWS[2], bandTop, { ...leftBig, alignRight:true });   // 할머니·조지·브웨
+// 좌석맵(오른쪽) — 크기 0.9배, 오른쪽 끝을 전수미 사진에 정렬
+const smW = 258*0.8*1.1*0.9, smH = 262*0.8*1.1*0.9;
 const gridRight = CX0 + CW - CELL_PITCH/2 + CELL_D/2;   // 맨 오른쪽 셀(전수미) 사진 오른쪽 끝
 const smX = gridRight - smW;
 heading("SEAT MAP", smX, bandTop + 14, smW, 12.5);
 P(`<rect id="fn-seatbox" x="${smX.toFixed(1)}" y="${(bandTop + 24).toFixed(1)}" width="${smW.toFixed(1)}" height="${smH.toFixed(1)}" fill="none"/>`);
 
-// ── 확장 캔버스(포스터 아래 흰 영역): 발레걸즈 · 앙상블 (전체 폭, 작은 셀) ──
-//  슬롯 개수 = 김우진 회차에 함께 오른 개별 배우 수. 값(내/전체)은 finale.js가 채움.
-function fullRow(slot, n, yTop, x0, w, d){
+// ── 확장 캔버스(포스터 아래 흰 영역): 톨보이·스몰보이 → 발레(애싱턴·베들링턴) → 앙상블 ──
+const EX_X = 40, EX_W = 760;
+// 전체 폭 작은 셀 한 줄(발레/앙상블). 팀 카운트(fn-group)는 선 위쪽 오른쪽 정렬로.
+function extRow(slot, n, yTop, d, teamId){
   if(n <= 0) return;
-  const pitch = w / n;
-  const firstLeft = x0 + pitch/2 - d/2, lastRight = x0 + (n - 0.5)*pitch + d/2;
-  heading(LABEL[slot] || slot, firstLeft, yTop + 14, lastRight - firstLeft, 13);
-  for(let i=0;i<n;i++) cell(slot, i, x0 + pitch*(i+0.5), yTop + 24, d, false, true);
+  const pitch = EX_W / n;
+  const firstLeft = EX_X + pitch/2 - d/2, lastRight = EX_X + (n - 0.5)*pitch + d/2;
+  heading(LABEL[teamId || slot] || slot, firstLeft, yTop + 14, lastRight - firstLeft, 13);
+  if(teamId)   // 발레 팀 카운트(내/전체) — 실선 위쪽, 오른쪽 정렬(값은 finale.js가 채움)
+    P(`<text id="fn-group-${teamId}" x="${lastRight.toFixed(1)}" y="${(yTop + 12).toFixed(1)}" text-anchor="end" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="12" font-weight="700" fill="${BLUE_D}">0</text>`);
+  const svgSlot = teamId ? `ballet_girls_${teamId}` : slot;
+  for(let i=0;i<n;i++) cell(svgSlot, i, EX_X + pitch*(i+0.5), yTop + 24, d, false, true);
 }
-fullRow("ballet_girls", BALLET_N, 1298, 40, 760, 48);
-fullRow("ensemble",     ENS_N,    1414, 40, 760, 38);
+// 톨보이·스몰보이 — 발레 바로 위(붙여서)
+renderRow(ROWS[3], 1290, { x0:EX_X, w:420, pitch:82, d:60, alignLeft:true, alignRight:true });
+extRow(null, BALLET_ASH_N, 1408, 52, "ashington");
+extRow(null, BALLET_BED_N, 1512, 52, "bedlington");
+extRow("ensemble", ENS_N, 1616, 38);
 
 P(`</svg>`);
 
