@@ -20,7 +20,7 @@
   const BOARDS_URL = "finale-boards.json";
   // finale 자원 콘텐츠 버전 — SVG 보드·정의(JSON)·배우 사진을 실제로 바꿀 때만 올린다.
   //   (커밋 SHA로 매 배포 버스트하지 않고, 내용이 그대로면 브라우저 캐시를 재사용한다.)
-  const FIN_VER = 20;
+  const FIN_VER = 21;
   //   경로에 이미 ?v= 등 자체 버전 쿼리가 있으면(예: background.src="finale-board.svg?v=28") 그걸 존중하고, 없을 때만 FIN_VER를 붙인다.
   function verUrl(p){ const u = window.showUrl(p); return u.indexOf("?")>=0 ? u : (u + "?v=" + FIN_VER); }
   const JSPDF_URL   = "https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js";
@@ -463,9 +463,13 @@
       const st = resolveStyle(mani, mani.headings.style);
       svg.querySelectorAll(mani.headings.selector).forEach(el => applyStyleAttrs(el, st));
     }
-    if(mani.totalCount && mani.totalCount.svgId){                   // 전체 총계
+    if(mani.totalCount && mani.totalCount.svgId){                   // 전체 총계(coStar 보드는 그 주역과 함께한 회차의 내/전체)
       const el = svg.querySelector("#" + mani.totalCount.svgId);
-      if(el){ const v = grandTotalVal(); setCount(el, v.w, v.t, countOpts(mani, mani.totalCount.style, mani.totalCount.labelStyle)); }
+      if(el){
+        const ck = coStarMap ? (mani.coStar.role + "|" + mani.coStar.actor) : null;
+        const v = ck ? { w: coStarMap.watched[ck] || 0, t: coStarMap.total[ck] || 0 } : grandTotalVal();
+        setCount(el, v.w, v.t, countOpts(mani, mani.totalCount.style, mani.totalCount.labelStyle));
+      }
     }
     if(mani.subtitle && mani.subtitle.svgId){                       // 공연 기간·장소
       const el = svg.querySelector("#" + mani.subtitle.svgId);

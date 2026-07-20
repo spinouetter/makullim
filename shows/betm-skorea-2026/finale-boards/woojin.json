@@ -3,7 +3,7 @@
 
   "background": {
     "type": "svg",
-    "src": "images/finale-board-woojin-v2.svg?v=3",
+    "src": "images/finale-board-woojin-v2.svg?v=4",
     "viewBox": [0, 0, 840, 1262]
   },
 
@@ -22,7 +22,12 @@
     "teamCount": {
       "numerator":   { "fontFamily": "IBM Plex Sans KR Medm", "fill": "#1f4e9e" },
       "denominator": { "fontFamily": "IBM Plex Sans KR Medm", "fill": "#8a9bb5", "prefix": " / " }
-    }
+    },
+    "total": {
+      "numerator":   { "fontFamily": "IBM Plex Sans KR Medm", "fill": "#1f4e9e", "fontWeight": "700" },
+      "denominator": { "fontFamily": "IBM Plex Sans KR Medm", "fill": "#8a9bb5", "prefix": " / " }
+    },
+    "totalLabel": { "label": "우진 빌리와 함께한 시간 ⋯", "fontFamily": "IBM Plex Sans KR Medm" }
   },
 
   "photos": { "pattern": "images/{name}.jpeg", "placeholder": "images/플레이스홀더.jpeg" },
@@ -40,6 +45,8 @@
   },
 
   "onUnplaced": "ignore",
+
+  "totalCount": { "svgId": "fn-total", "style": "total", "labelStyle": "totalLabel" },
 
   "seatmap": {
     "target":    { "svgId": "fn-seatbox" },
