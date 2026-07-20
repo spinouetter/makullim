@@ -68,8 +68,10 @@ function cell(slot, i, cx, top, d, big, small){
   P(`  <image id="fn-photo-${slot}-${i}" x="${(cx-r).toFixed(1)}" y="${top.toFixed(1)}" width="${d.toFixed(1)}" height="${d.toFixed(1)}" preserveAspectRatio="xMidYMin slice" clip-path="url(#${clip})" xlink:href="${PH}"/>`);
   P(`  <circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="${r.toFixed(1)}" fill="none" stroke="${RING}" stroke-width="${big?1.6:1.2}"/>`);
   P(`  <text id="fn-name-${slot}-${i}" x="${cx.toFixed(1)}" y="${nameY.toFixed(1)}" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="${nameFs}" fill="${INK}"> </text>`);
-  P(`  <rect x="${(cx-pw/2).toFixed(1)}" y="${py.toFixed(1)}" width="${pw.toFixed(1)}" height="${ph}" rx="${(ph/2).toFixed(1)}" fill="${BLUE}"/>`);
-  P(`  <text id="fn-cnt-${slot}-${i}" x="${cx.toFixed(1)}" y="${(py+ph-(big?5:4.2)).toFixed(1)}" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="${cntFs}" font-weight="700" fill="#ffffff">0</text>`);
+  if(!small){   // 발레·앙상블(small)은 숫자판 없이 사진+이름만
+    P(`  <rect x="${(cx-pw/2).toFixed(1)}" y="${py.toFixed(1)}" width="${pw.toFixed(1)}" height="${ph}" rx="${(ph/2).toFixed(1)}" fill="${BLUE}"/>`);
+    P(`  <text id="fn-cnt-${slot}-${i}" x="${cx.toFixed(1)}" y="${(py+ph-(big?5:4.2)).toFixed(1)}" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="${cntFs}" font-weight="700" fill="#ffffff">0</text>`);
+  }
   P(`</g>`);
 }
 function heading(label, x, y, w, fs){
