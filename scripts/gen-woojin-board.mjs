@@ -54,7 +54,7 @@ const ROWS = [
   ["tall_boy","small_boy"]
 ];
 
-const VB_W = 840, POSTER_H = 1262, VB_H = 1720;   // 포스터 아래로 캔버스 확장 → 톨보이·발레(팀)·앙상블
+const VB_W = 840, POSTER_H = 1262, VB_H = 1610;   // 포스터 아래로 확장 → 발레(팀)·앙상블
 const CX0 = 300, CW = 528 - 0.3*58;   // 콘텐츠 폭 — 오른쪽 여백을 0.3*사진(d58)만큼 늘림
 const BLUE = "#2f6bcf", BLUE_D = "#1f4e9e", INK = "#20303f", RING = "#9fbdea";
 const PH = "images/%ED%94%8C%EB%A0%88%EC%9D%B4%EC%8A%A4%ED%99%80%EB%8D%94.jpeg";   // 플레이스홀더.jpeg
@@ -129,11 +129,12 @@ const ROW_TOP0 = 662, ROW_H = 143;
 renderRow(ROWS[0], ROW_TOP0, { alignLeft:true, alignRight:true });
 renderRow(ROWS[1], ROW_TOP0 + ROW_H, { alignLeft:true, alignRight:true });
 
-// ── 아래(할머니·조지·브레이스웨이트) 왼쪽 + 오른쪽 좌석맵. 톨보이·스몰보이는 확장영역(발레 옆)으로 이동 ──
+// ── 아래 두 줄(할머니·조지·브웨 / 톨보이·스몰보이) 왼쪽 + 오른쪽 좌석맵 ──
 const bandTop = ROW_TOP0 + 2*ROW_H;                    // ≈948
 const SHORT = { mr_braithwaite:"BRAITH." };            // 좁은 칸용 짧은 라벨
 const leftBig = { x0:200, w:352, pitch:70, d:58, hfs:12, label:SHORT };
 renderRow(ROWS[2], bandTop, { ...leftBig, alignRight:true });   // 할머니·조지·브웨
+renderRow(ROWS[3], bandTop + 128, leftBig);                     // 톨보이·스몰보이 (원래 자리)
 // 좌석맵(오른쪽) — 크기 0.9배, 오른쪽 끝을 전수미 사진에 정렬
 const smW = 258*0.8*1.1*0.9, smH = 262*0.8*1.1*0.9;
 const gridRight = CX0 + CW - CELL_PITCH/2 + CELL_D/2;   // 맨 오른쪽 셀(전수미) 사진 오른쪽 끝
@@ -154,11 +155,9 @@ function extRow(slot, n, yTop, d, teamId){
   const svgSlot = teamId ? `ballet_girls_${teamId}` : slot;
   for(let i=0;i<n;i++) cell(svgSlot, i, EX_X + pitch*(i+0.5), yTop + 24, d, false, true);
 }
-// 톨보이·스몰보이 — 발레 바로 위(붙여서)
-renderRow(ROWS[3], 1290, { x0:EX_X, w:420, pitch:82, d:60, alignLeft:true, alignRight:true });
-extRow(null, BALLET_ASH_N, 1408, 52, "ashington");
-extRow(null, BALLET_BED_N, 1512, 52, "bedlington");
-extRow("ensemble", ENS_N, 1616, 38);
+extRow(null, BALLET_ASH_N, 1298, 52, "ashington");
+extRow(null, BALLET_BED_N, 1402, 52, "bedlington");
+extRow("ensemble", ENS_N, 1506, 38);
 
 P(`</svg>`);
 
