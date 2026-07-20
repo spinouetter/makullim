@@ -125,7 +125,7 @@ P(`<image x="0" y="0" width="${VB_W}" height="${POSTER_H}" preserveAspectRatio="
 //    오른쪽 정렬 기준 = 실루엣 소년의 발끝(x). 문구는 정적, 숫자(fn-total)는 finale.js totalCount(coStar 내/전체)가 채움.
 //    주의: woojin(v2) 보드는 배경이 woojin-base.jpg라 발끝이 달라 x=722, y=432/470으로 수동 조정됨.
 P(`<text x="635.0" y="422.0" text-anchor="end" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="20" fill="${BLUE_D}">우진 빌리와 함께한 시간 ⋯</text>`);
-P(`<text id="fn-total" x="635.0" y="449.0" text-anchor="end" font-family="Handlee, sans-serif" font-size="20" fill="${BLUE_D}">0</text>`);
+P(`<text id="fn-total" x="635.0" y="451.0" text-anchor="end" font-family="Handlee, sans-serif" font-size="24" fill="${BLUE_D}">0</text>`);
 
 // ── MICHAEL: 김우진의 짝(빌리×마이클) → 큰 한 줄로 강조 (헤딩·실선을 셀에 맞춤) ──
 //   구성(칸 수·피치·크기)은 그대로 두고, 오른끝을 다른 줄(그리드 오른끝=gridRight)에 맞춰 오른쪽 정렬.
