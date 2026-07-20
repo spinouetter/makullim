@@ -54,7 +54,7 @@ const ROWS = [
   ["tall_boy","small_boy"]
 ];
 
-const VB_W = 840, POSTER_H = 1262, VB_H = 1405;   // 발레·앙상블을 톨보이 아래로 끌어올림
+const VB_W = 840, POSTER_H = 1262, VB_H = 1390;   // 발레·앙상블을 톨보이 아래로, 우측 정렬
 const EXT_BG = "#f3f2f0";   // 확장 영역 배경 = 포스터 빈 공간 회색
 const CX0 = 300, CW = 528 - 0.3*58;   // 콘텐츠 폭 — 오른쪽 여백을 0.3*사진(d58)만큼 늘림
 const BLUE = "#2f6bcf", BLUE_D = "#1f4e9e", INK = "#20303f", RING = "#9fbdea";
@@ -143,21 +143,21 @@ const smX = gridRight - smW;
 heading("SEAT MAP", smX, bandTop + 14, smW, 12.5);
 P(`<rect id="fn-seatbox" x="${smX.toFixed(1)}" y="${(bandTop + 24).toFixed(1)}" width="${smW.toFixed(1)}" height="${smH.toFixed(1)}" fill="none"/>`);
 
-// ── 배역 순서 이어서: 톨보이 아래(포스터 하단 회색, 소년 발 오른쪽)로 끌어올림 → 발레걸즈 → 앙상블 ──
-const EX_X = 150, EX_W = 660;   // 소년 발을 피해 오른쪽에서 시작
-// 여러 하위그룹을 한 줄에 이어 배치. 팀(teamId) 있으면 함께관극수(fn-group)를 선 위·오른쪽 정렬로.
+// ── 배역 순서 이어서: 톨보이 아래로. 오른쪽 끝=다른 줄(gridRight)에 정렬, 왼쪽은 소년 발 위까지 확장(겹침 허용) ──
+const EX_L = 40, EX_R = gridRight;
+// 하위그룹들을 한 줄에 배치하되 셀 바깥이 [EX_L, EX_R]에 딱 맞게(오른쪽 정렬). 팀(teamId)은 함께관극수를 선 위·오른쪽.
 function groupRow(groups, yTop, d){
   const totalN = groups.reduce((s, g) => s + g.n, 0); if(totalN <= 0) return;
-  const pitch = EX_W / totalN;
-  let x = EX_X;
+  const pitch = totalN > 1 ? (EX_R - EX_L - d) / (totalN - 1) : 0;
+  const cxOf = i => EX_L + d/2 + i*pitch;   // i번째 셀 중심
+  let idx = 0;
   groups.forEach(g => {
     if(g.n <= 0) return;
-    const firstLeft = x + pitch/2 - d/2, lastRight = x + (g.n - 0.5)*pitch + d/2;
+    const firstLeft = cxOf(idx) - d/2, lastRight = cxOf(idx + g.n - 1) + d/2;
     heading(g.label, firstLeft, yTop + 14, lastRight - firstLeft, 13);
     if(g.teamId)   // 팀 함께관극수(내/전체) — 실선 위쪽, 오른쪽 정렬(값은 finale.js가 채움)
       P(`<text id="fn-group-${g.teamId}" x="${lastRight.toFixed(1)}" y="${(yTop + 12).toFixed(1)}" text-anchor="end" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="12" font-weight="700" fill="${BLUE_D}">0</text>`);
-    for(let i=0;i<g.n;i++) cell(g.slot, i, x + pitch*(i+0.5), yTop + 24, d, false, true);
-    x += g.n*pitch;
+    for(let i=0;i<g.n;i++){ cell(g.slot, i, cxOf(idx), yTop + 24, d, false, true); idx++; }
   });
 }
 // 발레걸즈: adult(상시) + 애싱턴 + 베들링턴 = 한 줄(4·5·5)
@@ -165,9 +165,9 @@ groupRow([
   { slot:"ballet_girls",            label:"BALLET GIRLS", n:ADULT_N, teamId:null },
   { slot:"ballet_girls_ashington",  label:"ASHINGTON",    n:ASH_N,   teamId:"ashington" },
   { slot:"ballet_girls_bedlington", label:"BEDLINGTON",   n:BED_N,   teamId:"bedlington" }
-], 1215, 41);
-// 앙상블
-groupRow([{ slot:"ensemble", label:"ENSEMBLE", n:ENS_N, teamId:null }], 1318, 33);
+], 1215, 48);
+// 앙상블 — 발레 바로 아래(더 붙여서)
+groupRow([{ slot:"ensemble", label:"ENSEMBLE", n:ENS_N, teamId:null }], 1300, 38);
 
 P(`</svg>`);
 
