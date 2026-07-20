@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 840 1385" font-size="12px">
 <defs>
-<clipPath id="clip-michael-0"><circle cx="363.8" cy="552.0" r="40.0"/></clipPath>
-<clipPath id="clip-michael-1"><circle cx="491.5" cy="552.0" r="40.0"/></clipPath>
-<clipPath id="clip-michael-2"><circle cx="619.1" cy="552.0" r="40.0"/></clipPath>
-<clipPath id="clip-michael-3"><circle cx="746.8" cy="552.0" r="40.0"/></clipPath>
+<clipPath id="clip-michael-0"><circle cx="374.1" cy="552.0" r="40.0"/></clipPath>
+<clipPath id="clip-michael-1"><circle cx="501.8" cy="552.0" r="40.0"/></clipPath>
+<clipPath id="clip-michael-2"><circle cx="629.4" cy="552.0" r="40.0"/></clipPath>
+<clipPath id="clip-michael-3"><circle cx="757.1" cy="552.0" r="40.0"/></clipPath>
 <clipPath id="clip-debbie-0"><circle cx="342.6" cy="715.0" r="29.0"/></clipPath>
 <clipPath id="clip-debbie-1"><circle cx="427.6" cy="715.0" r="29.0"/></clipPath>
 <clipPath id="clip-debbie-2"><circle cx="512.8" cy="715.0" r="29.0"/></clipPath>
@@ -61,35 +61,35 @@
 </defs>
 <rect x="0" y="0" width="840" height="1385" fill="#f3f2f0"/>
 <image x="0" y="0" width="840" height="1262" preserveAspectRatio="none" xlink:href="/shows/betm-skorea-2026/images/finale-board-woojin-bg.jpg"/>
-<text x="323.8" y="495.0" font-family="Anton, sans-serif" font-size="18" letter-spacing="0.5" fill="#1f4e9e">MICHAEL</text>
-<line x1="323.8" y1="500.0" x2="786.8" y2="500.0" stroke="#1f4e9e" stroke-width="1"/>
+<text x="334.1" y="495.0" font-family="Anton, sans-serif" font-size="18" letter-spacing="0.5" fill="#1f4e9e">MICHAEL</text>
+<line x1="334.1" y1="500.0" x2="797.1" y2="500.0" stroke="#1f4e9e" stroke-width="1"/>
 <g id="fn-cell-michael-0">
-  <image id="fn-photo-michael-0" x="323.8" y="512.0" width="80.0" height="80.0" preserveAspectRatio="xMidYMin slice" clip-path="url(#clip-michael-0)" xlink:href="images/%ED%94%8C%EB%A0%88%EC%9D%B4%EC%8A%A4%ED%99%80%EB%8D%94.jpeg"/>
-  <circle cx="363.8" cy="552.0" r="40.0" fill="none" stroke="#9fbdea" stroke-width="1.6"/>
-  <text id="fn-name-michael-0" x="363.8" y="608.0" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="14" fill="#20303f"> </text>
-  <rect x="335.0" y="615.0" width="57.6" height="18" rx="9.0" fill="#2f6bcf"/>
-  <text id="fn-cnt-michael-0" x="363.8" y="628.0" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="12" font-weight="700" fill="#ffffff">0</text>
+  <image id="fn-photo-michael-0" x="334.1" y="512.0" width="80.0" height="80.0" preserveAspectRatio="xMidYMin slice" clip-path="url(#clip-michael-0)" xlink:href="images/%ED%94%8C%EB%A0%88%EC%9D%B4%EC%8A%A4%ED%99%80%EB%8D%94.jpeg"/>
+  <circle cx="374.1" cy="552.0" r="40.0" fill="none" stroke="#9fbdea" stroke-width="1.6"/>
+  <text id="fn-name-michael-0" x="374.1" y="608.0" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="14" fill="#20303f"> </text>
+  <rect x="345.3" y="615.0" width="57.6" height="18" rx="9.0" fill="#2f6bcf"/>
+  <text id="fn-cnt-michael-0" x="374.1" y="628.0" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="12" font-weight="700" fill="#ffffff">0</text>
 </g>
 <g id="fn-cell-michael-1">
-  <image id="fn-photo-michael-1" x="451.5" y="512.0" width="80.0" height="80.0" preserveAspectRatio="xMidYMin slice" clip-path="url(#clip-michael-1)" xlink:href="images/%ED%94%8C%EB%A0%88%EC%9D%B4%EC%8A%A4%ED%99%80%EB%8D%94.jpeg"/>
-  <circle cx="491.5" cy="552.0" r="40.0" fill="none" stroke="#9fbdea" stroke-width="1.6"/>
-  <text id="fn-name-michael-1" x="491.5" y="608.0" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="14" fill="#20303f"> </text>
-  <rect x="462.7" y="615.0" width="57.6" height="18" rx="9.0" fill="#2f6bcf"/>
-  <text id="fn-cnt-michael-1" x="491.5" y="628.0" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="12" font-weight="700" fill="#ffffff">0</text>
+  <image id="fn-photo-michael-1" x="461.8" y="512.0" width="80.0" height="80.0" preserveAspectRatio="xMidYMin slice" clip-path="url(#clip-michael-1)" xlink:href="images/%ED%94%8C%EB%A0%88%EC%9D%B4%EC%8A%A4%ED%99%80%EB%8D%94.jpeg"/>
+  <circle cx="501.8" cy="552.0" r="40.0" fill="none" stroke="#9fbdea" stroke-width="1.6"/>
+  <text id="fn-name-michael-1" x="501.8" y="608.0" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="14" fill="#20303f"> </text>
+  <rect x="473.0" y="615.0" width="57.6" height="18" rx="9.0" fill="#2f6bcf"/>
+  <text id="fn-cnt-michael-1" x="501.8" y="628.0" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="12" font-weight="700" fill="#ffffff">0</text>
 </g>
 <g id="fn-cell-michael-2">
-  <image id="fn-photo-michael-2" x="579.1" y="512.0" width="80.0" height="80.0" preserveAspectRatio="xMidYMin slice" clip-path="url(#clip-michael-2)" xlink:href="images/%ED%94%8C%EB%A0%88%EC%9D%B4%EC%8A%A4%ED%99%80%EB%8D%94.jpeg"/>
-  <circle cx="619.1" cy="552.0" r="40.0" fill="none" stroke="#9fbdea" stroke-width="1.6"/>
-  <text id="fn-name-michael-2" x="619.1" y="608.0" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="14" fill="#20303f"> </text>
-  <rect x="590.3" y="615.0" width="57.6" height="18" rx="9.0" fill="#2f6bcf"/>
-  <text id="fn-cnt-michael-2" x="619.1" y="628.0" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="12" font-weight="700" fill="#ffffff">0</text>
+  <image id="fn-photo-michael-2" x="589.4" y="512.0" width="80.0" height="80.0" preserveAspectRatio="xMidYMin slice" clip-path="url(#clip-michael-2)" xlink:href="images/%ED%94%8C%EB%A0%88%EC%9D%B4%EC%8A%A4%ED%99%80%EB%8D%94.jpeg"/>
+  <circle cx="629.4" cy="552.0" r="40.0" fill="none" stroke="#9fbdea" stroke-width="1.6"/>
+  <text id="fn-name-michael-2" x="629.4" y="608.0" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="14" fill="#20303f"> </text>
+  <rect x="600.6" y="615.0" width="57.6" height="18" rx="9.0" fill="#2f6bcf"/>
+  <text id="fn-cnt-michael-2" x="629.4" y="628.0" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="12" font-weight="700" fill="#ffffff">0</text>
 </g>
 <g id="fn-cell-michael-3">
-  <image id="fn-photo-michael-3" x="706.8" y="512.0" width="80.0" height="80.0" preserveAspectRatio="xMidYMin slice" clip-path="url(#clip-michael-3)" xlink:href="images/%ED%94%8C%EB%A0%88%EC%9D%B4%EC%8A%A4%ED%99%80%EB%8D%94.jpeg"/>
-  <circle cx="746.8" cy="552.0" r="40.0" fill="none" stroke="#9fbdea" stroke-width="1.6"/>
-  <text id="fn-name-michael-3" x="746.8" y="608.0" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="14" fill="#20303f"> </text>
-  <rect x="718.0" y="615.0" width="57.6" height="18" rx="9.0" fill="#2f6bcf"/>
-  <text id="fn-cnt-michael-3" x="746.8" y="628.0" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="12" font-weight="700" fill="#ffffff">0</text>
+  <image id="fn-photo-michael-3" x="717.1" y="512.0" width="80.0" height="80.0" preserveAspectRatio="xMidYMin slice" clip-path="url(#clip-michael-3)" xlink:href="images/%ED%94%8C%EB%A0%88%EC%9D%B4%EC%8A%A4%ED%99%80%EB%8D%94.jpeg"/>
+  <circle cx="757.1" cy="552.0" r="40.0" fill="none" stroke="#9fbdea" stroke-width="1.6"/>
+  <text id="fn-name-michael-3" x="757.1" y="608.0" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="14" fill="#20303f"> </text>
+  <rect x="728.3" y="615.0" width="57.6" height="18" rx="9.0" fill="#2f6bcf"/>
+  <text id="fn-cnt-michael-3" x="757.1" y="628.0" text-anchor="middle" font-family="IBM Plex Sans KR Medm, sans-serif" font-size="12" font-weight="700" fill="#ffffff">0</text>
 </g>
 <text x="313.6" y="676.0" font-family="Anton, sans-serif" font-size="12.5" letter-spacing="0.5" fill="#1f4e9e">DEBBIE</text>
 <line x1="313.6" y1="681.0" x2="541.8" y2="681.0" stroke="#1f4e9e" stroke-width="1"/>

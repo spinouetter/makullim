@@ -118,11 +118,14 @@ P(`<image x="0" y="0" width="${VB_W}" height="${POSTER_H}" preserveAspectRatio="
 // 빌리(김우진)는 배경 포스터가 곧 본인 → 이름·관극수·타이틀 문구 없이 배경으로만.
 
 // ── MICHAEL: 김우진의 짝(빌리×마이클) → 큰 한 줄로 강조 (헤딩·실선을 셀에 맞춤) ──
+//   구성(칸 수·피치·크기)은 그대로 두고, 오른끝을 다른 줄(그리드 오른끝=gridRight)에 맞춰 오른쪽 정렬.
 {
   const mNames = mainNames("michael"), n = Math.max(1, mNames.length), d = 80, mp = CW/n;
-  const firstLeft = CX0 + mp/2 - d/2, lastRight = CX0 + (n - 0.5)*mp + d/2;
+  const gRight = CX0 + CW - CELL_PITCH/2 + CELL_D/2;   // 두 번째 줄 오른끝(그리드 오른끝)
+  const cxOf = i => (gRight - d/2) - mp*(n - 1 - i);   // 맨 오른쪽 마이클 오른끝 = gRight
+  const firstLeft = cxOf(0) - d/2, lastRight = gRight;
   heading("MICHAEL", firstLeft, 495, lastRight - firstLeft, 18);
-  for(let i=0;i<n;i++) cell("michael", i, CX0 + mp*(i+0.5), 512, d, true);
+  for(let i=0;i<n;i++) cell("michael", i, cxOf(i), 512, d, true);
 }
 
 // ── 상단 두 줄(전체 폭 6칸): 데비·올드빌리 / 토니·아빠·엄마·윌킨슨 ──
