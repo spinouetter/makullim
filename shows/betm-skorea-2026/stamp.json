@@ -45,7 +45,8 @@
   "stampTypes": [
     {
       "id": "excellent",
-      "label": "EXCELLENT"
+      "label": "EXCELLENT",
+      "image": "images/stamp-excellent.png"
     },
     {
       "id": "homecoming",
