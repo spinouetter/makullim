@@ -36,3 +36,21 @@
 - 거대한 표(입력 123개+)에 대한 Firefox 레이아웃 비용 완화: 행/셀에 `contain: content` 또는 `content-visibility:auto` 실험(부작용 확인 필요).
 - Firefox 확장(특히 폼/접근성 관련) 영향 여부 확인(안전 모드로 재현되는지).
 - `performance` 프로파일러(Firefox 내장)로 첫 클릭 시 실제로 시간을 쓰는 구간 직접 캡처.
+
+---
+
+## KI-002 · Finale: PDF 저장 생성 버그 — 버튼 임시 제거
+
+- **상태:** 미해결(버튼 제거로 회피). 원인 미조사.
+- **등록일:** 2026-07-25
+
+### 증상
+- Finale 보드 오버레이의 "PDF 저장"이 정상 결과물을 만들지 못하는 버그가 있음(사용자 보고, 상세 증상 미채록).
+- PNG/JPG 저장은 정상.
+
+### 조치
+- `index.html`에서 `finalePdfBtn` 버튼만 제거(주석으로 표시). `js/finale.js`의 `exportPDF`·`wire("finalePdfBtn", …)` 코드는 그대로 두었고, `wire()`가 null-safe라 에러 없음 — **버튼 한 줄만 복원하면 기능이 되살아난다.**
+
+### 다음에 시도해 볼 만한 것
+- 버그 증상 재현·채록(어떤 보드에서, 어떤 결과물이 잘못되는지: 폰트/이미지/레이아웃).
+- jspdf 2.5.2 + svg2pdf 2.2.3 조합의 `preserveAspectRatio` 처리(finale.js 1022행 부근 주석)와 한글 TTF 임베드 경로 확인.
