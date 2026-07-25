@@ -1627,8 +1627,8 @@
 .stamp-type-btn.active.homecoming{ border-color:#2f6fb0; color:#2f6fb0; }
 /* 텍스트(임시) 도장은 빨간 도장색으로 */
 .stamp-type-btn:not(.has-img){ color:#a43233; }
-/* 이미지 도장 뒤엔 도장판 종이색을 깔아 투명 PNG가 어두운 팝업에서도 보이게 */
-.stamp-type-btn.has-img{ background:#fdfcf8; }
+/* 도장 버튼(이미지·텍스트 모두)엔 도장판 종이색을 깔아 투명 PNG·빨간 글자가 어두운 팝업에서도 보이게 */
+.stamp-type-btn{ background:#fdfcf8; }
 .stamp-type-btn.has-img img{ display:block; max-width:100%; height:34px; object-fit:contain; margin:0 auto; }
 .stamp-type-btn.has-img.active{ border-color:#a43233; }
 .stamp-pop-field{ display:flex; flex-direction:column; gap:3px; font-size:11px; color:var(--ink-dim); margin-bottom:8px; }
