@@ -50,7 +50,8 @@
     },
     {
       "id": "homecoming",
-      "label": "HOME COMING"
+      "label": "HOME COMING",
+      "image": "images/stamp-homecoming.png"
     },
     {
       "id": "woojin-billy",

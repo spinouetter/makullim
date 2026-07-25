@@ -40,7 +40,7 @@
   function baseReady(){ return typeof showUrl==="function" && showUrl("_").charAt(0)==="/"; }
   // stamp.json 콘텐츠 버전 — 커밋 SHA(BUILD)로 매 배포 버스트하지 않고, 이 설정 파일을 실제로 바꿀 때만 올린다.
   // 버전이 소스(여기)에 박혀 있어 로컬·배포 모두 ?v가 붙으므로 no-store가 필요 없다.
-  var CFG_VER = 14;
+  var CFG_VER = 15;
   function loadConfig(){
     if(CFG) return Promise.resolve(CFG);
     if(cfgPromise) return cfgPromise;
