@@ -55,6 +55,18 @@
       "id": "woojin-billy",
       "label": "사랑해 영원히 -우진 빌리-",
       "image": "images/stamp-woojin-billy.png"
+    },
+    {
+      "id": "seungju-billy",
+      "label": "승주 빌리"
+    },
+    {
+      "id": "yunwoo-billy",
+      "label": "윤우 빌리"
+    },
+    {
+      "id": "jihoo-billy",
+      "label": "지후 빌리"
     }
   ],
   "defaultStamp": "excellent",
@@ -69,6 +81,24 @@
       "from": "2026-07-25",
       "to": "2026-07-25",
       "time": "14:00"
+    },
+    {
+      "stamp": "seungju-billy",
+      "from": "2026-07-25",
+      "to": "2026-07-25",
+      "time": "19:00"
+    },
+    {
+      "stamp": "yunwoo-billy",
+      "from": "2026-07-26",
+      "to": "2026-07-26",
+      "time": "14:00"
+    },
+    {
+      "stamp": "jihoo-billy",
+      "from": "2026-07-26",
+      "to": "2026-07-26",
+      "time": "19:00"
     }
   ],
   "doubleDates": [
