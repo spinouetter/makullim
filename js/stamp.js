@@ -831,11 +831,26 @@
   }
   function positionPop(pop, anchorEl){
     curPop = pop;
-    var r = anchorEl.getBoundingClientRect();
-    var w = pop.offsetWidth || 260;
+    var vw = window.innerWidth, vh = window.innerHeight;
     pop.style.position = "fixed";
-    pop.style.left = Math.max(8, Math.min(r.left, window.innerWidth-w-8)) + "px";
-    pop.style.top = Math.min(r.bottom+6, window.innerHeight-10) + "px";
+    // 모바일에서 화면 밖으로 나가지 않게: 뷰포트 안으로 클램프(넘치면 내부 스크롤)
+    pop.style.maxWidth = (vw-16) + "px";
+    pop.style.maxHeight = (vh-16) + "px";
+    pop.style.overflowY = "auto";
+    var r = anchorEl.getBoundingClientRect();
+    var w = pop.offsetWidth || 260, h = pop.offsetHeight || 0;
+    pop.style.left = Math.max(8, Math.min(r.left, vw-w-8)) + "px";
+    var top = r.bottom + 6;
+    if(h && top + h > vh - 8) top = Math.max(8, vh - h - 8); // 아래로 넘치면 위로 당김
+    pop.style.top = top + "px";
+    // 이미지 도장이 늦게 로드되며 팝업이 커질 수 있어, 로드 후 한 번 더 클램프
+    function reclamp(){
+      var h2 = pop.offsetHeight, t = parseFloat(pop.style.top) || 0;
+      if(t + h2 > vh - 8) pop.style.top = Math.max(8, vh - h2 - 8) + "px";
+    }
+    pop.querySelectorAll("img").forEach(function(im){
+      if(!im.complete) im.addEventListener("load", reclamp);
+    });
     curDocDown = function(e){ if(!pop.contains(e.target)) closePop(); };
     setTimeout(function(){ document.addEventListener("mousedown", curDocDown, true); },0);
   }

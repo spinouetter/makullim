@@ -1617,14 +1617,19 @@
   border-radius:10px; box-shadow:0 10px 30px rgba(0,0,0,.4); padding:12px;
 }
 .stamp-pop-h{ font-size:13px; font-weight:700; color:var(--gold); margin-bottom:10px; }
-.stamp-type-row{ display:flex; gap:6px; margin-bottom:10px; }
+/* 도장 종류: 가로 한 줄이면 이미지 도장이 너무 작아져 2열 그리드(6종 → 3줄) */
+.stamp-type-row{ display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:10px; }
 .stamp-type-btn{
   flex:1; font:inherit; font-size:11px; font-weight:700; padding:8px 4px; cursor:pointer;
   border:2px solid var(--line); border-radius:6px; background:var(--panel2); color:var(--ink-dim);
 }
 .stamp-type-btn.active.excellent{ border-color:#a43233; color:#a43233; }
 .stamp-type-btn.active.homecoming{ border-color:#2f6fb0; color:#2f6fb0; }
-.stamp-type-btn.has-img img{ display:block; max-width:100%; max-height:24px; margin:0 auto; }
+/* 텍스트(임시) 도장은 빨간 도장색으로 */
+.stamp-type-btn:not(.has-img){ color:#a43233; }
+/* 이미지 도장 뒤엔 도장판 종이색을 깔아 투명 PNG가 어두운 팝업에서도 보이게 */
+.stamp-type-btn.has-img{ background:#fdfcf8; }
+.stamp-type-btn.has-img img{ display:block; max-width:100%; height:34px; object-fit:contain; margin:0 auto; }
 .stamp-type-btn.has-img.active{ border-color:#a43233; }
 .stamp-pop-field{ display:flex; flex-direction:column; gap:3px; font-size:11px; color:var(--ink-dim); margin-bottom:8px; }
 .stamp-pop-field input{ font:inherit; padding:6px 8px; border:1px solid var(--line); border-radius:6px; background:var(--panel2); color:var(--ink); }
