@@ -40,7 +40,7 @@
   function baseReady(){ return typeof showUrl==="function" && showUrl("_").charAt(0)==="/"; }
   // stamp.json 콘텐츠 버전 — 커밋 SHA(BUILD)로 매 배포 버스트하지 않고, 이 설정 파일을 실제로 바꿀 때만 올린다.
   // 버전이 소스(여기)에 박혀 있어 로컬·배포 모두 ?v가 붙으므로 no-store가 필요 없다.
-  var CFG_VER = 10;
+  var CFG_VER = 11;
   function loadConfig(){
     if(CFG) return Promise.resolve(CFG);
     if(cfgPromise) return cfgPromise;
@@ -81,9 +81,20 @@
     var v = (CFG && CFG.imgVer!=null) ? CFG.imgVer : 1;
     return u + (u.indexOf("?")>=0 ? "&" : "?") + "v=" + encodeURIComponent(v);
   }
+  function stampType(id){
+    return (CFG.stampTypes||[]).find(function(s){ return s.id===id; }) || null;
+  }
   function stampLabel(id){
-    var t = (CFG.stampTypes||[]).find(function(s){ return s.id===id; });
+    var t = stampType(id);
     return t ? t.label : id;
+  }
+  // 도장 자국 HTML — 타입에 image가 있으면 이미지 도장(예: 손글씨), 없으면 텍스트 라벨
+  function stampMarkHtml(id){
+    var t = stampType(id);
+    if(t && t.image){
+      return '<span class="stamp-mark img '+esc(id)+'"><img src="'+esc(imgUrl(t.image))+'" alt="'+esc(t.label||id)+'" draggable="false"></span>';
+    }
+    return '<span class="stamp-mark '+esc(id)+'">'+esc(stampLabel(id))+'</span>';
   }
 
   /* ---------- 상태 저장/로드 ---------- */
@@ -158,8 +169,11 @@
 
   /* ---------- 날짜/규칙 ---------- */
   function inRange(dateStr, r){ return r && r.from && r.to && dateStr>=r.from && dateStr<=r.to; }
-  function stampTypeForDate(dateStr){
-    var hit = (CFG.rules||[]).find(function(r){ return inRange(dateStr, r); });
+  // 규칙에 time("HH:MM")이 있으면 그 회차에만 적용(같은 날 낮/밤 구분용). 없으면 날짜 전체.
+  function stampTypeForDate(dateStr, timeStr){
+    var hit = (CFG.rules||[]).find(function(r){
+      return inRange(dateStr, r) && (!r.time || r.time===timeStr);
+    });
     return hit ? hit.stamp : (CFG.defaultStamp || "excellent");
   }
   function stampCountForDate(dateStr){
@@ -231,7 +245,7 @@
     // 도장 하나 단위로 펼침(더블데이는 2개)
     var pending = [];
     list.forEach(function(w){
-      var type = stampTypeForDate(w.date), cnt = stampCountForDate(w.date);
+      var type = stampTypeForDate(w.date, w.time), cnt = stampCountForDate(w.date);
       for(var k=0;k<cnt;k++) pending.push({ stamp:type, date:w.dateLabel, sid:w.sid });
     });
     _autoAdded = 0;
@@ -410,7 +424,7 @@
     for(var i=0;i<slotCount();i++){
       var cy = (g.rowTop + (i+0.5)*g.rowH)*100;
       var slot = b.slots[i];
-      var checkInner = slot ? '<span class="stamp-mark '+esc(slot.stamp)+'">'+esc(stampLabel(slot.stamp))+'</span>' : '';
+      var checkInner = slot ? stampMarkHtml(slot.stamp) : '';
       ov += '<div class="stamp-cell check'+(slot?' filled':'')+'" data-row="'+i+'" data-cell="check" '+
             'style="left:'+(g.checkX*100).toFixed(2)+'%;top:'+cy.toFixed(2)+'%">'+checkInner+'</div>';
       var dayInner = slot ? ('<span class="stamp-date">'+esc(slot.date||"")+'</span>'+(slot.memo?'<span class="stamp-memo">'+esc(slot.memo)+'</span>':'')) : '';
@@ -743,7 +757,7 @@
     var pop = document.createElement("div"); pop.className = "stamp-pop stamp-pop-pick";
     var btns = '<button class="stamp-pick-btn arb" data-pick="arb">임의로 넣기</button>';
     list.forEach(function(w){
-      var hc = (stampTypeForDate(w.date)==="homecoming");
+      var hc = (stampTypeForDate(w.date, w.time)==="homecoming");
       btns += '<button class="stamp-pick-btn'+(hc?' hc':'')+'" data-sid="'+esc(w.sid)+'" data-date="'+esc(w.dateLabel)+'">'+esc(w.dateLabel)+'</button>';
     });
     pop.innerHTML =
@@ -755,7 +769,7 @@
       btn.addEventListener("click", function(){
         var sid = btn.dataset.sid, date = btn.dataset.date;
         var w = pickableList().filter(function(x){ return x.sid===sid; })[0];
-        var type = w ? stampTypeForDate(w.date) : (CFG.defaultStamp||"excellent");
+        var type = w ? stampTypeForDate(w.date, w.time) : (CFG.defaultStamp||"excellent");
         b.slots[row] = { stamp:type, date:date, sid:sid };
         saveState(); render(); closePop();
       });
@@ -803,7 +817,8 @@
   function stampTypeButtons(active){
     var s = '<div class="stamp-type-row">';
     (CFG.stampTypes||[]).forEach(function(t){
-      s += '<button class="stamp-type-btn '+esc(t.id)+(t.id===active?' active':'')+'" data-st="'+esc(t.id)+'">'+esc(t.label)+'</button>';
+      var inner = t.image ? '<img src="'+esc(imgUrl(t.image))+'" alt="'+esc(t.label)+'">' : esc(t.label);
+      s += '<button class="stamp-type-btn '+esc(t.id)+(t.image?' has-img':'')+(t.id===active?' active':'')+'" data-st="'+esc(t.id)+'">'+inner+'</button>';
     });
     return s + '</div>';
   }

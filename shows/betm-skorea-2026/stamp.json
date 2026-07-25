@@ -50,6 +50,11 @@
     {
       "id": "homecoming",
       "label": "HOME COMING"
+    },
+    {
+      "id": "woojin-billy",
+      "label": "사랑해 영원히 -우진 빌리-",
+      "image": "images/stamp-woojin-billy.png"
     }
   ],
   "defaultStamp": "excellent",
@@ -58,6 +63,12 @@
       "stamp": "homecoming",
       "from": "2026-06-16",
       "to": "2026-06-21"
+    },
+    {
+      "stamp": "woojin-billy",
+      "from": "2026-07-25",
+      "to": "2026-07-25",
+      "time": "14:00"
     }
   ],
   "doubleDates": [

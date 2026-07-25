@@ -1583,6 +1583,9 @@
 }
 .stamp-mark.excellent{ color:#a43233; }
 .stamp-mark.homecoming{ color:#a43233; border-radius:50%; padding:7px 6px; transform:rotate(6deg); }
+/* 이미지 도장(손글씨 등): 테두리 없이 그림만, 살짝 기울여 도장 느낌 */
+.stamp-mark.img{ border:none; padding:0; transform:rotate(-6deg); }
+.stamp-mark.img img{ display:block; max-width:76px; max-height:36px; width:auto; height:auto; }
 .stamp-date{ font-weight:800; font-size:15px; color:#1a1c22; }
 .stamp-memo{ font-size:10px; color:#3a4d86; margin-top:1px; max-width:80px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 
@@ -1620,6 +1623,8 @@
 }
 .stamp-type-btn.active.excellent{ border-color:#a43233; color:#a43233; }
 .stamp-type-btn.active.homecoming{ border-color:#2f6fb0; color:#2f6fb0; }
+.stamp-type-btn.has-img img{ display:block; max-width:100%; max-height:24px; margin:0 auto; }
+.stamp-type-btn.has-img.active{ border-color:#a43233; }
 .stamp-pop-field{ display:flex; flex-direction:column; gap:3px; font-size:11px; color:var(--ink-dim); margin-bottom:8px; }
 .stamp-pop-field input{ font:inherit; padding:6px 8px; border:1px solid var(--line); border-radius:6px; background:var(--panel2); color:var(--ink); }
 .stamp-pop-actions{ display:flex; gap:6px; margin-top:4px; }
