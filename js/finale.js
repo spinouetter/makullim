@@ -710,7 +710,9 @@
       }
       if(randomModeActive()) applyRandomViewings();   // 랜덤 데이터 모드: 관극 기록(좌석) 무작위 생성
       renderManifest(svg, mani);                       // casts 파생 슬롯 + bindings(좌석 포함) — 스탯은 app 공용 함수
-      if(css){ try{ if(document.fonts && document.fonts.load) await document.fonts.load('20px "Anton"'); }catch(e){} fitRoleLabels(svg); }
+      // 보드가 선언한 모든 웹폰트를 렌더 마무리 전에 강제 로드한다(과거엔 "Anton"만 로드해,
+      // 그 보드에서 처음 쓰이는 폰트—예: 배역별 횟수 Paytone One—가 로드 전 폴백으로 굳는 버그).
+      if(css){ try{ if(document.fonts && document.fonts.load){ const _ff=((mani&&mani.fonts)||[]).map(f=>f&&f.family).filter(Boolean); if(!_ff.length) _ff.push("Anton"); await Promise.all(_ff.map(fam=>document.fonts.load('20px "'+fam+'"').catch(()=>{}))); } }catch(e){} fitRoleLabels(svg); }
       _boardRendered = true;
       return svg;
     })();
