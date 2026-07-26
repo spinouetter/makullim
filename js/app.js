@@ -126,6 +126,8 @@ async function loadData(){
     startDate: meta.startDate || "",
     endDate: meta.endDate || "",
     runningtime: (typeof meta.runningtime === "number" && meta.runningtime > 0) ? meta.runningtime : 180, // 분
+    ended: meta.ended === true, // 공연(시즌) 종료 — 회차 종료 판정이 시간 룰을 무시하고 전부 완료로 본다
+
     grades: grades, casts: casts, performances: schedule,
     // 통계 프리셋·고정 배역 설정(선택) — showStatsConfig()/presetComboEntries() 참조
     statsConfig: (meta.stats && typeof meta.stats === "object") ? meta.stats : {}
@@ -2327,6 +2329,8 @@ function fmtHeaderDate(iso){
 }
 
 function isEnded(p){
+  // 공연(시즌) 자체가 종료(meta.ended)면 시간 룰 무시, 모든 회차를 완료로 본다.
+  if(performanceData && performanceData.ended) return true;
   // 공연 시작 + 러닝타임(meta.runningtime 분, 기본 180)이 지나면 종료로 본다.
   const start = new Date(`${p.date}T${p.time}:00`); // 로컬 시각으로 파싱
   if(isNaN(start.getTime())) return false;
