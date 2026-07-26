@@ -2589,7 +2589,7 @@ function renderStats(){
       <div class="stat-card"><div class="label">관극</div><div class="value">${watchedShows}</div></div>
       <div class="stat-card"><div class="label">총액</div><div class="value">${formatKRW(spentAmount + upcomingAmount)}</div></div>
     `;
-    cardsEl.style.gridTemplateColumns = "repeat(3,1fr)";
+    cardsEl.style.gridTemplateColumns = "1fr 1fr 2fr"; // 총액(금액 문자열)이 길어 마지막 칸을 넓게
     totalsEl.innerHTML = "";
     totalsEl.style.display = "none";
   } else {
