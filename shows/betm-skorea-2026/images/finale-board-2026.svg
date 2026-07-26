@@ -11,7 +11,7 @@
 		.st1 {fill:none;stroke:none;stroke-linecap:round;stroke-linejoin:round;stroke-width:0.75}
 		.st2 {stroke:#bfbfbf;stroke-linecap:round;stroke-linejoin:round;stroke-width:0.75}
 		.st3 {fill:#ba1e23;font-family:Bebas Neue;font-size:1.15em}
-		.st4 {fill:#000000;font-family:Paytone One;font-size:0.8em}
+		.st4 {fill:#000000;font-family:Paytone One;font-size:1em}
 		.st5 {fill:none;stroke:#7f7f7f;stroke-width:0.75}
 		.st6 {fill:#000000;fill-opacity:0.54;stroke:none;stroke-linecap:round;stroke-linejoin:round;stroke-width:0.75}
 		.st6b {fill:#000000;fill-opacity:0.54;stroke:none;stroke-linecap:round;stroke-linejoin:round;stroke-width:0.75}
@@ -38,7 +38,7 @@
 			<image x="0" y="0.749939" width="609.449" height="1218.9" preserveAspectRatio="none" xlink:href="/shows/betm-skorea-2026/images/billy-final2.jpg"/>
 			<rect v:rectContext="foreign" x="0" y="0.749939" width="609.449" height="1218.9" class="st1"/>
 		</g>
-		<rect id="fn-seatbox" x="305" y="688.5" width="262.3" height="266.7" class="st1"/>
+		<rect id="fn-seatbox" x="305" y="704.5" width="262.3" height="266.7" class="st1"/>
 		<g id="shape2283-5" v:mID="2283" v:groupContext="shape" transform="translate(1524.75,563.723) rotate(90)">
 			<title>시트.2283</title>
 			<path d="M21.277 1219.65 L77.969 1219.65" class="st2"/>
@@ -68,7 +68,7 @@
 					<v:textBlock v:margins="rect(4,4,4,4)" v:tabSpace="42.5197"/>
 					<v:textRect cx="27.9213" cy="1212.56" width="55.85" height="14.1732"/>
 					<rect x="0" y="1205.47" width="55.8425" height="14.1732" class="st1"/>
-					<text id="fn-cnt-billy-0" text-anchor="middle" x="27.9213" y="1215.26" class="st4" v:langID="1042"><v:paragraph v:horizAlign="1"/><v:tabList/></text>				</g>
+					<text id="fn-cnt-billy-0" text-anchor="middle" x="27.9213" y="1216.26" class="st4" v:langID="1042"><v:paragraph v:horizAlign="1"/><v:tabList/></text>				</g>
 				<g id="shape1899-22" v:mID="1899" v:groupContext="shape" transform="translate(-2.79776E-14,-14.1732)">
 					<title>시트.1899</title>
 					<image id="fn-photo-billy-0" x="0" y="1148.78" width="55.8425" height="70.8661" preserveAspectRatio="xMidYMin slice" xlink:href="/shows/betm-skorea-2026/images/플레이스홀더.jpeg"/>
@@ -90,7 +90,7 @@
 					<v:textBlock v:margins="rect(4,4,4,4)" v:tabSpace="42.5197"/>
 					<v:textRect cx="27.9213" cy="1212.56" width="55.85" height="14.1732"/>
 					<rect x="0" y="1205.47" width="55.8425" height="14.1732" class="st1"/>
-					<text id="fn-cnt-billy-1" text-anchor="middle" x="27.9213" y="1215.26" class="st4" v:langID="1042"><v:paragraph v:horizAlign="1"/><v:tabList/></text>				</g>
+					<text id="fn-cnt-billy-1" text-anchor="middle" x="27.9213" y="1216.26" class="st4" v:langID="1042"><v:paragraph v:horizAlign="1"/><v:tabList/></text>				</g>
 				<g id="shape1903-31" v:mID="1903" v:groupContext="shape" transform="translate(-2.79776E-14,-14.1732)">
 					<title>시트.1903</title>
 					<image id="fn-photo-billy-1" x="0" y="1148.78" width="55.8425" height="70.8661" preserveAspectRatio="xMidYMin slice" xlink:href="/shows/betm-skorea-2026/images/플레이스홀더.jpeg"/>
@@ -112,7 +112,7 @@
 					<v:textBlock v:margins="rect(4,4,4,4)" v:tabSpace="42.5197"/>
 					<v:textRect cx="27.9213" cy="1212.56" width="55.85" height="14.1732"/>
 					<rect x="0" y="1205.47" width="55.8425" height="14.1732" class="st1"/>
-					<text id="fn-cnt-billy-2" text-anchor="middle" x="27.9213" y="1215.26" class="st4" v:langID="1042"><v:paragraph v:horizAlign="1"/><v:tabList/></text>				</g>
+					<text id="fn-cnt-billy-2" text-anchor="middle" x="27.9213" y="1216.26" class="st4" v:langID="1042"><v:paragraph v:horizAlign="1"/><v:tabList/></text>				</g>
 				<g id="shape1907-40" v:mID="1907" v:groupContext="shape" transform="translate(-2.79776E-14,-14.1732)">
 					<title>시트.1907</title>
 					<image id="fn-photo-billy-2" x="0" y="1148.78" width="55.8425" height="70.8661" preserveAspectRatio="xMidYMin slice" xlink:href="/shows/betm-skorea-2026/images/플레이스홀더.jpeg"/>
@@ -134,7 +134,7 @@
 					<v:textBlock v:margins="rect(4,4,4,4)" v:tabSpace="42.5197"/>
 					<v:textRect cx="27.9213" cy="1212.56" width="55.85" height="14.1732"/>
 					<rect x="0" y="1205.47" width="55.8425" height="14.1732" class="st1"/>
-					<text id="fn-cnt-billy-3" text-anchor="middle" x="27.9213" y="1215.26" class="st4" v:langID="1042"><v:paragraph v:horizAlign="1"/><v:tabList/></text>				</g>
+					<text id="fn-cnt-billy-3" text-anchor="middle" x="27.9213" y="1216.26" class="st4" v:langID="1042"><v:paragraph v:horizAlign="1"/><v:tabList/></text>				</g>
 				<g id="shape1911-49" v:mID="1911" v:groupContext="shape" transform="translate(-2.79776E-14,-14.1732)">
 					<title>시트.1911</title>
 					<image id="fn-photo-billy-3" x="0" y="1148.78" width="55.8425" height="70.8661" preserveAspectRatio="xMidYMin slice" xlink:href="/shows/betm-skorea-2026/images/플레이스홀더.jpeg"/>
@@ -166,7 +166,7 @@
 					<v:textBlock v:margins="rect(4,4,4,4)" v:tabSpace="42.5197"/>
 					<v:textRect cx="27.9213" cy="1212.56" width="55.85" height="14.1732"/>
 					<rect x="0" y="1205.47" width="55.8425" height="14.1732" class="st1"/>
-					<text id="fn-cnt-michael-0" text-anchor="middle" x="27.9213" y="1215.26" class="st4" v:langID="1042"><v:paragraph v:horizAlign="1"/><v:tabList/></text>				</g>
+					<text id="fn-cnt-michael-0" text-anchor="middle" x="27.9213" y="1216.26" class="st4" v:langID="1042"><v:paragraph v:horizAlign="1"/><v:tabList/></text>				</g>
 				<g id="shape1918-62" v:mID="1918" v:groupContext="shape" transform="translate(-2.79776E-14,-14.1732)">
 					<title>시트.1918</title>
 					<image id="fn-photo-michael-0" x="0" y="1148.78" width="55.8425" height="70.8661" preserveAspectRatio="xMidYMin slice" xlink:href="/shows/betm-skorea-2026/images/플레이스홀더.jpeg"/>
@@ -188,7 +188,7 @@
 					<v:textBlock v:margins="rect(4,4,4,4)" v:tabSpace="42.5197"/>
 					<v:textRect cx="27.9213" cy="1212.56" width="55.85" height="14.1732"/>
 					<rect x="0" y="1205.47" width="55.8425" height="14.1732" class="st1"/>
-					<text id="fn-cnt-michael-1" text-anchor="middle" x="27.9213" y="1215.26" class="st4" v:langID="1042"><v:paragraph v:horizAlign="1"/><v:tabList/></text>				</g>
+					<text id="fn-cnt-michael-1" text-anchor="middle" x="27.9213" y="1216.26" class="st4" v:langID="1042"><v:paragraph v:horizAlign="1"/><v:tabList/></text>				</g>
 				<g id="shape1922-71" v:mID="1922" v:groupContext="shape" transform="translate(-2.79776E-14,-14.1732)">
 					<title>시트.1922</title>
 					<image id="fn-photo-michael-1" x="0" y="1148.78" width="55.8425" height="70.8661" preserveAspectRatio="xMidYMin slice" xlink:href="/shows/betm-skorea-2026/images/플레이스홀더.jpeg"/>
@@ -210,7 +210,7 @@
 					<v:textBlock v:margins="rect(4,4,4,4)" v:tabSpace="42.5197"/>
 					<v:textRect cx="27.9213" cy="1212.56" width="55.85" height="14.1732"/>
 					<rect x="0" y="1205.47" width="55.8425" height="14.1732" class="st1"/>
-					<text id="fn-cnt-michael-2" text-anchor="middle" x="27.9213" y="1215.26" class="st4" v:langID="1042"><v:paragraph v:horizAlign="1"/><v:tabList/></text>				</g>
+					<text id="fn-cnt-michael-2" text-anchor="middle" x="27.9213" y="1216.26" class="st4" v:langID="1042"><v:paragraph v:horizAlign="1"/><v:tabList/></text>				</g>
 				<g id="shape1926-80" v:mID="1926" v:groupContext="shape" transform="translate(-2.79776E-14,-14.1732)">
 					<title>시트.1926</title>
 					<image id="fn-photo-michael-2" x="0" y="1148.78" width="55.8425" height="70.8661" preserveAspectRatio="xMidYMin slice" xlink:href="/shows/betm-skorea-2026/images/플레이스홀더.jpeg"/>
@@ -232,7 +232,7 @@
 					<v:textBlock v:margins="rect(4,4,4,4)" v:tabSpace="42.5197"/>
 					<v:textRect cx="27.9213" cy="1212.56" width="55.85" height="14.1732"/>
 					<rect x="0" y="1205.47" width="55.8425" height="14.1732" class="st1"/>
-					<text id="fn-cnt-michael-3" text-anchor="middle" x="27.9213" y="1215.26" class="st4" v:langID="1042"><v:paragraph v:horizAlign="1"/><v:tabList/></text>				</g>
+					<text id="fn-cnt-michael-3" text-anchor="middle" x="27.9213" y="1216.26" class="st4" v:langID="1042"><v:paragraph v:horizAlign="1"/><v:tabList/></text>				</g>
 				<g id="shape1930-89" v:mID="1930" v:groupContext="shape" transform="translate(-2.79776E-14,-14.1732)">
 					<title>시트.1930</title>
 					<image id="fn-photo-michael-3" x="0" y="1148.78" width="55.8425" height="70.8661" preserveAspectRatio="xMidYMin slice" xlink:href="/shows/betm-skorea-2026/images/플레이스홀더.jpeg"/>
@@ -264,7 +264,7 @@
 					<v:textBlock v:margins="rect(4,4,4,4)" v:tabSpace="42.5197"/>
 					<v:textRect cx="27.9213" cy="1212.56" width="55.85" height="14.1732"/>
 					<rect x="0" y="1205.47" width="55.8425" height="14.1732" class="st1"/>
-					<text id="fn-cnt-debbie-0" text-anchor="middle" x="27.9213" y="1215.26" class="st4" v:langID="1042"><v:paragraph v:horizAlign="1"/><v:tabList/></text>				</g>
+					<text id="fn-cnt-debbie-0" text-anchor="middle" x="27.9213" y="1216.26" class="st4" v:langID="1042"><v:paragraph v:horizAlign="1"/><v:tabList/></text>				</g>
 				<g id="shape1955-102" v:mID="1955" v:groupContext="shape" transform="translate(-2.79776E-14,-14.1732)">
 					<title>시트.1955</title>
 					<image id="fn-photo-debbie-0" x="0" y="1148.78" width="55.8425" height="70.8661" preserveAspectRatio="xMidYMin slice" xlink:href="/shows/betm-skorea-2026/images/플레이스홀더.jpeg"/>
@@ -286,7 +286,7 @@
 					<v:textBlock v:margins="rect(4,4,4,4)" v:tabSpace="42.5197"/>
 					<v:textRect cx="27.9213" cy="1212.56" width="55.85" height="14.1732"/>
 					<rect x="0" y="1205.47" width="55.8425" height="14.1732" class="st1"/>
-					<text id="fn-cnt-debbie-1" text-anchor="middle" x="27.9213" y="1215.26" class="st4" v:langID="1042"><v:paragraph v:horizAlign="1"/><v:tabList/></text>				</g>
+					<text id="fn-cnt-debbie-1" text-anchor="middle" x="27.9213" y="1216.26" class="st4" v:langID="1042"><v:paragraph v:horizAlign="1"/><v:tabList/></text>				</g>
 				<g id="shape1959-111" v:mID="1959" v:groupContext="shape" transform="translate(-2.79776E-14,-14.1732)">
 					<title>시트.1959</title>
 					<image id="fn-photo-debbie-1" x="0" y="1148.78" width="55.8425" height="70.8661" preserveAspectRatio="xMidYMin slice" xlink:href="/shows/betm-skorea-2026/images/플레이스홀더.jpeg"/>
@@ -308,7 +308,7 @@
 					<v:textBlock v:margins="rect(4,4,4,4)" v:tabSpace="42.5197"/>
 					<v:textRect cx="27.9213" cy="1212.56" width="55.85" height="14.1732"/>
 					<rect x="0" y="1205.47" width="55.8425" height="14.1732" class="st1"/>
-					<text id="fn-cnt-debbie-2" text-anchor="middle" x="27.9213" y="1215.26" class="st4" v:langID="1042"><v:paragraph v:horizAlign="1"/><v:tabList/></text>				</g>
+					<text id="fn-cnt-debbie-2" text-anchor="middle" x="27.9213" y="1216.26" class="st4" v:langID="1042"><v:paragraph v:horizAlign="1"/><v:tabList/></text>				</g>
 				<g id="shape1963-120" v:mID="1963" v:groupContext="shape" transform="translate(-2.79776E-14,-14.1732)">
 					<title>시트.1963</title>
 					<image id="fn-photo-debbie-2" x="0" y="1148.78" width="55.8425" height="70.8661" preserveAspectRatio="xMidYMin slice" xlink:href="/shows/betm-skorea-2026/images/플레이스홀더.jpeg"/>
@@ -340,7 +340,7 @@
 					<v:textBlock v:margins="rect(4,4,4,4)" v:tabSpace="42.5197"/>
 					<v:textRect cx="27.9213" cy="1212.56" width="55.85" height="14.1732"/>
 					<rect x="0" y="1205.47" width="55.8425" height="14.1732" class="st1"/>
-					<text id="fn-cnt-old_billy-0" text-anchor="middle" x="27.9213" y="1215.26" class="st4" v:langID="1042"><v:paragraph v:horizAlign="1"/><v:tabList/></text>				</g>
+					<text id="fn-cnt-old_billy-0" text-anchor="middle" x="27.9213" y="1216.26" class="st4" v:langID="1042"><v:paragraph v:horizAlign="1"/><v:tabList/></text>				</g>
 				<g id="shape1969-133" v:mID="1969" v:groupContext="shape" transform="translate(-2.79776E-14,-14.1732)">
 					<title>시트.1969</title>
 					<image id="fn-photo-old_billy-0" x="0" y="1148.78" width="55.8425" height="70.8661" preserveAspectRatio="xMidYMin slice" xlink:href="/shows/betm-skorea-2026/images/플레이스홀더.jpeg"/>
@@ -362,7 +362,7 @@
 					<v:textBlock v:margins="rect(4,4,4,4)" v:tabSpace="42.5197"/>
 					<v:textRect cx="27.9213" cy="1212.56" width="55.85" height="14.1732"/>
 					<rect x="0" y="1205.47" width="55.8425" height="14.1732" class="st1"/>
-					<text id="fn-cnt-old_billy-1" text-anchor="middle" x="27.9213" y="1215.26" class="st4" v:langID="1042"><v:paragraph v:horizAlign="1"/><v:tabList/></text>				</g>
+					<text id="fn-cnt-old_billy-1" text-anchor="middle" x="27.9213" y="1216.26" class="st4" v:langID="1042"><v:paragraph v:horizAlign="1"/><v:tabList/></text>				</g>
 				<g id="shape1973-142" v:mID="1973" v:groupContext="shape" transform="translate(-2.79776E-14,-14.1732)">
 					<title>시트.1973</title>
 					<image id="fn-photo-old_billy-1" x="0" y="1148.78" width="55.8425" height="70.8661" preserveAspectRatio="xMidYMin slice" xlink:href="/shows/betm-skorea-2026/images/플레이스홀더.jpeg"/>
@@ -384,7 +384,7 @@
 					<v:textBlock v:margins="rect(4,4,4,4)" v:tabSpace="42.5197"/>
 					<v:textRect cx="27.9213" cy="1212.56" width="55.85" height="14.1732"/>
 					<rect x="0" y="1205.47" width="55.8425" height="14.1732" class="st1"/>
-					<text id="fn-cnt-old_billy-2" text-anchor="middle" x="27.9213" y="1215.26" class="st4" v:langID="1042"><v:paragraph v:horizAlign="1"/><v:tabList/></text>				</g>
+					<text id="fn-cnt-old_billy-2" text-anchor="middle" x="27.9213" y="1216.26" class="st4" v:langID="1042"><v:paragraph v:horizAlign="1"/><v:tabList/></text>				</g>
 				<g id="shape1977-151" v:mID="1977" v:groupContext="shape" transform="translate(-2.79776E-14,-14.1732)">
 					<title>시트.1977</title>
 					<image id="fn-photo-old_billy-2" x="0" y="1148.78" width="55.8425" height="70.8661" preserveAspectRatio="xMidYMin slice" xlink:href="/shows/betm-skorea-2026/images/플레이스홀더.jpeg"/>
@@ -416,7 +416,7 @@
 					<v:textBlock v:margins="rect(4,4,4,4)" v:tabSpace="42.5197"/>
 					<v:textRect cx="27.9213" cy="1212.56" width="55.85" height="14.1732"/>
 					<rect x="0" y="1205.47" width="55.8425" height="14.1732" class="st1"/>
-					<text id="fn-cnt-mrs_wilkinson-0" text-anchor="middle" x="27.9213" y="1215.26" class="st4" v:langID="1042"><v:paragraph v:horizAlign="1"/><v:tabList/></text>				</g>
+					<text id="fn-cnt-mrs_wilkinson-0" text-anchor="middle" x="27.9213" y="1216.26" class="st4" v:langID="1042"><v:paragraph v:horizAlign="1"/><v:tabList/></text>				</g>
 				<g id="shape1998-164" v:mID="1998" v:groupContext="shape" transform="translate(-2.79776E-14,-14.1732)">
 					<title>시트.1998</title>
 					<image id="fn-photo-mrs_wilkinson-0" x="0" y="1148.78" width="55.8425" height="70.8661" preserveAspectRatio="xMidYMin slice" xlink:href="/shows/betm-skorea-2026/images/플레이스홀더.jpeg"/>
@@ -438,7 +438,7 @@
 					<v:textBlock v:margins="rect(4,4,4,4)" v:tabSpace="42.5197"/>
 					<v:textRect cx="27.9213" cy="1212.56" width="55.85" height="14.1732"/>
 					<rect x="0" y="1205.47" width="55.8425" height="14.1732" class="st1"/>
-					<text id="fn-cnt-mrs_wilkinson-1" text-anchor="middle" x="27.9213" y="1215.26" class="st4" v:langID="1042"><v:paragraph v:horizAlign="1"/><v:tabList/></text>				</g>
+					<text id="fn-cnt-mrs_wilkinson-1" text-anchor="middle" x="27.9213" y="1216.26" class="st4" v:langID="1042"><v:paragraph v:horizAlign="1"/><v:tabList/></text>				</g>
 				<g id="shape2002-173" v:mID="2002" v:groupContext="shape" transform="translate(-2.79776E-14,-14.1732)">
 					<title>시트.2002</title>
 					<image id="fn-photo-mrs_wilkinson-1" x="0" y="1148.78" width="55.8425" height="70.8661" preserveAspectRatio="xMidYMin slice" xlink:href="/shows/betm-skorea-2026/images/플레이스홀더.jpeg"/>
@@ -470,7 +470,7 @@
 					<v:textBlock v:margins="rect(4,4,4,4)" v:tabSpace="42.5197"/>
 					<v:textRect cx="27.9213" cy="1212.56" width="55.85" height="14.1732"/>
 					<rect x="0" y="1205.47" width="55.8425" height="14.1732" class="st1"/>
-					<text id="fn-cnt-tony-0" text-anchor="middle" x="27.9213" y="1215.26" class="st4" v:langID="1042"><v:paragraph v:horizAlign="1"/><v:tabList/></text>				</g>
+					<text id="fn-cnt-tony-0" text-anchor="middle" x="27.9213" y="1216.26" class="st4" v:langID="1042"><v:paragraph v:horizAlign="1"/><v:tabList/></text>				</g>
 				<g id="shape2015-186" v:mID="2015" v:groupContext="shape" transform="translate(-2.79776E-14,-14.1732)">
 					<title>시트.2015</title>
 					<image id="fn-photo-tony-0" x="0" y="1148.78" width="55.8425" height="70.8661" preserveAspectRatio="xMidYMin slice" xlink:href="/shows/betm-skorea-2026/images/플레이스홀더.jpeg"/>
@@ -502,7 +502,7 @@
 					<v:textBlock v:margins="rect(4,4,4,4)" v:tabSpace="42.5197"/>
 					<v:textRect cx="27.9213" cy="1212.56" width="55.85" height="14.1732"/>
 					<rect x="0" y="1205.47" width="55.8425" height="14.1732" class="st1"/>
-					<text id="fn-cnt-dad-0" text-anchor="middle" x="27.9213" y="1215.26" class="st4" v:langID="1042"><v:paragraph v:horizAlign="1"/><v:tabList/></text>				</g>
+					<text id="fn-cnt-dad-0" text-anchor="middle" x="27.9213" y="1216.26" class="st4" v:langID="1042"><v:paragraph v:horizAlign="1"/><v:tabList/></text>				</g>
 				<g id="shape2021-199" v:mID="2021" v:groupContext="shape" transform="translate(-2.79776E-14,-14.1732)">
 					<title>시트.2021</title>
 					<image id="fn-photo-dad-0" x="0" y="1148.78" width="55.8425" height="70.8661" preserveAspectRatio="xMidYMin slice" xlink:href="/shows/betm-skorea-2026/images/플레이스홀더.jpeg"/>
@@ -524,7 +524,7 @@
 					<v:textBlock v:margins="rect(4,4,4,4)" v:tabSpace="42.5197"/>
 					<v:textRect cx="27.9213" cy="1212.56" width="55.85" height="14.1732"/>
 					<rect x="0" y="1205.47" width="55.8425" height="14.1732" class="st1"/>
-					<text id="fn-cnt-dad-1" text-anchor="middle" x="27.9213" y="1215.26" class="st4" v:langID="1042"><v:paragraph v:horizAlign="1"/><v:tabList/></text>				</g>
+					<text id="fn-cnt-dad-1" text-anchor="middle" x="27.9213" y="1216.26" class="st4" v:langID="1042"><v:paragraph v:horizAlign="1"/><v:tabList/></text>				</g>
 				<g id="shape2025-208" v:mID="2025" v:groupContext="shape" transform="translate(-2.79776E-14,-14.1732)">
 					<title>시트.2025</title>
 					<image id="fn-photo-dad-1" x="0" y="1148.78" width="55.8425" height="70.8661" preserveAspectRatio="xMidYMin slice" xlink:href="/shows/betm-skorea-2026/images/플레이스홀더.jpeg"/>
@@ -556,7 +556,7 @@
 					<v:textBlock v:margins="rect(4,4,4,4)" v:tabSpace="42.5197"/>
 					<v:textRect cx="27.9213" cy="1212.56" width="55.85" height="14.1732"/>
 					<rect x="0" y="1205.47" width="55.8425" height="14.1732" class="st1"/>
-					<text id="fn-cnt-dead_mum-0" text-anchor="middle" x="27.9213" y="1215.26" class="st4" v:langID="1042"><v:paragraph v:horizAlign="1"/><v:tabList/></text>				</g>
+					<text id="fn-cnt-dead_mum-0" text-anchor="middle" x="27.9213" y="1216.26" class="st4" v:langID="1042"><v:paragraph v:horizAlign="1"/><v:tabList/></text>				</g>
 				<g id="shape2031-221" v:mID="2031" v:groupContext="shape" transform="translate(-2.79776E-14,-14.1732)">
 					<title>시트.2031</title>
 					<image id="fn-photo-dead_mum-0" x="0" y="1148.78" width="55.8425" height="70.8661" preserveAspectRatio="xMidYMin slice" xlink:href="/shows/betm-skorea-2026/images/플레이스홀더.jpeg"/>
@@ -578,7 +578,7 @@
 					<v:textBlock v:margins="rect(4,4,4,4)" v:tabSpace="42.5197"/>
 					<v:textRect cx="27.9213" cy="1212.56" width="55.85" height="14.1732"/>
 					<rect x="0" y="1205.47" width="55.8425" height="14.1732" class="st1"/>
-					<text id="fn-cnt-dead_mum-1" text-anchor="middle" x="27.9213" y="1215.26" class="st4" v:langID="1042"><v:paragraph v:horizAlign="1"/><v:tabList/></text>				</g>
+					<text id="fn-cnt-dead_mum-1" text-anchor="middle" x="27.9213" y="1216.26" class="st4" v:langID="1042"><v:paragraph v:horizAlign="1"/><v:tabList/></text>				</g>
 				<g id="shape2035-230" v:mID="2035" v:groupContext="shape" transform="translate(-2.79776E-14,-14.1732)">
 					<title>시트.2035</title>
 					<image id="fn-photo-dead_mum-1" x="0" y="1148.78" width="55.8425" height="70.8661" preserveAspectRatio="xMidYMin slice" xlink:href="/shows/betm-skorea-2026/images/플레이스홀더.jpeg"/>
@@ -610,7 +610,7 @@
 					<v:textBlock v:margins="rect(4,4,4,4)" v:tabSpace="42.5197"/>
 					<v:textRect cx="27.9213" cy="1212.56" width="55.85" height="14.1732"/>
 					<rect x="0" y="1205.47" width="55.8425" height="14.1732" class="st1"/>
-					<text id="fn-cnt-grandma-0" text-anchor="middle" x="27.9213" y="1215.26" class="st4" v:langID="1042"><v:paragraph v:horizAlign="1"/><v:tabList/></text>				</g>
+					<text id="fn-cnt-grandma-0" text-anchor="middle" x="27.9213" y="1216.26" class="st4" v:langID="1042"><v:paragraph v:horizAlign="1"/><v:tabList/></text>				</g>
 				<g id="shape2041-243" v:mID="2041" v:groupContext="shape" transform="translate(-2.79776E-14,-14.1732)">
 					<title>시트.2041</title>
 					<image id="fn-photo-grandma-0" x="0" y="1148.78" width="55.8425" height="70.8661" preserveAspectRatio="xMidYMin slice" xlink:href="/shows/betm-skorea-2026/images/플레이스홀더.jpeg"/>
@@ -632,7 +632,7 @@
 					<v:textBlock v:margins="rect(4,4,4,4)" v:tabSpace="42.5197"/>
 					<v:textRect cx="27.9213" cy="1212.56" width="55.85" height="14.1732"/>
 					<rect x="0" y="1205.47" width="55.8425" height="14.1732" class="st1"/>
-					<text id="fn-cnt-grandma-1" text-anchor="middle" x="27.9213" y="1215.26" class="st4" v:langID="1042"><v:paragraph v:horizAlign="1"/><v:tabList/></text>				</g>
+					<text id="fn-cnt-grandma-1" text-anchor="middle" x="27.9213" y="1216.26" class="st4" v:langID="1042"><v:paragraph v:horizAlign="1"/><v:tabList/></text>				</g>
 				<g id="shape2045-252" v:mID="2045" v:groupContext="shape" transform="translate(-2.79776E-14,-14.1732)">
 					<title>시트.2045</title>
 					<image id="fn-photo-grandma-1" x="0" y="1148.78" width="55.8425" height="70.8661" preserveAspectRatio="xMidYMin slice" xlink:href="/shows/betm-skorea-2026/images/플레이스홀더.jpeg"/>
@@ -654,7 +654,7 @@
 					<v:textBlock v:margins="rect(4,4,4,4)" v:tabSpace="42.5197"/>
 					<v:textRect cx="27.9213" cy="1212.56" width="55.85" height="14.1732"/>
 					<rect x="0" y="1205.47" width="55.8425" height="14.1732" class="st1"/>
-					<text id="fn-cnt-grandma-2" text-anchor="middle" x="27.9213" y="1215.26" class="st4" v:langID="1042"><v:paragraph v:horizAlign="1"/><v:tabList/></text>				</g>
+					<text id="fn-cnt-grandma-2" text-anchor="middle" x="27.9213" y="1216.26" class="st4" v:langID="1042"><v:paragraph v:horizAlign="1"/><v:tabList/></text>				</g>
 				<g id="shape2049-261" v:mID="2049" v:groupContext="shape" transform="translate(-2.79776E-14,-14.1732)">
 					<title>시트.2049</title>
 					<image id="fn-photo-grandma-2" x="0" y="1148.78" width="55.8425" height="70.8661" preserveAspectRatio="xMidYMin slice" xlink:href="/shows/betm-skorea-2026/images/플레이스홀더.jpeg"/>
@@ -686,7 +686,7 @@
 					<v:textBlock v:margins="rect(4,4,4,4)" v:tabSpace="42.5197"/>
 					<v:textRect cx="27.9213" cy="1212.56" width="55.85" height="14.1732"/>
 					<rect x="0" y="1205.47" width="55.8425" height="14.1732" class="st1"/>
-					<text id="fn-cnt-george-0" text-anchor="middle" x="27.9213" y="1215.26" class="st4" v:langID="1042"><v:paragraph v:horizAlign="1"/><v:tabList/></text>				</g>
+					<text id="fn-cnt-george-0" text-anchor="middle" x="27.9213" y="1216.26" class="st4" v:langID="1042"><v:paragraph v:horizAlign="1"/><v:tabList/></text>				</g>
 				<g id="shape2056-274" v:mID="2056" v:groupContext="shape" transform="translate(-2.79776E-14,-14.1732)">
 					<title>시트.2056</title>
 					<image id="fn-photo-george-0" x="0" y="1148.78" width="55.8425" height="70.8661" preserveAspectRatio="xMidYMin slice" xlink:href="/shows/betm-skorea-2026/images/플레이스홀더.jpeg"/>
@@ -718,7 +718,7 @@
 					<v:textBlock v:margins="rect(4,4,4,4)" v:tabSpace="42.5197"/>
 					<v:textRect cx="27.9213" cy="1212.56" width="55.85" height="14.1732"/>
 					<rect x="0" y="1205.47" width="55.8425" height="14.1732" class="st1"/>
-					<text id="fn-cnt-tall_boy-0" text-anchor="middle" x="27.9213" y="1215.26" class="st4" v:langID="1042"><v:paragraph v:horizAlign="1"/><v:tabList/></text>				</g>
+					<text id="fn-cnt-tall_boy-0" text-anchor="middle" x="27.9213" y="1216.26" class="st4" v:langID="1042"><v:paragraph v:horizAlign="1"/><v:tabList/></text>				</g>
 				<g id="shape2062-287" v:mID="2062" v:groupContext="shape" transform="translate(-2.79776E-14,-14.1732)">
 					<title>시트.2062</title>
 					<image id="fn-photo-tall_boy-0" x="0" y="1148.78" width="55.8425" height="70.8661" preserveAspectRatio="xMidYMin slice" xlink:href="/shows/betm-skorea-2026/images/플레이스홀더.jpeg"/>
@@ -740,7 +740,7 @@
 					<v:textBlock v:margins="rect(4,4,4,4)" v:tabSpace="42.5197"/>
 					<v:textRect cx="27.9213" cy="1212.56" width="55.85" height="14.1732"/>
 					<rect x="0" y="1205.47" width="55.8425" height="14.1732" class="st1"/>
-					<text id="fn-cnt-tall_boy-1" text-anchor="middle" x="27.9213" y="1215.26" class="st4" v:langID="1042"><v:paragraph v:horizAlign="1"/><v:tabList/></text>				</g>
+					<text id="fn-cnt-tall_boy-1" text-anchor="middle" x="27.9213" y="1216.26" class="st4" v:langID="1042"><v:paragraph v:horizAlign="1"/><v:tabList/></text>				</g>
 				<g id="shape2066-296" v:mID="2066" v:groupContext="shape" transform="translate(-2.79776E-14,-14.1732)">
 					<title>시트.2066</title>
 					<image id="fn-photo-tall_boy-1" x="0" y="1148.78" width="55.8425" height="70.8661" preserveAspectRatio="xMidYMin slice" xlink:href="/shows/betm-skorea-2026/images/플레이스홀더.jpeg"/>
@@ -762,7 +762,7 @@
 					<v:textBlock v:margins="rect(4,4,4,4)" v:tabSpace="42.5197"/>
 					<v:textRect cx="27.9213" cy="1212.56" width="55.85" height="14.1732"/>
 					<rect x="0" y="1205.47" width="55.8425" height="14.1732" class="st1"/>
-					<text id="fn-cnt-tall_boy-2" text-anchor="middle" x="27.9213" y="1215.26" class="st4" v:langID="1042"><v:paragraph v:horizAlign="1"/><v:tabList/></text>				</g>
+					<text id="fn-cnt-tall_boy-2" text-anchor="middle" x="27.9213" y="1216.26" class="st4" v:langID="1042"><v:paragraph v:horizAlign="1"/><v:tabList/></text>				</g>
 				<g id="shape2070-305" v:mID="2070" v:groupContext="shape" transform="translate(-2.79776E-14,-14.1732)">
 					<title>시트.2070</title>
 					<image id="fn-photo-tall_boy-2" x="0" y="1148.78" width="55.8425" height="70.8661" preserveAspectRatio="xMidYMin slice" xlink:href="/shows/betm-skorea-2026/images/플레이스홀더.jpeg"/>
@@ -794,7 +794,7 @@
 					<v:textBlock v:margins="rect(4,4,4,4)" v:tabSpace="42.5197"/>
 					<v:textRect cx="27.9213" cy="1212.56" width="55.85" height="14.1732"/>
 					<rect x="0" y="1205.47" width="55.8425" height="14.1732" class="st1"/>
-					<text id="fn-cnt-small_boy-0" text-anchor="middle" x="27.9213" y="1215.26" class="st4" v:langID="1042"><v:paragraph v:horizAlign="1"/><v:tabList/></text>				</g>
+					<text id="fn-cnt-small_boy-0" text-anchor="middle" x="27.9213" y="1216.26" class="st4" v:langID="1042"><v:paragraph v:horizAlign="1"/><v:tabList/></text>				</g>
 				<g id="shape2077-318" v:mID="2077" v:groupContext="shape" transform="translate(-2.79776E-14,-14.1732)">
 					<title>시트.2077</title>
 					<image id="fn-photo-small_boy-0" x="0" y="1148.78" width="55.8425" height="70.8661" preserveAspectRatio="xMidYMin slice" xlink:href="/shows/betm-skorea-2026/images/플레이스홀더.jpeg"/>
@@ -816,7 +816,7 @@
 					<v:textBlock v:margins="rect(4,4,4,4)" v:tabSpace="42.5197"/>
 					<v:textRect cx="27.9213" cy="1212.56" width="55.85" height="14.1732"/>
 					<rect x="0" y="1205.47" width="55.8425" height="14.1732" class="st1"/>
-					<text id="fn-cnt-small_boy-1" text-anchor="middle" x="27.9213" y="1215.26" class="st4" v:langID="1042"><v:paragraph v:horizAlign="1"/><v:tabList/></text>				</g>
+					<text id="fn-cnt-small_boy-1" text-anchor="middle" x="27.9213" y="1216.26" class="st4" v:langID="1042"><v:paragraph v:horizAlign="1"/><v:tabList/></text>				</g>
 				<g id="shape2081-327" v:mID="2081" v:groupContext="shape" transform="translate(-3.59712E-14,-14.1732)">
 					<title>시트.2081</title>
 					<image id="fn-photo-small_boy-1" x="0" y="1148.78" width="55.8425" height="70.8661" preserveAspectRatio="xMidYMin slice" xlink:href="/shows/betm-skorea-2026/images/플레이스홀더.jpeg"/>
@@ -838,7 +838,7 @@
 					<v:textBlock v:margins="rect(4,4,4,4)" v:tabSpace="42.5197"/>
 					<v:textRect cx="27.9213" cy="1212.56" width="55.85" height="14.1732"/>
 					<rect x="0" y="1205.47" width="55.8425" height="14.1732" class="st1"/>
-					<text id="fn-cnt-small_boy-2" text-anchor="middle" x="27.9213" y="1215.26" class="st4" v:langID="1042"><v:paragraph v:horizAlign="1"/><v:tabList/></text>				</g>
+					<text id="fn-cnt-small_boy-2" text-anchor="middle" x="27.9213" y="1216.26" class="st4" v:langID="1042"><v:paragraph v:horizAlign="1"/><v:tabList/></text>				</g>
 				<g id="shape2085-336" v:mID="2085" v:groupContext="shape" transform="translate(-2.79776E-14,-14.1732)">
 					<title>시트.2085</title>
 					<image id="fn-photo-small_boy-2" x="0" y="1148.78" width="55.8425" height="70.8661" preserveAspectRatio="xMidYMin slice" xlink:href="/shows/betm-skorea-2026/images/플레이스홀더.jpeg"/>
@@ -870,7 +870,7 @@
 					<v:textBlock v:margins="rect(4,4,4,4)" v:tabSpace="42.5197"/>
 					<v:textRect cx="27.9213" cy="1212.56" width="55.85" height="14.1732"/>
 					<rect x="0" y="1205.47" width="55.8425" height="14.1732" class="st1"/>
-					<text id="fn-cnt-mr_braithwaite-0" text-anchor="middle" x="27.9213" y="1215.26" class="st4" v:langID="1042"><v:paragraph v:horizAlign="1"/><v:tabList/></text>				</g>
+					<text id="fn-cnt-mr_braithwaite-0" text-anchor="middle" x="27.9213" y="1216.26" class="st4" v:langID="1042"><v:paragraph v:horizAlign="1"/><v:tabList/></text>				</g>
 				<g id="shape2091-349" v:mID="2091" v:groupContext="shape" transform="translate(-2.79776E-14,-14.1732)">
 					<title>시트.2091</title>
 					<image id="fn-photo-mr_braithwaite-0" x="0" y="1148.78" width="55.8425" height="70.8661" preserveAspectRatio="xMidYMin slice" xlink:href="/shows/betm-skorea-2026/images/플레이스홀더.jpeg"/>
@@ -915,7 +915,7 @@
 				<v:textBlock v:margins="rect(4,0,4,0)" v:tabSpace="42.5197" v:verticalAlign="2"/>
 				<v:textRect cx="24.5906" cy="1205.47" width="49.19" height="28.3465"/>
 				<rect x="0" y="1191.3" width="49.1811" height="28.3465" class="st1"/>
-				<text id="fn-group-ashington" text-anchor="end" x="49.1811" y="1212.95" class="st4" v:langID="1042"><v:paragraph v:horizAlign="2"/><v:tabList/></text>			</g>
+				<text id="fn-group-ashington" text-anchor="end" x="49.1811" y="1215.75" class="st4" v:langID="1042"><v:paragraph v:horizAlign="2"/><v:tabList/></text>			</g>
 			<g id="group2148-367" transform="translate(49.6063,2.27374E-13)" v:mID="2148" v:groupContext="group">
 				<title>시트.2148</title>
 				<g id="shape2096-368" v:mID="2096" v:groupContext="shape">
@@ -1007,7 +1007,7 @@
 				<v:textBlock v:margins="rect(4,0,4,0)" v:tabSpace="42.5197" v:verticalAlign="2"/>
 				<v:textRect cx="24.5906" cy="1205.47" width="49.19" height="28.3465"/>
 				<rect x="0" y="1191.3" width="49.1811" height="28.3465" class="st1"/>
-				<text id="fn-group-bedlington" text-anchor="end" x="49.1811" y="1212.95" class="st4" v:langID="1042"><v:paragraph v:horizAlign="2"/><v:tabList/></text>			</g>
+				<text id="fn-group-bedlington" text-anchor="end" x="49.1811" y="1215.75" class="st4" v:langID="1042"><v:paragraph v:horizAlign="2"/><v:tabList/></text>			</g>
 			<g id="group2159-404" transform="translate(49.6063,2.27374E-13)" v:mID="2159" v:groupContext="group">
 				<title>시트.2159</title>
 				<g id="shape2160-405" v:mID="2160" v:groupContext="shape">

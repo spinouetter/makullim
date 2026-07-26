@@ -3,7 +3,7 @@
 
   "background": {
     "type": "svg",
-    "src": "images/finale-board-2026.svg?v=4",
+    "src": "images/finale-board-2026.svg?v=10",
     "viewBox": [0, 0, 610.199, 1219.65]
   },
 
@@ -19,12 +19,12 @@
     "name":      { "fontFamily": "IBM Plex Sans KR Medm", "fill": "#f2f2f2" },
     "roleLabel": { "fontFamily": "Paytone One" },
     "count": {
-      "numerator":   { "fontFamily": "IBM Plex Sans KR Medm", "fill": "#ba1e23" },
-      "denominator": { "fontFamily": "IBM Plex Sans KR Medm", "fill": "#8a8a8a", "prefix": " / " }
+      "numerator":   { "fontFamily": "Paytone One", "fill": "#ba1e23" },
+      "denominator": { "fontFamily": "Paytone One", "fill": "#8a8a8a", "prefix": " / " }
     },
     "groupTotal": {
-      "numerator":   { "fontFamily": "IBM Plex Sans KR Medm", "fill": "#3f3f3f" },
-      "denominator": { "fontFamily": "IBM Plex Sans KR Medm", "fill": "#8a8a8a", "prefix": " / " }
+      "numerator":   { "fontFamily": "Paytone One", "fill": "#ba1e23" },
+      "denominator": { "fontFamily": "Paytone One", "fill": "#8a8a8a", "prefix": " / " }
     },
     "total": {
       "numerator":   { "fontFamily": "Handlee", "fill": "#ba1e23" },
