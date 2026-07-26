@@ -70,7 +70,8 @@
     },
     {
       "id": "jihoo-billy",
-      "label": "지후 빌리"
+      "label": "행운을 빌어요 -지후 빌리-",
+      "image": "images/stamp-jihoo-billy.png"
     }
   ],
   "defaultStamp": "excellent",
