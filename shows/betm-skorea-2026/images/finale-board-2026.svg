@@ -11,7 +11,7 @@
 		.st1 {fill:none;stroke:none;stroke-linecap:round;stroke-linejoin:round;stroke-width:0.75}
 		.st2 {stroke:#bfbfbf;stroke-linecap:round;stroke-linejoin:round;stroke-width:0.75}
 		.st3 {fill:#ba1e23;font-family:Bebas Neue;font-size:1.15em}
-		.st4 {fill:#000000;font-family:맑은 고딕;font-size:0.75em}
+		.st4 {fill:#000000;font-family:Paytone One;font-size:0.8em}
 		.st5 {fill:none;stroke:#7f7f7f;stroke-width:0.75}
 		.st6 {fill:#000000;fill-opacity:0.54;stroke:none;stroke-linecap:round;stroke-linejoin:round;stroke-width:0.75}
 		.st6b {fill:#000000;fill-opacity:0.54;stroke:none;stroke-linecap:round;stroke-linejoin:round;stroke-width:0.75}
@@ -35,7 +35,7 @@
 		<g id="shape4-1" v:mID="4" v:groupContext="shape" transform="translate(0.375,-0.375)">
 			<title>시트.4</title>
 			<rect v:rectContext="foreign" x="0" y="0.749939" width="609.449" height="1218.9" class="st1"/>
-			<image x="0" y="0.749939" width="609.449" height="1218.9" preserveAspectRatio="none" xlink:href="/shows/betm-skorea-2026/images/finale-board-2026-bg.jpg"/>
+			<image x="0" y="0.749939" width="609.449" height="1218.9" preserveAspectRatio="none" xlink:href="/shows/betm-skorea-2026/images/billy-final2.jpg"/>
 			<rect v:rectContext="foreign" x="0" y="0.749939" width="609.449" height="1218.9" class="st1"/>
 		</g>
 		<rect id="fn-seatbox" x="305" y="688.5" width="262.3" height="266.7" class="st1"/>
@@ -71,7 +71,7 @@
 					<text id="fn-cnt-billy-0" text-anchor="middle" x="27.9213" y="1215.26" class="st4" v:langID="1042"><v:paragraph v:horizAlign="1"/><v:tabList/></text>				</g>
 				<g id="shape1899-22" v:mID="1899" v:groupContext="shape" transform="translate(-2.79776E-14,-14.1732)">
 					<title>시트.1899</title>
-					<image id="fn-photo-billy-0" x="0" y="1148.78" width="55.8425" height="70.8661" preserveAspectRatio="xMidYMin slice" xlink:href="56.6929"/>
+					<image id="fn-photo-billy-0" x="0" y="1148.78" width="55.8425" height="70.8661" preserveAspectRatio="xMidYMin slice" xlink:href="/shows/betm-skorea-2026/images/플레이스홀더.jpeg"/>
 					<rect x="0" y="1148.78" width="55.8425" height="70.8661" class="st5"/>
 				</g>
 				<g id="shape1660-24" v:mID="1660" v:groupContext="shape" transform="translate(-2.79776E-14,-14.1732)">
@@ -93,7 +93,7 @@
 					<text id="fn-cnt-billy-1" text-anchor="middle" x="27.9213" y="1215.26" class="st4" v:langID="1042"><v:paragraph v:horizAlign="1"/><v:tabList/></text>				</g>
 				<g id="shape1903-31" v:mID="1903" v:groupContext="shape" transform="translate(-2.79776E-14,-14.1732)">
 					<title>시트.1903</title>
-					<image id="fn-photo-billy-1" x="0" y="1148.78" width="55.8425" height="70.8661" preserveAspectRatio="xMidYMin slice" xlink:href="56.6929"/>
+					<image id="fn-photo-billy-1" x="0" y="1148.78" width="55.8425" height="70.8661" preserveAspectRatio="xMidYMin slice" xlink:href="/shows/betm-skorea-2026/images/플레이스홀더.jpeg"/>
 					<rect x="0" y="1148.78" width="55.8425" height="70.8661" class="st5"/>
 				</g>
 				<g id="shape1904-33" v:mID="1904" v:groupContext="shape" transform="translate(-2.79776E-14,-14.1732)">
@@ -115,7 +115,7 @@
 					<text id="fn-cnt-billy-2" text-anchor="middle" x="27.9213" y="1215.26" class="st4" v:langID="1042"><v:paragraph v:horizAlign="1"/><v:tabList/></text>				</g>
 				<g id="shape1907-40" v:mID="1907" v:groupContext="shape" transform="translate(-2.79776E-14,-14.1732)">
 					<title>시트.1907</title>
-					<image id="fn-photo-billy-2" x="0" y="1148.78" width="55.8425" height="70.8661" preserveAspectRatio="xMidYMin slice" xlink:href="56.6929"/>
+					<image id="fn-photo-billy-2" x="0" y="1148.78" width="55.8425" height="70.8661" preserveAspectRatio="xMidYMin slice" xlink:href="/shows/betm-skorea-2026/images/플레이스홀더.jpeg"/>
 					<rect x="0" y="1148.78" width="55.8425" height="70.8661" class="st5"/>
 				</g>
 				<g id="shape1908-42" v:mID="1908" v:groupContext="shape" transform="translate(-2.79776E-14,-14.1732)">
@@ -137,7 +137,7 @@
 					<text id="fn-cnt-billy-3" text-anchor="middle" x="27.9213" y="1215.26" class="st4" v:langID="1042"><v:paragraph v:horizAlign="1"/><v:tabList/></text>				</g>
 				<g id="shape1911-49" v:mID="1911" v:groupContext="shape" transform="translate(-2.79776E-14,-14.1732)">
 					<title>시트.1911</title>
-					<image id="fn-photo-billy-3" x="0" y="1148.78" width="55.8425" height="70.8661" preserveAspectRatio="xMidYMin slice" xlink:href="56.6929"/>
+					<image id="fn-photo-billy-3" x="0" y="1148.78" width="55.8425" height="70.8661" preserveAspectRatio="xMidYMin slice" xlink:href="/shows/betm-skorea-2026/images/플레이스홀더.jpeg"/>
 					<rect x="0" y="1148.78" width="55.8425" height="70.8661" class="st5"/>
 				</g>
 				<g id="shape1912-51" v:mID="1912" v:groupContext="shape" transform="translate(-2.79776E-14,-14.1732)">
@@ -169,7 +169,7 @@
 					<text id="fn-cnt-michael-0" text-anchor="middle" x="27.9213" y="1215.26" class="st4" v:langID="1042"><v:paragraph v:horizAlign="1"/><v:tabList/></text>				</g>
 				<g id="shape1918-62" v:mID="1918" v:groupContext="shape" transform="translate(-2.79776E-14,-14.1732)">
 					<title>시트.1918</title>
-					<image id="fn-photo-michael-0" x="0" y="1148.78" width="55.8425" height="70.8661" preserveAspectRatio="xMidYMin slice" xlink:href="56.6929"/>
+					<image id="fn-photo-michael-0" x="0" y="1148.78" width="55.8425" height="70.8661" preserveAspectRatio="xMidYMin slice" xlink:href="/shows/betm-skorea-2026/images/플레이스홀더.jpeg"/>
 					<rect x="0" y="1148.78" width="55.8425" height="70.8661" class="st5"/>
 				</g>
 				<g id="shape1919-64" v:mID="1919" v:groupContext="shape" transform="translate(-2.79776E-14,-14.1732)">
@@ -191,7 +191,7 @@
 					<text id="fn-cnt-michael-1" text-anchor="middle" x="27.9213" y="1215.26" class="st4" v:langID="1042"><v:paragraph v:horizAlign="1"/><v:tabList/></text>				</g>
 				<g id="shape1922-71" v:mID="1922" v:groupContext="shape" transform="translate(-2.79776E-14,-14.1732)">
 					<title>시트.1922</title>
-					<image id="fn-photo-michael-1" x="0" y="1148.78" width="55.8425" height="70.8661" preserveAspectRatio="xMidYMin slice" xlink:href="56.6929"/>
+					<image id="fn-photo-michael-1" x="0" y="1148.78" width="55.8425" height="70.8661" preserveAspectRatio="xMidYMin slice" xlink:href="/shows/betm-skorea-2026/images/플레이스홀더.jpeg"/>
 					<rect x="0" y="1148.78" width="55.8425" height="70.8661" class="st5"/>
 				</g>
 				<g id="shape1923-73" v:mID="1923" v:groupContext="shape" transform="translate(-2.79776E-14,-14.1732)">
@@ -213,7 +213,7 @@
 					<text id="fn-cnt-michael-2" text-anchor="middle" x="27.9213" y="1215.26" class="st4" v:langID="1042"><v:paragraph v:horizAlign="1"/><v:tabList/></text>				</g>
 				<g id="shape1926-80" v:mID="1926" v:groupContext="shape" transform="translate(-2.79776E-14,-14.1732)">
 					<title>시트.1926</title>
-					<image id="fn-photo-michael-2" x="0" y="1148.78" width="55.8425" height="70.8661" preserveAspectRatio="xMidYMin slice" xlink:href="56.6929"/>
+					<image id="fn-photo-michael-2" x="0" y="1148.78" width="55.8425" height="70.8661" preserveAspectRatio="xMidYMin slice" xlink:href="/shows/betm-skorea-2026/images/플레이스홀더.jpeg"/>
 					<rect x="0" y="1148.78" width="55.8425" height="70.8661" class="st5"/>
 				</g>
 				<g id="shape1927-82" v:mID="1927" v:groupContext="shape" transform="translate(-2.79776E-14,-14.1732)">
@@ -235,7 +235,7 @@
 					<text id="fn-cnt-michael-3" text-anchor="middle" x="27.9213" y="1215.26" class="st4" v:langID="1042"><v:paragraph v:horizAlign="1"/><v:tabList/></text>				</g>
 				<g id="shape1930-89" v:mID="1930" v:groupContext="shape" transform="translate(-2.79776E-14,-14.1732)">
 					<title>시트.1930</title>
-					<image id="fn-photo-michael-3" x="0" y="1148.78" width="55.8425" height="70.8661" preserveAspectRatio="xMidYMin slice" xlink:href="56.6929"/>
+					<image id="fn-photo-michael-3" x="0" y="1148.78" width="55.8425" height="70.8661" preserveAspectRatio="xMidYMin slice" xlink:href="/shows/betm-skorea-2026/images/플레이스홀더.jpeg"/>
 					<rect x="0" y="1148.78" width="55.8425" height="70.8661" class="st5"/>
 				</g>
 				<g id="shape1931-91" v:mID="1931" v:groupContext="shape" transform="translate(-2.79776E-14,-14.1732)">
@@ -267,7 +267,7 @@
 					<text id="fn-cnt-debbie-0" text-anchor="middle" x="27.9213" y="1215.26" class="st4" v:langID="1042"><v:paragraph v:horizAlign="1"/><v:tabList/></text>				</g>
 				<g id="shape1955-102" v:mID="1955" v:groupContext="shape" transform="translate(-2.79776E-14,-14.1732)">
 					<title>시트.1955</title>
-					<image id="fn-photo-debbie-0" x="0" y="1148.78" width="55.8425" height="70.8661" preserveAspectRatio="xMidYMin slice" xlink:href="56.6929"/>
+					<image id="fn-photo-debbie-0" x="0" y="1148.78" width="55.8425" height="70.8661" preserveAspectRatio="xMidYMin slice" xlink:href="/shows/betm-skorea-2026/images/플레이스홀더.jpeg"/>
 					<rect x="0" y="1148.78" width="55.8425" height="70.8661" class="st5"/>
 				</g>
 				<g id="shape1956-104" v:mID="1956" v:groupContext="shape" transform="translate(-2.79776E-14,-14.1732)">
@@ -289,7 +289,7 @@
 					<text id="fn-cnt-debbie-1" text-anchor="middle" x="27.9213" y="1215.26" class="st4" v:langID="1042"><v:paragraph v:horizAlign="1"/><v:tabList/></text>				</g>
 				<g id="shape1959-111" v:mID="1959" v:groupContext="shape" transform="translate(-2.79776E-14,-14.1732)">
 					<title>시트.1959</title>
-					<image id="fn-photo-debbie-1" x="0" y="1148.78" width="55.8425" height="70.8661" preserveAspectRatio="xMidYMin slice" xlink:href="56.6929"/>
+					<image id="fn-photo-debbie-1" x="0" y="1148.78" width="55.8425" height="70.8661" preserveAspectRatio="xMidYMin slice" xlink:href="/shows/betm-skorea-2026/images/플레이스홀더.jpeg"/>
 					<rect x="0" y="1148.78" width="55.8425" height="70.8661" class="st5"/>
 				</g>
 				<g id="shape1960-113" v:mID="1960" v:groupContext="shape" transform="translate(-2.79776E-14,-14.1732)">
@@ -311,7 +311,7 @@
 					<text id="fn-cnt-debbie-2" text-anchor="middle" x="27.9213" y="1215.26" class="st4" v:langID="1042"><v:paragraph v:horizAlign="1"/><v:tabList/></text>				</g>
 				<g id="shape1963-120" v:mID="1963" v:groupContext="shape" transform="translate(-2.79776E-14,-14.1732)">
 					<title>시트.1963</title>
-					<image id="fn-photo-debbie-2" x="0" y="1148.78" width="55.8425" height="70.8661" preserveAspectRatio="xMidYMin slice" xlink:href="56.6929"/>
+					<image id="fn-photo-debbie-2" x="0" y="1148.78" width="55.8425" height="70.8661" preserveAspectRatio="xMidYMin slice" xlink:href="/shows/betm-skorea-2026/images/플레이스홀더.jpeg"/>
 					<rect x="0" y="1148.78" width="55.8425" height="70.8661" class="st5"/>
 				</g>
 				<g id="shape1964-122" v:mID="1964" v:groupContext="shape" transform="translate(-2.79776E-14,-14.1732)">
@@ -343,7 +343,7 @@
 					<text id="fn-cnt-old_billy-0" text-anchor="middle" x="27.9213" y="1215.26" class="st4" v:langID="1042"><v:paragraph v:horizAlign="1"/><v:tabList/></text>				</g>
 				<g id="shape1969-133" v:mID="1969" v:groupContext="shape" transform="translate(-2.79776E-14,-14.1732)">
 					<title>시트.1969</title>
-					<image id="fn-photo-old_billy-0" x="0" y="1148.78" width="55.8425" height="70.8661" preserveAspectRatio="xMidYMin slice" xlink:href="56.6929"/>
+					<image id="fn-photo-old_billy-0" x="0" y="1148.78" width="55.8425" height="70.8661" preserveAspectRatio="xMidYMin slice" xlink:href="/shows/betm-skorea-2026/images/플레이스홀더.jpeg"/>
 					<rect x="0" y="1148.78" width="55.8425" height="70.8661" class="st5"/>
 				</g>
 				<g id="shape1970-135" v:mID="1970" v:groupContext="shape" transform="translate(-2.79776E-14,-14.1732)">
@@ -365,7 +365,7 @@
 					<text id="fn-cnt-old_billy-1" text-anchor="middle" x="27.9213" y="1215.26" class="st4" v:langID="1042"><v:paragraph v:horizAlign="1"/><v:tabList/></text>				</g>
 				<g id="shape1973-142" v:mID="1973" v:groupContext="shape" transform="translate(-2.79776E-14,-14.1732)">
 					<title>시트.1973</title>
-					<image id="fn-photo-old_billy-1" x="0" y="1148.78" width="55.8425" height="70.8661" preserveAspectRatio="xMidYMin slice" xlink:href="56.6929"/>
+					<image id="fn-photo-old_billy-1" x="0" y="1148.78" width="55.8425" height="70.8661" preserveAspectRatio="xMidYMin slice" xlink:href="/shows/betm-skorea-2026/images/플레이스홀더.jpeg"/>
 					<rect x="0" y="1148.78" width="55.8425" height="70.8661" class="st5"/>
 				</g>
 				<g id="shape1974-144" v:mID="1974" v:groupContext="shape" transform="translate(-2.79776E-14,-14.1732)">
@@ -387,7 +387,7 @@
 					<text id="fn-cnt-old_billy-2" text-anchor="middle" x="27.9213" y="1215.26" class="st4" v:langID="1042"><v:paragraph v:horizAlign="1"/><v:tabList/></text>				</g>
 				<g id="shape1977-151" v:mID="1977" v:groupContext="shape" transform="translate(-2.79776E-14,-14.1732)">
 					<title>시트.1977</title>
-					<image id="fn-photo-old_billy-2" x="0" y="1148.78" width="55.8425" height="70.8661" preserveAspectRatio="xMidYMin slice" xlink:href="56.6929"/>
+					<image id="fn-photo-old_billy-2" x="0" y="1148.78" width="55.8425" height="70.8661" preserveAspectRatio="xMidYMin slice" xlink:href="/shows/betm-skorea-2026/images/플레이스홀더.jpeg"/>
 					<rect x="0" y="1148.78" width="55.8425" height="70.8661" class="st5"/>
 				</g>
 				<g id="shape1978-153" v:mID="1978" v:groupContext="shape" transform="translate(-2.79776E-14,-14.1732)">
@@ -419,7 +419,7 @@
 					<text id="fn-cnt-mrs_wilkinson-0" text-anchor="middle" x="27.9213" y="1215.26" class="st4" v:langID="1042"><v:paragraph v:horizAlign="1"/><v:tabList/></text>				</g>
 				<g id="shape1998-164" v:mID="1998" v:groupContext="shape" transform="translate(-2.79776E-14,-14.1732)">
 					<title>시트.1998</title>
-					<image id="fn-photo-mrs_wilkinson-0" x="0" y="1148.78" width="55.8425" height="70.8661" preserveAspectRatio="xMidYMin slice" xlink:href="56.6929"/>
+					<image id="fn-photo-mrs_wilkinson-0" x="0" y="1148.78" width="55.8425" height="70.8661" preserveAspectRatio="xMidYMin slice" xlink:href="/shows/betm-skorea-2026/images/플레이스홀더.jpeg"/>
 					<rect x="0" y="1148.78" width="55.8425" height="70.8661" class="st5"/>
 				</g>
 				<g id="shape1999-166" v:mID="1999" v:groupContext="shape" transform="translate(-2.79776E-14,-14.1732)">
@@ -441,7 +441,7 @@
 					<text id="fn-cnt-mrs_wilkinson-1" text-anchor="middle" x="27.9213" y="1215.26" class="st4" v:langID="1042"><v:paragraph v:horizAlign="1"/><v:tabList/></text>				</g>
 				<g id="shape2002-173" v:mID="2002" v:groupContext="shape" transform="translate(-2.79776E-14,-14.1732)">
 					<title>시트.2002</title>
-					<image id="fn-photo-mrs_wilkinson-1" x="0" y="1148.78" width="55.8425" height="70.8661" preserveAspectRatio="xMidYMin slice" xlink:href="56.6929"/>
+					<image id="fn-photo-mrs_wilkinson-1" x="0" y="1148.78" width="55.8425" height="70.8661" preserveAspectRatio="xMidYMin slice" xlink:href="/shows/betm-skorea-2026/images/플레이스홀더.jpeg"/>
 					<rect x="0" y="1148.78" width="55.8425" height="70.8661" class="st5"/>
 				</g>
 				<g id="shape2003-175" v:mID="2003" v:groupContext="shape" transform="translate(-2.79776E-14,-14.1732)">
@@ -473,7 +473,7 @@
 					<text id="fn-cnt-tony-0" text-anchor="middle" x="27.9213" y="1215.26" class="st4" v:langID="1042"><v:paragraph v:horizAlign="1"/><v:tabList/></text>				</g>
 				<g id="shape2015-186" v:mID="2015" v:groupContext="shape" transform="translate(-2.79776E-14,-14.1732)">
 					<title>시트.2015</title>
-					<image id="fn-photo-tony-0" x="0" y="1148.78" width="55.8425" height="70.8661" preserveAspectRatio="xMidYMin slice" xlink:href="56.6929"/>
+					<image id="fn-photo-tony-0" x="0" y="1148.78" width="55.8425" height="70.8661" preserveAspectRatio="xMidYMin slice" xlink:href="/shows/betm-skorea-2026/images/플레이스홀더.jpeg"/>
 					<rect x="0" y="1148.78" width="55.8425" height="70.8661" class="st5"/>
 				</g>
 				<g id="shape2016-188" v:mID="2016" v:groupContext="shape" transform="translate(-2.79776E-14,-14.1732)">
@@ -505,7 +505,7 @@
 					<text id="fn-cnt-dad-0" text-anchor="middle" x="27.9213" y="1215.26" class="st4" v:langID="1042"><v:paragraph v:horizAlign="1"/><v:tabList/></text>				</g>
 				<g id="shape2021-199" v:mID="2021" v:groupContext="shape" transform="translate(-2.79776E-14,-14.1732)">
 					<title>시트.2021</title>
-					<image id="fn-photo-dad-0" x="0" y="1148.78" width="55.8425" height="70.8661" preserveAspectRatio="xMidYMin slice" xlink:href="56.6929"/>
+					<image id="fn-photo-dad-0" x="0" y="1148.78" width="55.8425" height="70.8661" preserveAspectRatio="xMidYMin slice" xlink:href="/shows/betm-skorea-2026/images/플레이스홀더.jpeg"/>
 					<rect x="0" y="1148.78" width="55.8425" height="70.8661" class="st5"/>
 				</g>
 				<g id="shape2022-201" v:mID="2022" v:groupContext="shape" transform="translate(-2.79776E-14,-14.1732)">
@@ -527,7 +527,7 @@
 					<text id="fn-cnt-dad-1" text-anchor="middle" x="27.9213" y="1215.26" class="st4" v:langID="1042"><v:paragraph v:horizAlign="1"/><v:tabList/></text>				</g>
 				<g id="shape2025-208" v:mID="2025" v:groupContext="shape" transform="translate(-2.79776E-14,-14.1732)">
 					<title>시트.2025</title>
-					<image id="fn-photo-dad-1" x="0" y="1148.78" width="55.8425" height="70.8661" preserveAspectRatio="xMidYMin slice" xlink:href="56.6929"/>
+					<image id="fn-photo-dad-1" x="0" y="1148.78" width="55.8425" height="70.8661" preserveAspectRatio="xMidYMin slice" xlink:href="/shows/betm-skorea-2026/images/플레이스홀더.jpeg"/>
 					<rect x="0" y="1148.78" width="55.8425" height="70.8661" class="st5"/>
 				</g>
 				<g id="shape2026-210" v:mID="2026" v:groupContext="shape" transform="translate(-2.79776E-14,-14.1732)">
@@ -559,7 +559,7 @@
 					<text id="fn-cnt-dead_mum-0" text-anchor="middle" x="27.9213" y="1215.26" class="st4" v:langID="1042"><v:paragraph v:horizAlign="1"/><v:tabList/></text>				</g>
 				<g id="shape2031-221" v:mID="2031" v:groupContext="shape" transform="translate(-2.79776E-14,-14.1732)">
 					<title>시트.2031</title>
-					<image id="fn-photo-dead_mum-0" x="0" y="1148.78" width="55.8425" height="70.8661" preserveAspectRatio="xMidYMin slice" xlink:href="56.6929"/>
+					<image id="fn-photo-dead_mum-0" x="0" y="1148.78" width="55.8425" height="70.8661" preserveAspectRatio="xMidYMin slice" xlink:href="/shows/betm-skorea-2026/images/플레이스홀더.jpeg"/>
 					<rect x="0" y="1148.78" width="55.8425" height="70.8661" class="st5"/>
 				</g>
 				<g id="shape2032-223" v:mID="2032" v:groupContext="shape" transform="translate(-2.79776E-14,-14.1732)">
@@ -581,7 +581,7 @@
 					<text id="fn-cnt-dead_mum-1" text-anchor="middle" x="27.9213" y="1215.26" class="st4" v:langID="1042"><v:paragraph v:horizAlign="1"/><v:tabList/></text>				</g>
 				<g id="shape2035-230" v:mID="2035" v:groupContext="shape" transform="translate(-2.79776E-14,-14.1732)">
 					<title>시트.2035</title>
-					<image id="fn-photo-dead_mum-1" x="0" y="1148.78" width="55.8425" height="70.8661" preserveAspectRatio="xMidYMin slice" xlink:href="56.6929"/>
+					<image id="fn-photo-dead_mum-1" x="0" y="1148.78" width="55.8425" height="70.8661" preserveAspectRatio="xMidYMin slice" xlink:href="/shows/betm-skorea-2026/images/플레이스홀더.jpeg"/>
 					<rect x="0" y="1148.78" width="55.8425" height="70.8661" class="st5"/>
 				</g>
 				<g id="shape2036-232" v:mID="2036" v:groupContext="shape" transform="translate(-2.79776E-14,-14.1732)">
@@ -613,7 +613,7 @@
 					<text id="fn-cnt-grandma-0" text-anchor="middle" x="27.9213" y="1215.26" class="st4" v:langID="1042"><v:paragraph v:horizAlign="1"/><v:tabList/></text>				</g>
 				<g id="shape2041-243" v:mID="2041" v:groupContext="shape" transform="translate(-2.79776E-14,-14.1732)">
 					<title>시트.2041</title>
-					<image id="fn-photo-grandma-0" x="0" y="1148.78" width="55.8425" height="70.8661" preserveAspectRatio="xMidYMin slice" xlink:href="56.6929"/>
+					<image id="fn-photo-grandma-0" x="0" y="1148.78" width="55.8425" height="70.8661" preserveAspectRatio="xMidYMin slice" xlink:href="/shows/betm-skorea-2026/images/플레이스홀더.jpeg"/>
 					<rect x="0" y="1148.78" width="55.8425" height="70.8661" class="st5"/>
 				</g>
 				<g id="shape2042-245" v:mID="2042" v:groupContext="shape" transform="translate(-2.79776E-14,-14.1732)">
@@ -635,7 +635,7 @@
 					<text id="fn-cnt-grandma-1" text-anchor="middle" x="27.9213" y="1215.26" class="st4" v:langID="1042"><v:paragraph v:horizAlign="1"/><v:tabList/></text>				</g>
 				<g id="shape2045-252" v:mID="2045" v:groupContext="shape" transform="translate(-2.79776E-14,-14.1732)">
 					<title>시트.2045</title>
-					<image id="fn-photo-grandma-1" x="0" y="1148.78" width="55.8425" height="70.8661" preserveAspectRatio="xMidYMin slice" xlink:href="56.6929"/>
+					<image id="fn-photo-grandma-1" x="0" y="1148.78" width="55.8425" height="70.8661" preserveAspectRatio="xMidYMin slice" xlink:href="/shows/betm-skorea-2026/images/플레이스홀더.jpeg"/>
 					<rect x="0" y="1148.78" width="55.8425" height="70.8661" class="st5"/>
 				</g>
 				<g id="shape2046-254" v:mID="2046" v:groupContext="shape" transform="translate(-2.79776E-14,-14.1732)">
@@ -657,7 +657,7 @@
 					<text id="fn-cnt-grandma-2" text-anchor="middle" x="27.9213" y="1215.26" class="st4" v:langID="1042"><v:paragraph v:horizAlign="1"/><v:tabList/></text>				</g>
 				<g id="shape2049-261" v:mID="2049" v:groupContext="shape" transform="translate(-2.79776E-14,-14.1732)">
 					<title>시트.2049</title>
-					<image id="fn-photo-grandma-2" x="0" y="1148.78" width="55.8425" height="70.8661" preserveAspectRatio="xMidYMin slice" xlink:href="56.6929"/>
+					<image id="fn-photo-grandma-2" x="0" y="1148.78" width="55.8425" height="70.8661" preserveAspectRatio="xMidYMin slice" xlink:href="/shows/betm-skorea-2026/images/플레이스홀더.jpeg"/>
 					<rect x="0" y="1148.78" width="55.8425" height="70.8661" class="st5"/>
 				</g>
 				<g id="shape2050-263" v:mID="2050" v:groupContext="shape" transform="translate(-2.79776E-14,-14.1732)">
@@ -689,7 +689,7 @@
 					<text id="fn-cnt-george-0" text-anchor="middle" x="27.9213" y="1215.26" class="st4" v:langID="1042"><v:paragraph v:horizAlign="1"/><v:tabList/></text>				</g>
 				<g id="shape2056-274" v:mID="2056" v:groupContext="shape" transform="translate(-2.79776E-14,-14.1732)">
 					<title>시트.2056</title>
-					<image id="fn-photo-george-0" x="0" y="1148.78" width="55.8425" height="70.8661" preserveAspectRatio="xMidYMin slice" xlink:href="56.6929"/>
+					<image id="fn-photo-george-0" x="0" y="1148.78" width="55.8425" height="70.8661" preserveAspectRatio="xMidYMin slice" xlink:href="/shows/betm-skorea-2026/images/플레이스홀더.jpeg"/>
 					<rect x="0" y="1148.78" width="55.8425" height="70.8661" class="st5"/>
 				</g>
 				<g id="shape2057-276" v:mID="2057" v:groupContext="shape" transform="translate(-2.79776E-14,-14.1732)">
@@ -721,7 +721,7 @@
 					<text id="fn-cnt-tall_boy-0" text-anchor="middle" x="27.9213" y="1215.26" class="st4" v:langID="1042"><v:paragraph v:horizAlign="1"/><v:tabList/></text>				</g>
 				<g id="shape2062-287" v:mID="2062" v:groupContext="shape" transform="translate(-2.79776E-14,-14.1732)">
 					<title>시트.2062</title>
-					<image id="fn-photo-tall_boy-0" x="0" y="1148.78" width="55.8425" height="70.8661" preserveAspectRatio="xMidYMin slice" xlink:href="56.6929"/>
+					<image id="fn-photo-tall_boy-0" x="0" y="1148.78" width="55.8425" height="70.8661" preserveAspectRatio="xMidYMin slice" xlink:href="/shows/betm-skorea-2026/images/플레이스홀더.jpeg"/>
 					<rect x="0" y="1148.78" width="55.8425" height="70.8661" class="st5"/>
 				</g>
 				<g id="shape2063-289" v:mID="2063" v:groupContext="shape" transform="translate(-2.79776E-14,-14.1732)">
@@ -743,7 +743,7 @@
 					<text id="fn-cnt-tall_boy-1" text-anchor="middle" x="27.9213" y="1215.26" class="st4" v:langID="1042"><v:paragraph v:horizAlign="1"/><v:tabList/></text>				</g>
 				<g id="shape2066-296" v:mID="2066" v:groupContext="shape" transform="translate(-2.79776E-14,-14.1732)">
 					<title>시트.2066</title>
-					<image id="fn-photo-tall_boy-1" x="0" y="1148.78" width="55.8425" height="70.8661" preserveAspectRatio="xMidYMin slice" xlink:href="56.6929"/>
+					<image id="fn-photo-tall_boy-1" x="0" y="1148.78" width="55.8425" height="70.8661" preserveAspectRatio="xMidYMin slice" xlink:href="/shows/betm-skorea-2026/images/플레이스홀더.jpeg"/>
 					<rect x="0" y="1148.78" width="55.8425" height="70.8661" class="st5"/>
 				</g>
 				<g id="shape2067-298" v:mID="2067" v:groupContext="shape" transform="translate(-2.79776E-14,-14.1732)">
@@ -765,7 +765,7 @@
 					<text id="fn-cnt-tall_boy-2" text-anchor="middle" x="27.9213" y="1215.26" class="st4" v:langID="1042"><v:paragraph v:horizAlign="1"/><v:tabList/></text>				</g>
 				<g id="shape2070-305" v:mID="2070" v:groupContext="shape" transform="translate(-2.79776E-14,-14.1732)">
 					<title>시트.2070</title>
-					<image id="fn-photo-tall_boy-2" x="0" y="1148.78" width="55.8425" height="70.8661" preserveAspectRatio="xMidYMin slice" xlink:href="56.6929"/>
+					<image id="fn-photo-tall_boy-2" x="0" y="1148.78" width="55.8425" height="70.8661" preserveAspectRatio="xMidYMin slice" xlink:href="/shows/betm-skorea-2026/images/플레이스홀더.jpeg"/>
 					<rect x="0" y="1148.78" width="55.8425" height="70.8661" class="st5"/>
 				</g>
 				<g id="shape2071-307" v:mID="2071" v:groupContext="shape" transform="translate(-2.79776E-14,-14.1732)">
@@ -797,7 +797,7 @@
 					<text id="fn-cnt-small_boy-0" text-anchor="middle" x="27.9213" y="1215.26" class="st4" v:langID="1042"><v:paragraph v:horizAlign="1"/><v:tabList/></text>				</g>
 				<g id="shape2077-318" v:mID="2077" v:groupContext="shape" transform="translate(-2.79776E-14,-14.1732)">
 					<title>시트.2077</title>
-					<image id="fn-photo-small_boy-0" x="0" y="1148.78" width="55.8425" height="70.8661" preserveAspectRatio="xMidYMin slice" xlink:href="56.6929"/>
+					<image id="fn-photo-small_boy-0" x="0" y="1148.78" width="55.8425" height="70.8661" preserveAspectRatio="xMidYMin slice" xlink:href="/shows/betm-skorea-2026/images/플레이스홀더.jpeg"/>
 					<rect x="0" y="1148.78" width="55.8425" height="70.8661" class="st5"/>
 				</g>
 				<g id="shape2078-320" v:mID="2078" v:groupContext="shape" transform="translate(-2.79776E-14,-14.1732)">
@@ -819,7 +819,7 @@
 					<text id="fn-cnt-small_boy-1" text-anchor="middle" x="27.9213" y="1215.26" class="st4" v:langID="1042"><v:paragraph v:horizAlign="1"/><v:tabList/></text>				</g>
 				<g id="shape2081-327" v:mID="2081" v:groupContext="shape" transform="translate(-3.59712E-14,-14.1732)">
 					<title>시트.2081</title>
-					<image id="fn-photo-small_boy-1" x="0" y="1148.78" width="55.8425" height="70.8661" preserveAspectRatio="xMidYMin slice" xlink:href="56.6929"/>
+					<image id="fn-photo-small_boy-1" x="0" y="1148.78" width="55.8425" height="70.8661" preserveAspectRatio="xMidYMin slice" xlink:href="/shows/betm-skorea-2026/images/플레이스홀더.jpeg"/>
 					<rect x="0" y="1148.78" width="55.8425" height="70.8661" class="st5"/>
 				</g>
 				<g id="shape2082-329" v:mID="2082" v:groupContext="shape" transform="translate(-3.59712E-14,-14.1732)">
@@ -841,7 +841,7 @@
 					<text id="fn-cnt-small_boy-2" text-anchor="middle" x="27.9213" y="1215.26" class="st4" v:langID="1042"><v:paragraph v:horizAlign="1"/><v:tabList/></text>				</g>
 				<g id="shape2085-336" v:mID="2085" v:groupContext="shape" transform="translate(-2.79776E-14,-14.1732)">
 					<title>시트.2085</title>
-					<image id="fn-photo-small_boy-2" x="0" y="1148.78" width="55.8425" height="70.8661" preserveAspectRatio="xMidYMin slice" xlink:href="56.6929"/>
+					<image id="fn-photo-small_boy-2" x="0" y="1148.78" width="55.8425" height="70.8661" preserveAspectRatio="xMidYMin slice" xlink:href="/shows/betm-skorea-2026/images/플레이스홀더.jpeg"/>
 					<rect x="0" y="1148.78" width="55.8425" height="70.8661" class="st5"/>
 				</g>
 				<g id="shape2086-338" v:mID="2086" v:groupContext="shape" transform="translate(-2.79776E-14,-14.1732)">
@@ -873,7 +873,7 @@
 					<text id="fn-cnt-mr_braithwaite-0" text-anchor="middle" x="27.9213" y="1215.26" class="st4" v:langID="1042"><v:paragraph v:horizAlign="1"/><v:tabList/></text>				</g>
 				<g id="shape2091-349" v:mID="2091" v:groupContext="shape" transform="translate(-2.79776E-14,-14.1732)">
 					<title>시트.2091</title>
-					<image id="fn-photo-mr_braithwaite-0" x="0" y="1148.78" width="55.8425" height="70.8661" preserveAspectRatio="xMidYMin slice" xlink:href="56.6929"/>
+					<image id="fn-photo-mr_braithwaite-0" x="0" y="1148.78" width="55.8425" height="70.8661" preserveAspectRatio="xMidYMin slice" xlink:href="/shows/betm-skorea-2026/images/플레이스홀더.jpeg"/>
 					<rect x="0" y="1148.78" width="55.8425" height="70.8661" class="st5"/>
 				</g>
 				<g id="shape2092-351" v:mID="2092" v:groupContext="shape" transform="translate(-2.79776E-14,-14.1732)">
@@ -891,7 +891,7 @@
 				<title>시트.2095</title>
 				<g id="shape2093-356" v:mID="2093" v:groupContext="shape">
 					<title>시트.2093</title>
-					<image id="fn-photo-ballet_girls_ashington-0" x="0" y="1162.95" width="42.5197" height="56.6929" preserveAspectRatio="xMidYMin slice" xlink:href="56.6929"/>
+					<image id="fn-photo-ballet_girls_ashington-0" x="0" y="1162.95" width="42.5197" height="56.6929" preserveAspectRatio="xMidYMin slice" xlink:href="/shows/betm-skorea-2026/images/플레이스홀더.jpeg"/>
 					<rect x="0" y="1162.95" width="42.5197" height="56.6929" class="st5"/>
 				</g>
 				<g id="shape2094-358" v:mID="2094" v:groupContext="shape">
@@ -920,7 +920,7 @@
 				<title>시트.2148</title>
 				<g id="shape2096-368" v:mID="2096" v:groupContext="shape">
 					<title>시트.2096</title>
-					<image id="fn-photo-ballet_girls_ashington-1" x="0" y="1162.95" width="42.5197" height="56.6929" preserveAspectRatio="xMidYMin slice" xlink:href="56.6929"/>
+					<image id="fn-photo-ballet_girls_ashington-1" x="0" y="1162.95" width="42.5197" height="56.6929" preserveAspectRatio="xMidYMin slice" xlink:href="/shows/betm-skorea-2026/images/플레이스홀더.jpeg"/>
 					<rect x="0" y="1162.95" width="42.5197" height="56.6929" class="st5"/>
 				</g>
 				<g id="shape2097-370" v:mID="2097" v:groupContext="shape">
@@ -935,7 +935,7 @@
 				<title>시트.2149</title>
 				<g id="shape2098-374" v:mID="2098" v:groupContext="shape">
 					<title>시트.2098</title>
-					<image id="fn-photo-ballet_girls_ashington-2" x="0" y="1162.95" width="42.5197" height="56.6929" preserveAspectRatio="xMidYMin slice" xlink:href="56.6929"/>
+					<image id="fn-photo-ballet_girls_ashington-2" x="0" y="1162.95" width="42.5197" height="56.6929" preserveAspectRatio="xMidYMin slice" xlink:href="/shows/betm-skorea-2026/images/플레이스홀더.jpeg"/>
 					<rect x="0" y="1162.95" width="42.5197" height="56.6929" class="st5"/>
 				</g>
 				<g id="shape2099-376" v:mID="2099" v:groupContext="shape">
@@ -950,7 +950,7 @@
 				<title>시트.2150</title>
 				<g id="shape2100-380" v:mID="2100" v:groupContext="shape">
 					<title>시트.2100</title>
-					<image id="fn-photo-ballet_girls_ashington-3" x="0" y="1162.95" width="42.5197" height="56.6929" preserveAspectRatio="xMidYMin slice" xlink:href="56.6929"/>
+					<image id="fn-photo-ballet_girls_ashington-3" x="0" y="1162.95" width="42.5197" height="56.6929" preserveAspectRatio="xMidYMin slice" xlink:href="/shows/betm-skorea-2026/images/플레이스홀더.jpeg"/>
 					<rect x="0" y="1162.95" width="42.5197" height="56.6929" class="st5"/>
 				</g>
 				<g id="shape2101-382" v:mID="2101" v:groupContext="shape">
@@ -965,7 +965,7 @@
 				<title>시트.2151</title>
 				<g id="shape2102-386" v:mID="2102" v:groupContext="shape">
 					<title>시트.2102</title>
-					<image id="fn-photo-ballet_girls_ashington-4" x="0" y="1162.95" width="42.5197" height="56.6929" preserveAspectRatio="xMidYMin slice" xlink:href="56.6929"/>
+					<image id="fn-photo-ballet_girls_ashington-4" x="0" y="1162.95" width="42.5197" height="56.6929" preserveAspectRatio="xMidYMin slice" xlink:href="/shows/betm-skorea-2026/images/플레이스홀더.jpeg"/>
 					<rect x="0" y="1162.95" width="42.5197" height="56.6929" class="st5"/>
 				</g>
 				<g id="shape2103-388" v:mID="2103" v:groupContext="shape">
@@ -983,7 +983,7 @@
 				<title>시트.2154</title>
 				<g id="shape2155-393" v:mID="2155" v:groupContext="shape">
 					<title>시트.2155</title>
-					<image id="fn-photo-ballet_girls_bedlington-0" x="0" y="1162.95" width="42.5197" height="56.6929" preserveAspectRatio="xMidYMin slice" xlink:href="56.6929"/>
+					<image id="fn-photo-ballet_girls_bedlington-0" x="0" y="1162.95" width="42.5197" height="56.6929" preserveAspectRatio="xMidYMin slice" xlink:href="/shows/betm-skorea-2026/images/플레이스홀더.jpeg"/>
 					<rect x="0" y="1162.95" width="42.5197" height="56.6929" class="st5"/>
 				</g>
 				<g id="shape2156-395" v:mID="2156" v:groupContext="shape">
@@ -1012,7 +1012,7 @@
 				<title>시트.2159</title>
 				<g id="shape2160-405" v:mID="2160" v:groupContext="shape">
 					<title>시트.2160</title>
-					<image id="fn-photo-ballet_girls_bedlington-1" x="0" y="1162.95" width="42.5197" height="56.6929" preserveAspectRatio="xMidYMin slice" xlink:href="56.6929"/>
+					<image id="fn-photo-ballet_girls_bedlington-1" x="0" y="1162.95" width="42.5197" height="56.6929" preserveAspectRatio="xMidYMin slice" xlink:href="/shows/betm-skorea-2026/images/플레이스홀더.jpeg"/>
 					<rect x="0" y="1162.95" width="42.5197" height="56.6929" class="st5"/>
 				</g>
 				<g id="shape2161-407" v:mID="2161" v:groupContext="shape">
@@ -1027,7 +1027,7 @@
 				<title>시트.2162</title>
 				<g id="shape2163-411" v:mID="2163" v:groupContext="shape">
 					<title>시트.2163</title>
-					<image id="fn-photo-ballet_girls_bedlington-2" x="0" y="1162.95" width="42.5197" height="56.6929" preserveAspectRatio="xMidYMin slice" xlink:href="56.6929"/>
+					<image id="fn-photo-ballet_girls_bedlington-2" x="0" y="1162.95" width="42.5197" height="56.6929" preserveAspectRatio="xMidYMin slice" xlink:href="/shows/betm-skorea-2026/images/플레이스홀더.jpeg"/>
 					<rect x="0" y="1162.95" width="42.5197" height="56.6929" class="st5"/>
 				</g>
 				<g id="shape2164-413" v:mID="2164" v:groupContext="shape">
@@ -1042,7 +1042,7 @@
 				<title>시트.2165</title>
 				<g id="shape2166-417" v:mID="2166" v:groupContext="shape">
 					<title>시트.2166</title>
-					<image id="fn-photo-ballet_girls_bedlington-3" x="0" y="1162.95" width="42.5197" height="56.6929" preserveAspectRatio="xMidYMin slice" xlink:href="56.6929"/>
+					<image id="fn-photo-ballet_girls_bedlington-3" x="0" y="1162.95" width="42.5197" height="56.6929" preserveAspectRatio="xMidYMin slice" xlink:href="/shows/betm-skorea-2026/images/플레이스홀더.jpeg"/>
 					<rect x="0" y="1162.95" width="42.5197" height="56.6929" class="st5"/>
 				</g>
 				<g id="shape2167-419" v:mID="2167" v:groupContext="shape">
@@ -1057,7 +1057,7 @@
 				<title>시트.2168</title>
 				<g id="shape2169-423" v:mID="2169" v:groupContext="shape">
 					<title>시트.2169</title>
-					<image id="fn-photo-ballet_girls_bedlington-4" x="0" y="1162.95" width="42.5197" height="56.6929" preserveAspectRatio="xMidYMin slice" xlink:href="56.6929"/>
+					<image id="fn-photo-ballet_girls_bedlington-4" x="0" y="1162.95" width="42.5197" height="56.6929" preserveAspectRatio="xMidYMin slice" xlink:href="/shows/betm-skorea-2026/images/플레이스홀더.jpeg"/>
 					<rect x="0" y="1162.95" width="42.5197" height="56.6929" class="st5"/>
 				</g>
 				<g id="shape2170-425" v:mID="2170" v:groupContext="shape">
@@ -1075,7 +1075,7 @@
 				<title>시트.2172</title>
 				<g id="shape2173-430" v:mID="2173" v:groupContext="shape">
 					<title>시트.2173</title>
-					<image id="fn-photo-ballet_girls-0" x="0" y="1162.95" width="42.5197" height="56.6929" preserveAspectRatio="xMidYMin slice" xlink:href="56.6929"/>
+					<image id="fn-photo-ballet_girls-0" x="0" y="1162.95" width="42.5197" height="56.6929" preserveAspectRatio="xMidYMin slice" xlink:href="/shows/betm-skorea-2026/images/플레이스홀더.jpeg"/>
 					<rect x="0" y="1162.95" width="42.5197" height="56.6929" class="st5"/>
 				</g>
 				<g id="shape2174-432" v:mID="2174" v:groupContext="shape">
@@ -1097,7 +1097,7 @@
 				<title>시트.2177</title>
 				<g id="shape2178-439" v:mID="2178" v:groupContext="shape">
 					<title>시트.2178</title>
-					<image id="fn-photo-ballet_girls-1" x="0" y="1162.95" width="42.5197" height="56.6929" preserveAspectRatio="xMidYMin slice" xlink:href="56.6929"/>
+					<image id="fn-photo-ballet_girls-1" x="0" y="1162.95" width="42.5197" height="56.6929" preserveAspectRatio="xMidYMin slice" xlink:href="/shows/betm-skorea-2026/images/플레이스홀더.jpeg"/>
 					<rect x="0" y="1162.95" width="42.5197" height="56.6929" class="st5"/>
 				</g>
 				<g id="shape2179-441" v:mID="2179" v:groupContext="shape">
@@ -1112,7 +1112,7 @@
 				<title>시트.2180</title>
 				<g id="shape2181-445" v:mID="2181" v:groupContext="shape">
 					<title>시트.2181</title>
-					<image id="fn-photo-ballet_girls-2" x="0" y="1162.95" width="42.5197" height="56.6929" preserveAspectRatio="xMidYMin slice" xlink:href="56.6929"/>
+					<image id="fn-photo-ballet_girls-2" x="0" y="1162.95" width="42.5197" height="56.6929" preserveAspectRatio="xMidYMin slice" xlink:href="/shows/betm-skorea-2026/images/플레이스홀더.jpeg"/>
 					<rect x="0" y="1162.95" width="42.5197" height="56.6929" class="st5"/>
 				</g>
 				<g id="shape2182-447" v:mID="2182" v:groupContext="shape">
@@ -1127,7 +1127,7 @@
 				<title>시트.2183</title>
 				<g id="shape2184-451" v:mID="2184" v:groupContext="shape">
 					<title>시트.2184</title>
-					<image id="fn-photo-ballet_girls-3" x="0" y="1162.95" width="42.5197" height="56.6929" preserveAspectRatio="xMidYMin slice" xlink:href="56.6929"/>
+					<image id="fn-photo-ballet_girls-3" x="0" y="1162.95" width="42.5197" height="56.6929" preserveAspectRatio="xMidYMin slice" xlink:href="/shows/betm-skorea-2026/images/플레이스홀더.jpeg"/>
 					<rect x="0" y="1162.95" width="42.5197" height="56.6929" class="st5"/>
 				</g>
 				<g id="shape2185-453" v:mID="2185" v:groupContext="shape">
@@ -1143,7 +1143,7 @@
 			<title>시트.2188</title>
 			<g id="shape2189-457" v:mID="2189" v:groupContext="shape">
 				<title>시트.2189</title>
-				<image id="fn-photo-ensemble-0" x="0" y="1162.95" width="42.5197" height="56.6929" preserveAspectRatio="xMidYMin slice" xlink:href="56.6929"/>
+				<image id="fn-photo-ensemble-0" x="0" y="1162.95" width="42.5197" height="56.6929" preserveAspectRatio="xMidYMin slice" xlink:href="/shows/betm-skorea-2026/images/플레이스홀더.jpeg"/>
 				<rect x="0" y="1162.95" width="42.5197" height="56.6929" class="st5"/>
 			</g>
 			<g id="shape2190-459" v:mID="2190" v:groupContext="shape">
@@ -1165,7 +1165,7 @@
 			<title>시트.2193</title>
 			<g id="shape2194-466" v:mID="2194" v:groupContext="shape">
 				<title>시트.2194</title>
-				<image id="fn-photo-ensemble-1" x="0" y="1162.95" width="42.5197" height="56.6929" preserveAspectRatio="xMidYMin slice" xlink:href="56.6929"/>
+				<image id="fn-photo-ensemble-1" x="0" y="1162.95" width="42.5197" height="56.6929" preserveAspectRatio="xMidYMin slice" xlink:href="/shows/betm-skorea-2026/images/플레이스홀더.jpeg"/>
 				<rect x="0" y="1162.95" width="42.5197" height="56.6929" class="st5"/>
 			</g>
 			<g id="shape2195-468" v:mID="2195" v:groupContext="shape">
@@ -1180,7 +1180,7 @@
 			<title>시트.2196</title>
 			<g id="shape2197-472" v:mID="2197" v:groupContext="shape">
 				<title>시트.2197</title>
-				<image id="fn-photo-ensemble-2" x="0" y="1162.95" width="42.5197" height="56.6929" preserveAspectRatio="xMidYMin slice" xlink:href="56.6929"/>
+				<image id="fn-photo-ensemble-2" x="0" y="1162.95" width="42.5197" height="56.6929" preserveAspectRatio="xMidYMin slice" xlink:href="/shows/betm-skorea-2026/images/플레이스홀더.jpeg"/>
 				<rect x="0" y="1162.95" width="42.5197" height="56.6929" class="st5"/>
 			</g>
 			<g id="shape2198-474" v:mID="2198" v:groupContext="shape">
@@ -1195,7 +1195,7 @@
 			<title>시트.2199</title>
 			<g id="shape2200-478" v:mID="2200" v:groupContext="shape">
 				<title>시트.2200</title>
-				<image id="fn-photo-ensemble-3" x="0" y="1162.95" width="42.5197" height="56.6929" preserveAspectRatio="xMidYMin slice" xlink:href="56.6929"/>
+				<image id="fn-photo-ensemble-3" x="0" y="1162.95" width="42.5197" height="56.6929" preserveAspectRatio="xMidYMin slice" xlink:href="/shows/betm-skorea-2026/images/플레이스홀더.jpeg"/>
 				<rect x="0" y="1162.95" width="42.5197" height="56.6929" class="st5"/>
 			</g>
 			<g id="shape2201-480" v:mID="2201" v:groupContext="shape">
@@ -1210,7 +1210,7 @@
 			<title>시트.2202</title>
 			<g id="shape2203-484" v:mID="2203" v:groupContext="shape">
 				<title>시트.2203</title>
-				<image id="fn-photo-ensemble-4" x="0" y="1162.95" width="42.5197" height="56.6929" preserveAspectRatio="xMidYMin slice" xlink:href="56.6929"/>
+				<image id="fn-photo-ensemble-4" x="0" y="1162.95" width="42.5197" height="56.6929" preserveAspectRatio="xMidYMin slice" xlink:href="/shows/betm-skorea-2026/images/플레이스홀더.jpeg"/>
 				<rect x="0" y="1162.95" width="42.5197" height="56.6929" class="st5"/>
 			</g>
 			<g id="shape2204-486" v:mID="2204" v:groupContext="shape">
@@ -1225,7 +1225,7 @@
 			<title>시트.2238</title>
 			<g id="shape2239-490" v:mID="2239" v:groupContext="shape">
 				<title>시트.2239</title>
-				<image id="fn-photo-ensemble-5" x="0" y="1162.95" width="42.5197" height="56.6929" preserveAspectRatio="xMidYMin slice" xlink:href="56.6929"/>
+				<image id="fn-photo-ensemble-5" x="0" y="1162.95" width="42.5197" height="56.6929" preserveAspectRatio="xMidYMin slice" xlink:href="/shows/betm-skorea-2026/images/플레이스홀더.jpeg"/>
 				<rect x="0" y="1162.95" width="42.5197" height="56.6929" class="st5"/>
 			</g>
 			<g id="shape2240-492" v:mID="2240" v:groupContext="shape">
@@ -1240,7 +1240,7 @@
 			<title>시트.2241</title>
 			<g id="shape2242-496" v:mID="2242" v:groupContext="shape">
 				<title>시트.2242</title>
-				<image id="fn-photo-ensemble-6" x="0" y="1162.95" width="42.5197" height="56.6929" preserveAspectRatio="xMidYMin slice" xlink:href="56.6929"/>
+				<image id="fn-photo-ensemble-6" x="0" y="1162.95" width="42.5197" height="56.6929" preserveAspectRatio="xMidYMin slice" xlink:href="/shows/betm-skorea-2026/images/플레이스홀더.jpeg"/>
 				<rect x="0" y="1162.95" width="42.5197" height="56.6929" class="st5"/>
 			</g>
 			<g id="shape2243-498" v:mID="2243" v:groupContext="shape">
@@ -1255,7 +1255,7 @@
 			<title>시트.2244</title>
 			<g id="shape2245-502" v:mID="2245" v:groupContext="shape">
 				<title>시트.2245</title>
-				<image id="fn-photo-ensemble-7" x="0" y="1162.95" width="42.5197" height="56.6929" preserveAspectRatio="xMidYMin slice" xlink:href="56.6929"/>
+				<image id="fn-photo-ensemble-7" x="0" y="1162.95" width="42.5197" height="56.6929" preserveAspectRatio="xMidYMin slice" xlink:href="/shows/betm-skorea-2026/images/플레이스홀더.jpeg"/>
 				<rect x="0" y="1162.95" width="42.5197" height="56.6929" class="st5"/>
 			</g>
 			<g id="shape2246-504" v:mID="2246" v:groupContext="shape">
@@ -1270,7 +1270,7 @@
 			<title>시트.2247</title>
 			<g id="shape2248-508" v:mID="2248" v:groupContext="shape">
 				<title>시트.2248</title>
-				<image id="fn-photo-ensemble-8" x="0" y="1162.95" width="42.5197" height="56.6929" preserveAspectRatio="xMidYMin slice" xlink:href="56.6929"/>
+				<image id="fn-photo-ensemble-8" x="0" y="1162.95" width="42.5197" height="56.6929" preserveAspectRatio="xMidYMin slice" xlink:href="/shows/betm-skorea-2026/images/플레이스홀더.jpeg"/>
 				<rect x="0" y="1162.95" width="42.5197" height="56.6929" class="st5"/>
 			</g>
 			<g id="shape2249-510" v:mID="2249" v:groupContext="shape">
@@ -1285,7 +1285,7 @@
 			<title>시트.2250</title>
 			<g id="shape2251-514" v:mID="2251" v:groupContext="shape">
 				<title>시트.2251</title>
-				<image id="fn-photo-ensemble-9" x="0" y="1162.95" width="42.5197" height="56.6929" preserveAspectRatio="xMidYMin slice" xlink:href="56.6929"/>
+				<image id="fn-photo-ensemble-9" x="0" y="1162.95" width="42.5197" height="56.6929" preserveAspectRatio="xMidYMin slice" xlink:href="/shows/betm-skorea-2026/images/플레이스홀더.jpeg"/>
 				<rect x="0" y="1162.95" width="42.5197" height="56.6929" class="st5"/>
 			</g>
 			<g id="shape2252-516" v:mID="2252" v:groupContext="shape">
@@ -1300,7 +1300,7 @@
 			<title>시트.2253</title>
 			<g id="shape2254-520" v:mID="2254" v:groupContext="shape">
 				<title>시트.2254</title>
-				<image id="fn-photo-ensemble-10" x="0" y="1162.95" width="42.5197" height="56.6929" preserveAspectRatio="xMidYMin slice" xlink:href="56.6929"/>
+				<image id="fn-photo-ensemble-10" x="0" y="1162.95" width="42.5197" height="56.6929" preserveAspectRatio="xMidYMin slice" xlink:href="/shows/betm-skorea-2026/images/플레이스홀더.jpeg"/>
 				<rect x="0" y="1162.95" width="42.5197" height="56.6929" class="st5"/>
 			</g>
 			<g id="shape2255-522" v:mID="2255" v:groupContext="shape">
@@ -1315,7 +1315,7 @@
 			<title>시트.2256</title>
 			<g id="shape2257-526" v:mID="2257" v:groupContext="shape">
 				<title>시트.2257</title>
-				<image id="fn-photo-ensemble-11" x="0" y="1162.95" width="42.5197" height="56.6929" preserveAspectRatio="xMidYMin slice" xlink:href="56.6929"/>
+				<image id="fn-photo-ensemble-11" x="0" y="1162.95" width="42.5197" height="56.6929" preserveAspectRatio="xMidYMin slice" xlink:href="/shows/betm-skorea-2026/images/플레이스홀더.jpeg"/>
 				<rect x="0" y="1162.95" width="42.5197" height="56.6929" class="st5"/>
 			</g>
 			<g id="shape2258-528" v:mID="2258" v:groupContext="shape">
@@ -1330,7 +1330,7 @@
 			<title>시트.2259</title>
 			<g id="shape2260-532" v:mID="2260" v:groupContext="shape">
 				<title>시트.2260</title>
-				<image id="fn-photo-ensemble-12" x="0" y="1162.95" width="42.5197" height="56.6929" preserveAspectRatio="xMidYMin slice" xlink:href="56.6929"/>
+				<image id="fn-photo-ensemble-12" x="0" y="1162.95" width="42.5197" height="56.6929" preserveAspectRatio="xMidYMin slice" xlink:href="/shows/betm-skorea-2026/images/플레이스홀더.jpeg"/>
 				<rect x="0" y="1162.95" width="42.5197" height="56.6929" class="st5"/>
 			</g>
 			<g id="shape2261-534" v:mID="2261" v:groupContext="shape">
@@ -1345,7 +1345,7 @@
 			<title>시트.2262</title>
 			<g id="shape2263-538" v:mID="2263" v:groupContext="shape">
 				<title>시트.2263</title>
-				<image id="fn-photo-ensemble-13" x="0" y="1162.95" width="42.5197" height="56.6929" preserveAspectRatio="xMidYMin slice" xlink:href="56.6929"/>
+				<image id="fn-photo-ensemble-13" x="0" y="1162.95" width="42.5197" height="56.6929" preserveAspectRatio="xMidYMin slice" xlink:href="/shows/betm-skorea-2026/images/플레이스홀더.jpeg"/>
 				<rect x="0" y="1162.95" width="42.5197" height="56.6929" class="st5"/>
 			</g>
 			<g id="shape2264-540" v:mID="2264" v:groupContext="shape">
@@ -1360,7 +1360,7 @@
 			<title>시트.2265</title>
 			<g id="shape2266-544" v:mID="2266" v:groupContext="shape">
 				<title>시트.2266</title>
-				<image id="fn-photo-ensemble-14" x="0" y="1162.95" width="42.5197" height="56.6929" preserveAspectRatio="xMidYMin slice" xlink:href="56.6929"/>
+				<image id="fn-photo-ensemble-14" x="0" y="1162.95" width="42.5197" height="56.6929" preserveAspectRatio="xMidYMin slice" xlink:href="/shows/betm-skorea-2026/images/플레이스홀더.jpeg"/>
 				<rect x="0" y="1162.95" width="42.5197" height="56.6929" class="st5"/>
 			</g>
 			<g id="shape2267-546" v:mID="2267" v:groupContext="shape">
@@ -1375,7 +1375,7 @@
 			<title>시트.2268</title>
 			<g id="shape2269-550" v:mID="2269" v:groupContext="shape">
 				<title>시트.2269</title>
-				<image id="fn-photo-ensemble-15" x="0" y="1162.95" width="42.5197" height="56.6929" preserveAspectRatio="xMidYMin slice" xlink:href="56.6929"/>
+				<image id="fn-photo-ensemble-15" x="0" y="1162.95" width="42.5197" height="56.6929" preserveAspectRatio="xMidYMin slice" xlink:href="/shows/betm-skorea-2026/images/플레이스홀더.jpeg"/>
 				<rect x="0" y="1162.95" width="42.5197" height="56.6929" class="st5"/>
 			</g>
 			<g id="shape2270-552" v:mID="2270" v:groupContext="shape">
@@ -1390,7 +1390,7 @@
 			<title>시트.2271</title>
 			<g id="shape2272-556" v:mID="2272" v:groupContext="shape">
 				<title>시트.2272</title>
-				<image id="fn-photo-ensemble-16" x="0" y="1162.95" width="42.5197" height="56.6929" preserveAspectRatio="xMidYMin slice" xlink:href="56.6929"/>
+				<image id="fn-photo-ensemble-16" x="0" y="1162.95" width="42.5197" height="56.6929" preserveAspectRatio="xMidYMin slice" xlink:href="/shows/betm-skorea-2026/images/플레이스홀더.jpeg"/>
 				<rect x="0" y="1162.95" width="42.5197" height="56.6929" class="st5"/>
 			</g>
 			<g id="shape2273-558" v:mID="2273" v:groupContext="shape">
@@ -1405,7 +1405,7 @@
 			<title>시트.2274</title>
 			<g id="shape2275-562" v:mID="2275" v:groupContext="shape">
 				<title>시트.2275</title>
-				<image id="fn-photo-ensemble-17" x="0" y="1162.95" width="42.5197" height="56.6929" preserveAspectRatio="xMidYMin slice" xlink:href="56.6929"/>
+				<image id="fn-photo-ensemble-17" x="0" y="1162.95" width="42.5197" height="56.6929" preserveAspectRatio="xMidYMin slice" xlink:href="/shows/betm-skorea-2026/images/플레이스홀더.jpeg"/>
 				<rect x="0" y="1162.95" width="42.5197" height="56.6929" class="st5"/>
 			</g>
 			<g id="shape2276-564" v:mID="2276" v:groupContext="shape">
@@ -1471,21 +1471,21 @@
 			<v:textRect cx="113.386" cy="1106.26" width="226.78" height="226.772"/>
 			
 					</g>
-		<g id="shape2292-606" v:mID="2292" v:groupContext="shape" transform="translate(394.926,-113.761)">
+		<g id="shape2292-606" v:mID="2292" v:groupContext="shape" transform="translate(379.286,-176.061)">
 			<title>시트.2292</title>
 			<desc>TOTAL</desc>
 			<v:textBlock v:margins="rect(4,4,4,4)" v:tabSpace="42.5197"/>
 			<v:textRect cx="91.7008" cy="1209.65" width="183.41" height="20"/>
 			<rect x="0" y="1199.65" width="183.402" height="20" class="st1"/>
 			<text text-anchor="middle" x="78.074" y="1213.25" class="st10" v:langID="1042"><v:paragraph v:horizAlign="1"/><v:tabList/>TOTAL</text>		</g>
-		<g id="shape2293-609" v:mID="2293" v:groupContext="shape" transform="translate(385.887,-72.8822)">
+		<g id="shape2293-609" v:mID="2293" v:groupContext="shape" transform="translate(370.247,-135.1822)">
 			<title>시트.2293</title>
 			<desc>38 / 123</desc>
 			<v:textBlock v:margins="rect(4,4,4,4)" v:tabSpace="42.5197"/>
 			<v:textRect cx="91.7008" cy="1193.54" width="183.41" height="52.2172"/>
 			<rect x="0" y="1167.43" width="183.402" height="52.2172" class="st1"/>
 			<text text-anchor="end" id="fn-total" x="130.113" y="1205.740" class="st11" v:langID="1042"><v:paragraph v:horizAlign="1"/><v:tabList/>38 / 123</text>		</g>
-		<g id="shape2294-612" v:mID="2294" v:groupContext="shape" transform="translate(436.91,-54.0758)">
+		<g id="shape2294-612" v:mID="2294" v:groupContext="shape" transform="translate(421.27,-116.3758)">
 			<title>시트.2294</title>
 			<desc>지금까지 함께한 빌리의 순간들</desc>
 			<v:textBlock v:margins="rect(4,4,4,4)" v:tabSpace="42.5197"/>
