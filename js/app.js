@@ -2490,6 +2490,7 @@ function computeRoleActorStats(role, mode){
 }
 
 let castStatsMode = "all"; // 'first' | 'start' | 'all' | 'weighted'
+let finaleStatsMode = "all"; // Finale 탭 통계 기준(독립 저장) — 'start' | 'all' | 'weighted'. finale.js가 읽고 쓴다.
 let matchAssumeDefaultWin = false; // 대결: 결과 미기록 완료공연을 defaultWinner 승리로 간주
 let matchStatsOrder = [];          // 대결 통계 블록 표시 순서(키 배열)
 let collapsedMatchStats = new Set(); // 닫힌 대결 통계 블록 키
@@ -5088,6 +5089,7 @@ function buildStateSnapshot(){
     minimapVisible: minimapVisible,
     previewDefaultZoom: previewDefaultZoom,
     castStatsMode: castStatsMode,
+    finaleStatsMode: finaleStatsMode,
     matchAssumeDefaultWin: matchAssumeDefaultWin,
     matchStatsOrder: [...matchStatsOrder],
     collapsedMatchStats: [...collapsedMatchStats],
@@ -5212,6 +5214,7 @@ function applyState(state){
   if(typeof state.minimapVisible === "boolean") minimapVisible = state.minimapVisible;
   if(typeof state.previewDefaultZoom === "number") previewDefaultZoom = Math.max(1, Math.min(5, Math.round(state.previewDefaultZoom)));
   if(typeof state.castStatsMode === "string") castStatsMode = state.castStatsMode;
+  if(typeof state.finaleStatsMode === "string") finaleStatsMode = state.finaleStatsMode;
   if(typeof state.matchAssumeDefaultWin === "boolean") matchAssumeDefaultWin = state.matchAssumeDefaultWin;
   if(Array.isArray(state.matchStatsOrder)) matchStatsOrder = state.matchStatsOrder.slice();
   collapsedMatchStats = new Set(state.collapsedMatchStats || []);

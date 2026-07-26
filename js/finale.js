@@ -726,13 +726,14 @@
   async function renderFinale(){
     if(!dataReady()) return;
     // Finale 탭이 처음 열리는 시점엔 app.js의 저장된 설정이 이미 복원돼 있으므로,
-    // 이때 1회만 Statistics 탭의 통계 기준 값을 가져와 초기값으로 맞춘다(이후엔 독립적으로 동작).
+    // 이때 1회만 저장된 Finale 통계 기준(finaleStatsMode, 기본 'all')을 복원한다. 변경은 즉시 저장(아래 change 리스너).
     if(!finaleModeSynced){
       finaleModeSynced = true;
-      if(typeof castStatsMode === "string"){
-        finaleMode = castStatsMode;
-        const sel = document.getElementById("finaleModeSelect");
-        if(sel) sel.value = finaleMode;
+      if(typeof finaleStatsMode === "string" && finaleStatsMode) finaleMode = finaleStatsMode;
+      const sel = document.getElementById("finaleModeSelect");
+      if(sel){
+        sel.value = finaleMode;
+        if(sel.value !== finaleMode){ finaleMode = "all"; sel.value = finaleMode; }   // 저장값이 현재 옵션에 없으면(예: 제거된 'first') 기본값
       }
     }
     await buildThumbs();
@@ -1197,7 +1198,9 @@
     if(booted) return; booted=true;
     wireZoom();
     const sel=document.getElementById("finaleModeSelect");
-    if(sel){ sel.value=finaleMode; sel.addEventListener("change", ()=>{ finaleMode=sel.value; invalidateBoard(); renderFinale(); }); }
+    if(sel){ sel.value=finaleMode; sel.addEventListener("change", ()=>{ finaleMode=sel.value;
+      if(typeof finaleStatsMode === "string"){ finaleStatsMode = finaleMode; if(typeof saveState === "function") saveState(); }   // 통계 기준 저장
+      invalidateBoard(); renderFinale(); }); }
     // 스마트폰 뒤로가기: 오버레이가 열려 있으면 페이지 이동 대신 오버레이만 닫기
     window.addEventListener("popstate", ()=>{
       const ov=document.getElementById("finaleOverlay");
