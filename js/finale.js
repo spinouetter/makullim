@@ -20,7 +20,7 @@
   const BOARDS_URL = "finale-boards.json";
   // finale 자원 콘텐츠 버전 — SVG 보드·정의(JSON)·배우 사진을 실제로 바꿀 때만 올린다.
   //   (커밋 SHA로 매 배포 버스트하지 않고, 내용이 그대로면 브라우저 캐시를 재사용한다.)
-  const FIN_VER = 26;
+  const FIN_VER = 27;
   //   경로에 이미 ?v= 등 자체 버전 쿼리가 있으면(예: background.src="finale-board.svg?v=28") 그걸 존중하고, 없을 때만 FIN_VER를 붙인다.
   function verUrl(p){ const u = window.showUrl(p); return u.indexOf("?")>=0 ? u : (u + "?v=" + FIN_VER); }
   const JSPDF_URL   = "https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js";
@@ -179,8 +179,8 @@
     fillOpacity:"fill-opacity", strokeOpacity:"stroke-opacity" };
   function styleAttr(k){ return STYLE_ATTR[k] || k; }
   // 스타일 파트의 속성을 요소에 뿌린다. 인라인 style로 넣어 SVG class(.st24 등)보다 우선하게 함.
-  // prefix/postfix/label/dy/zeroBlank는 속성이 아니므로 제외(문자열·오프셋·빈칸 옵션 용도).
-  const NON_ATTR = { prefix:1, postfix:1, label:1, dy:1, zeroBlank:1 };
+  // prefix/postfix/label/dy는 속성이 아니므로 제외(각각 문자열·오프셋 용도).
+  const NON_ATTR = { prefix:1, postfix:1, label:1, dy:1 };
   function applyStyleAttrs(el, part){
     if(!part) return;
     for(const k in part){ if(NON_ATTR[k]) continue; el.style.setProperty(styleAttr(k), String(part[k])); }
@@ -211,10 +211,11 @@
       if(opts.labelFont) lab.setAttribute("font-family", opts.labelFont);
       lab.textContent = opts.label; cntEl.appendChild(lab);
     }
-    // 분자. numerator.zeroBlank: 관극 0이면 투명한 두 자리("00")로 자리만 잡아 손글씨 기입 공간을 남긴다.
-    const blank = num && num.zeroBlank && !w;
+    // 분자 = '내가 본 횟수'. 0이면 모든 보드 공통으로 투명한 두 자리("00")로 자리만 잡아
+    // 손글씨 기입 공간을 남긴다(공유받은 사람이 자기 횟수를 직접 채우는 용도).
+    const blank = !w;
     cntEl.appendChild(styledTspan((opts.label ? " " : "") + (blank ? "00" : fmt(w)),
-      blank ? Object.assign({}, num, { fillOpacity: 0 }) : num));
+      blank ? Object.assign({}, num, { fillOpacity: 0, strokeOpacity: 0 }) : num));   // 획(faux-bold)까지 숨김
     cntEl.appendChild(styledTspan(fmt(t), den));                            // 분모(prefix " / ")
   }
 
