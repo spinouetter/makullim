@@ -1086,8 +1086,14 @@
     } finally { URL.revokeObjectURL(url); }
   }
   async function exportRaster(type, ext, quality){
-    const blob=await rasterize(type,quality);
-    if(blob) triggerDownload(blob, `makullim-finale-${stamp()}.${ext}`); else alert("이미지를 만들지 못했습니다.");
+    // 이미지 생성(사진 임베드 등)이 가끔 오래 걸려, 누른 순간부터 다운로드 직전까지 진행 토스트를 띄운다.
+    const toast = (typeof window.showToast === "function") ? window.showToast("이미지 생성 중…", 0) : null;
+    try {
+      const blob=await rasterize(type,quality);
+      if(blob) triggerDownload(blob, `makullim-finale-${stamp()}.${ext}`); else alert("이미지를 만들지 못했습니다.");
+    } finally {
+      if(toast) toast.remove();
+    }
   }
   function loadScript(src){ return new Promise((res,rej)=>{ const s=document.createElement("script"); s.src=src; s.onload=res; s.onerror=()=>rej(new Error("스크립트 로드 실패")); document.head.appendChild(s); }); }
   const fontB64Cache=new Map();

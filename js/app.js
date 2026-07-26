@@ -4665,7 +4665,8 @@ function renderComboResults(){
   });
 }
 
-function showToast(msg){
+// duration: 미지정 시 2500ms 후 자동 제거. duration<=0 이면 자동 제거 안 함(호출측이 반환된 요소를 remove).
+function showToast(msg, duration){
   const existing = document.getElementById("appToast");
   if(existing) existing.remove();
   const toast = document.createElement("div");
@@ -4673,7 +4674,9 @@ function showToast(msg){
   toast.textContent = msg;
   toast.style.cssText = "position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--panel);border:1px solid var(--line);color:var(--ink);padding:10px 20px;border-radius:8px;font-size:13px;z-index:9999;box-shadow:0 4px 16px rgba(0,0,0,0.4);pointer-events:none;";
   document.body.appendChild(toast);
-  setTimeout(()=>toast.remove(), 2500);
+  const ms = (duration === undefined) ? 2500 : duration;
+  if(ms > 0) setTimeout(()=>toast.remove(), ms);
+  return toast;
 }
 
 document.getElementById("comboCreateToggle").addEventListener("click", ()=>{
