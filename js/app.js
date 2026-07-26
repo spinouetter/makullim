@@ -2553,6 +2553,8 @@ function setupBlockReorder(container, blockSel, handleSel, keyOf, applyOrder){
    통계에서 숨기고, 스케줄의 '지금' 버튼·지난 공연 음영도 없앤다.
    endDate가 미래면 회차가 아직 다 등록되지 않았을 수 있으므로 진행 중으로 본다. */
 function isShowFinished(){
+  // 공연(시즌) 종료 플래그(meta.ended, 요청 0094)면 endDate 경과를 기다리지 않고 즉시 막 내린 공연으로 본다.
+  if(performanceData && performanceData.ended) return true;
   const perfs = performanceData.performances;
   if(!perfs.length || !perfs.every(isEnded)) return false;
   const end = (performanceData.endDate || "").trim();
