@@ -195,6 +195,13 @@
   }
   function resolveStyle(mani, name){ return (mani.styles && name && mani.styles[name]) || {}; }
 
+  // 관극 기록이 하나라도 있는가 — 없으면(공유받은 사람) 0 대신 손글씨용 빈칸을 남긴다.
+  function anyWatch(){
+    try{
+      return performanceData.performances.some(function(p){ return isEnded(p) && hasSeat(p); });
+    }catch(e){ return false; }
+  }
+
   // 관극수 분수를 그린다. 스타일(numerator/denominator/textAnchor)은 opts.style로 주입(코드 하드코딩 X).
   // opts: { style, label, labelFont, dy }  — label/dy는 TOTAL 등 단발 카운트용.
   function setCount(cntEl, w, t, opts){
@@ -211,9 +218,9 @@
       if(opts.labelFont) lab.setAttribute("font-family", opts.labelFont);
       lab.textContent = opts.label; cntEl.appendChild(lab);
     }
-    // 분자 = '내가 본 횟수'. 0이면 모든 보드 공통으로 투명한 두 자리("00")로 자리만 잡아
-    // 손글씨 기입 공간을 남긴다(공유받은 사람이 자기 횟수를 직접 채우는 용도).
-    const blank = !w;
+    // 분자 = '내가 본 횟수'. 관극 기록이 하나도 없는 사용자(공유받은 사람)에게만 투명한
+    // 두 자리("00")로 자리를 잡아 손글씨 기입 공간을 남기고, 관극이 있으면 0도 그대로 적는다(요청 0095).
+    const blank = !w && !anyWatch();
     cntEl.appendChild(styledTspan((opts.label ? " " : "") + (blank ? "00" : fmt(w)),
       blank ? Object.assign({}, num, { fillOpacity: 0, strokeOpacity: 0 }) : num));   // 획(faux-bold)까지 숨김
     cntEl.appendChild(styledTspan(fmt(t), den));                            // 분모(prefix " / ")

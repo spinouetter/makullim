@@ -4,6 +4,7 @@
 
 | 날짜 | 요청 | 요약 |
 |------|------|------|
+| 2026-07-26 | [0095](0095.md) | Finale 관극수 0을 빈칸 대신 "0"으로 — 투명 "00"(손글씨 공간)은 관극 기록이 하나도 없는 사용자(공유용)일 때만. `anyWatch()` 헬퍼, finale.js v89 |
 | 2026-07-26 | [0094](0094.md) | 공연(시즌) 종료 처리 — 공연 정의 `ended:true`면 `isEnded`가 시간 룰 무시하고 전 회차 완료(통계·도장·막공·티켓 일관 적용). 빌리 2026 종료 표시 + Finale 캐스트보드 PREVIEW 워터마크 제거. app.js v214·finale.js v87(FIN_VER 28) |
 | 2026-07-26 | [0093](0093.md) | Finale 통계 기준 저장 — Finale 탭의 통계 기준(finaleModeSelect)이 리로드마다 초기화되던 것을 상태 스냅숏(`finaleStatsMode`)에 저장·복원. Statistics 탭 값 상속 제거, 기본값 `all`(공연 중 배역 변경 반영), 저장값이 옵션에 없으면 all 폴백. app.js v213·finale.js v86 |
 | 2026-07-26 | [0092](0092.md) | Finale 이미지 저장 시 "이미지 생성 중" 토스트 — PNG/JPG 저장(exportRaster)이 사진 임베드로 가끔 1초+ 걸려, 버튼을 누른 순간부터 다운로드 직전까지 진행 토스트 표시. showToast(msg,duration) 확장(duration<=0=지속·요소 반환, 기존 호출 호환). app.js v212·finale.js v80 |
